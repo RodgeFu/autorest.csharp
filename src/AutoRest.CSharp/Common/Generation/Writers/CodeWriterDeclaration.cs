@@ -16,7 +16,16 @@ namespace AutoRest.CSharp.Generation.Writers
 
         public string RequestedName { get; }
 
-        public string ActualName => _actualName ?? throw new InvalidOperationException("Declaration not initialized");
+        public string ActualName
+        {
+            get
+            {
+                if (_actualName != null)
+                    return _actualName;
+                else
+                    throw new InvalidOperationException("Declaration not initialized");
+            }
+        }
 
         internal void SetActualName(string actualName)
         {

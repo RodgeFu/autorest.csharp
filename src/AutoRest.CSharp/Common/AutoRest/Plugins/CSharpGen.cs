@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,6 +52,17 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             return project;
         }
 
+        public async Task<Dictionary<string, string>> ExecuteWithoutProjectAsync(Task<CodeModel> codeModelTask)
+        {
+            ValidateConfiguration();
+
+            Directory.CreateDirectory(Configuration.OutputFolder);
+
+            var codeModel = await codeModelTask;
+
+            return await MgmtExplorerTarget.ExecuteAsync(codeModel);
+        }
+
         public async Task<GeneratedCodeWorkspace> ExecuteAsync(InputNamespace rootNamespace)
         {
             ValidateConfiguration();
@@ -94,10 +106,23 @@ namespace AutoRest.CSharp.AutoRest.Plugins
 
             try
             {
-                var project = await ExecuteAsync(codeModelTask);
-                await foreach (var file in project.GetGeneratedFilesAsync())
+                // add configure for explorer here;
+                if (Configuration.MgmtConfiguration.ExplorerGen?.Model == true)
                 {
-                    await autoRest.WriteFile(file.Name, file.Text, "source-file-csharp");
+                    var output = ExecuteWithoutProjectAsync(codeModelTask).Result;
+
+                    foreach (var (file, content) in output)
+                    {
+                        await autoRest.WriteFile(file, content, "source-file-csharp");
+                    }
+                }
+                else
+                {
+                    var project = await ExecuteAsync(codeModelTask);
+                    await foreach (var file in project.GetGeneratedFilesAsync())
+                    {
+                        await autoRest.WriteFile(file.Name, file.Text, "source-file-csharp");
+                    }
                 }
             }
             catch (ErrorHelpers.ErrorException e)

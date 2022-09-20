@@ -67,6 +67,52 @@ namespace AutoRest.CSharp.Input
             }
         }
 
+        public class ExplorerGenConfiguration
+        {
+            private const string ExplorerGenOptionsFormat = "explorergen.{0}";
+
+            public bool Model { get; }
+
+            public ExplorerGenConfiguration(
+                JsonElement? model = default)
+            {
+               Model = DeserializeBoolean(model, false);
+            }
+
+            internal static ExplorerGenConfiguration? LoadConfiguration(JsonElement root)
+            {
+                if (root.ValueKind != JsonValueKind.Object)
+                    return null;
+
+                root.TryGetProperty(nameof(Model), out var model);
+
+                return new ExplorerGenConfiguration(
+                    model: model);
+            }
+
+            internal static ExplorerGenConfiguration? GetConfiguration(IPluginCommunication autoRest)
+            {
+                var testGen = autoRest.GetValue<JsonElement?>("explorergen").GetAwaiter().GetResult();
+                if (!IsValidJsonElement(testGen))
+                {
+                    return null;
+                }
+                JsonElement? m = autoRest.GetValue<JsonElement?>(string.Format(ExplorerGenOptionsFormat, "model")).GetAwaiter().GetResult();
+                return new ExplorerGenConfiguration(
+                    model: m);
+            }
+
+            public void Write(Utf8JsonWriter writer, string settingName)
+            {
+                writer.WriteStartObject(settingName);
+
+                if (Model)
+                    writer.WriteBoolean(nameof(Model), Model);
+
+                writer.WriteEndObject();
+            }
+        }
+
         public class TestGenConfiguration
         {
             private const string TestGenOptionsFormat = "testgen.{0}";
@@ -188,6 +234,7 @@ namespace AutoRest.CSharp.Input
             JsonElement? resourceModelRequiresName = default,
             JsonElement? singletonRequiresKeyword = default,
             TestGenConfiguration? testGen = default,
+            ExplorerGenConfiguration? explorerGen = default,
             JsonElement? operationIdMappings = default,
             JsonElement? updateRequiredCopy = default,
             JsonElement? patchInitializerCustomization = default)
@@ -245,6 +292,7 @@ namespace AutoRest.CSharp.Input
             DoesResourceModelRequireName = DeserializeBoolean(resourceModelRequiresName, true);
             DoesSingletonRequiresKeyword = DeserializeBoolean(singletonRequiresKeyword, false);
             TestGen = testGen;
+            ExplorerGen = explorerGen;
             OperationIdMappings = DeserializeDictionary<string, IReadOnlyDictionary<string, string>>(operationIdMappings);
             UpdateRequiredCopy = DeserializeDictionary<string, string>(updateRequiredCopy);
             PatchInitializerCustomization = DeserializeDictionary<string, IReadOnlyDictionary<string, string>>(patchInitializerCustomization);
@@ -307,6 +355,7 @@ namespace AutoRest.CSharp.Input
 
         public bool IsArmCore { get; }
         public TestGenConfiguration? TestGen { get; }
+        public ExplorerGenConfiguration? ExplorerGen { get; }
 
         internal static MgmtConfiguration GetConfiguration(IPluginCommunication autoRest)
         {
@@ -343,6 +392,7 @@ namespace AutoRest.CSharp.Input
                 resourceModelRequiresName: autoRest.GetValue<JsonElement?>("resource-model-requires-name").GetAwaiter().GetResult(),
                 singletonRequiresKeyword: autoRest.GetValue<JsonElement?>("singleton-resource-requires-keyword").GetAwaiter().GetResult(),
                 testGen: TestGenConfiguration.GetConfiguration(autoRest),
+                explorerGen: ExplorerGenConfiguration.GetConfiguration(autoRest),
                 operationIdMappings: autoRest.GetValue<JsonElement?>("operation-id-mappings").GetAwaiter().GetResult(),
                 updateRequiredCopy: autoRest.GetValue<JsonElement?>("update-required-copy").GetAwaiter().GetResult(),
                 patchInitializerCustomization: autoRest.GetValue<JsonElement?>("patch-initializer-customization").GetAwaiter().GetResult());
