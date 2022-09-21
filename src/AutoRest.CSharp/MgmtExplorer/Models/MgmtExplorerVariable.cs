@@ -22,5 +22,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             this.Declaration = variable;
             this.Type = type;
         }
+
+        public override string ToString()
+        {
+            return this.Declaration.ActualName;
+        }
     }
 }

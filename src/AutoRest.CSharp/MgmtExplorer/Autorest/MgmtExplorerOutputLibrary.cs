@@ -32,7 +32,7 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
             return MgmtContext.Library.SchemaMap;
         }
 
-        private IEnumerable<KeyValuePair<T, MgmtRestOperation>> EnumerateOperations<T>(IEnumerable<T> providerList) where T : MgmtTypeProvider
+        private IEnumerable<KeyValuePair<T, MgmtClientOperation>> EnumerateOperations<T>(IEnumerable<T> providerList) where T : MgmtTypeProvider
         {
             foreach (var provider in providerList)
             {
@@ -43,14 +43,14 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
                         continue;
                     // When will this not be 1?
                     Debug.Assert(operations.Count == 1);
-                    yield return new KeyValuePair<T, MgmtRestOperation>(provider, operations.First());
+                    yield return new KeyValuePair<T, MgmtClientOperation>(provider, operations);
                 }
             }
         }
 
-        private IEnumerable<KeyValuePair<Resource, MgmtRestOperation>> EnumerateOperationOnResource() => EnumerateOperations<Resource>(MgmtContext.Library.ArmResources);
-        private IEnumerable<KeyValuePair<ResourceCollection, MgmtRestOperation>> EnumerateOperationsOnResourceCollection() => EnumerateOperations<ResourceCollection>(MgmtContext.Library.ResourceCollections);
-        private IEnumerable<KeyValuePair<MgmtExtensions, MgmtRestOperation>> EnumerateOperationsOnExtension() => EnumerateOperations<MgmtExtensions>(MgmtContext.Library.ExtensionWrapper.Extensions);
+        private IEnumerable<KeyValuePair<Resource, MgmtClientOperation>> EnumerateOperationOnResource() => EnumerateOperations<Resource>(MgmtContext.Library.ArmResources);
+        private IEnumerable<KeyValuePair<ResourceCollection, MgmtClientOperation>> EnumerateOperationsOnResourceCollection() => EnumerateOperations<ResourceCollection>(MgmtContext.Library.ResourceCollections);
+        private IEnumerable<KeyValuePair<MgmtExtensions, MgmtClientOperation>> EnumerateOperationsOnExtension() => EnumerateOperations<MgmtExtensions>(MgmtContext.Library.ExtensionWrapper.Extensions);
 
         public IEnumerable<MgmtExplorerApiDesc> EnumerateAllExplorerApis()
         {

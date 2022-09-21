@@ -15,7 +15,28 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public Parameter ParameterDefinition { get; set; }
 
         public string Value_PlaceHolder { get { return $"{{{ParameterDefinition.Name}_ParamValue}}"; } }
-        public string Value_Default { get { return ParameterDefinition.DefaultValue?.Value?.ToString() ?? Value_PlaceHolder; } }
+        public string Value_Default
+        {
+            get
+            {
+                string value;
+                if (ParameterDefinition.DefaultValue != null)
+                {
+                    if (ParameterDefinition.DefaultValue.Value.Value == null || ParameterDefinition.DefaultValue.Value.IsNewInstanceSentinel)
+                    {
+                        return "default";
+                    }
+                    else
+                    {
+                        return ParameterDefinition.DefaultValue.Value.Value.ToString()!;
+                    }
+                }
+                else
+                    value = Value_PlaceHolder;
+                return value;
+                //return ParameterDefinition.DefaultValue?.Value?.ToString() ?? Value_PlaceHolder;
+            }
+        }
         public bool HasDefaultValue { get { return ParameterDefinition.DefaultValue != null; } }
 
         public MgmtExplorerParameterVariable(Parameter definition)

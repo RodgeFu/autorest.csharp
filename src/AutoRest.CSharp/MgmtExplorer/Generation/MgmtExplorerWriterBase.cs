@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Decorator;
@@ -53,6 +54,22 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         protected virtual void WriteStep_Invoke(MgmtExplorerWriterContext context)
         {
+            if (context.ProviderVar == null)
+                throw new InvalidOperationException("ProviderVar is null when calling WriteStep_Invoke");
+
+            var op = this.ApiDesc.Operation;
+            if (op.IsLongRunningOperation)
+            {
+                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokeLongRunningOperation(context.Writer, op, context.ProviderVar);
+            }
+            else if (op.IsPagingOperation)
+            {
+                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokePagedOperation(context.Writer, op, context.ProviderVar);
+            }
+            else
+            {
+                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokeNormalOperation(context.Writer, op, context.ProviderVar);
+            }
         }
 
         protected virtual void WriteStep_HandleResult(MgmtExplorerWriterContext context)

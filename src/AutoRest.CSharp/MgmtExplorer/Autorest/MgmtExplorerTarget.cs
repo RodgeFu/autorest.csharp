@@ -55,6 +55,8 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 MgmtExplorerWriterBase? writer = desc.Provider switch
                 {
                     ResourceCollection rc => new MgmtExplorerWriterForResourceCollectionApi(desc),
+                    Resource res => new MgmtExplorerWriterForResourceApi(desc),
+                    MgmtExtensions ex => new MgmtExplorerWriterForExtensionsApi(desc),
                     // TODO: throw exception after we add all support
                     _ => null,
                 };

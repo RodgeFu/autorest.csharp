@@ -79,26 +79,5 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 context.ProviderVar = MgmtExplorerWriterUtility.WriteGetResourceCollection(context.Writer, this.Collection, context.ProviderHostVar);
             }
         }
-
-        protected override void WriteStep_Invoke(MgmtExplorerWriterContext context)
-        {
-            base.WriteStep_Invoke(context);
-
-            if (context.ProviderVar == null)
-                throw new InvalidOperationException("ProviderVar is null when calling WriteStep_Invoke");
-            var op = this.ApiDesc.Operation;
-            if (op.IsLongRunningOperation)
-            {
-                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokeLongRunningOperation(context.Writer, op, context.ProviderVar);
-            }
-            else if (op.IsPagingOperation)
-            {
-                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokePagedOperation(context.Writer, op, context.ProviderVar);
-            }
-            else
-            {
-                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokeNormalOperation(context.Writer, op, context.ProviderVar);
-            }
-        }
     }
 }
