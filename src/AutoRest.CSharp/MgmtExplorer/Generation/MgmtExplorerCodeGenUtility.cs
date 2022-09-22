@@ -8,10 +8,13 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
+using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
+using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Models;
+using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Output.Models.Shared;
 using AutoRest.CSharp.Utilities;
 using Azure;
@@ -21,7 +24,7 @@ using Azure.ResourceManager.Resources;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
-    internal class MgmtExplorerWriterUtility
+    internal class MgmtExplorerCodeGenUtility
     {
         public static MgmtExplorerVariable WriteGetArmClient(CodeWriter writer)
         {
@@ -59,7 +62,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         public static MgmtExplorerVariable WriteGetResource(CodeWriter writer, Resource resource, MgmtExplorerVariable armClient)
         {
             var idVar = WriteGetResourceIdentifier(writer, resource);
-            return WriteDefineVariableEqualsExpression(writer, resource.Type, $"{resource.Type.Name}Var".ToVariableName(), $"{armClient.Declaration}.Get{resource.Type}({idVar.Declaration})");
+            return WriteDefineVariableEqualsExpression(writer, resource.Type, $"{resource.Type.Name}Var".ToVariableName(), $"{armClient.Declaration}.Get{resource.Type.Name}({idVar.Declaration})");
         }
 
         public static MgmtExplorerVariable WriteGetResourceIdentifier(CodeWriter writer, MgmtExtensions extension)
@@ -80,10 +83,16 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         #endregion
 
         #region Write Invoke some operation
+        private static IEnumerable<Parameter> GetOperationParameters(MgmtClientOperation operation)
+        {
+            return operation.MethodSignature.Modifiers.HasFlag(MethodSignatureModifiers.Extension) ?
+                operation.MethodParameters.Skip(1) : operation.MethodParameters;
+        }
+
         public static MgmtExplorerVariable WriteInvokeLongRunningOperation(CodeWriter writer, MgmtClientOperation operation, MgmtExplorerVariable providerVar)
         {
             // LongRunningOperation should be returning something like ArmOperation<...> or ArmOperation
-            var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"await {providerVar.Declaration}.{operation.Name}Async", operation.MethodParameters);
+            var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"await {providerVar.Declaration}.{operation.Name}Async", GetOperationParameters(operation));
             if (operation.ReturnType.IsGenericType)
             {
                 return WriteDefineVariableEqualsExpression(writer, operation.ReturnType.Arguments.First(), "result", $"{lro.Declaration}.Value");
@@ -94,19 +103,19 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
         }
 
-        public static MgmtExplorerVariable WriteInvokePagedOperation(CodeWriter writer, MgmtClientOperation op, MgmtExplorerVariable providerVar)
+        public static MgmtExplorerVariable WriteInvokePagedOperation(CodeWriter writer, MgmtClientOperation operation, MgmtExplorerVariable providerVar)
         {
-            var po = WriteDefineVariableEqualsFuncWithVarDefined(writer, new CSharpType(typeof(AsyncPageable<>), op.ReturnType), $"{op.Resource?.Type.Name.ToVariableName() ?? "paged"}List", $"await {providerVar.Declaration}.{op.Name}Async", op.MethodParameters);
-            CSharpType listType = new CSharpType(typeof(List<>), op.ReturnType);
+            var po = WriteDefineVariableEqualsFuncWithVarDefined(writer, new CSharpType(typeof(AsyncPageable<>), operation.ReturnType), $"{operation.Resource?.Type.Name.ToVariableName() ?? "paged"}List", $"await {providerVar.Declaration}.{operation.Name}Async", GetOperationParameters(operation));
+            CSharpType listType = new CSharpType(typeof(List<>), operation.ReturnType);
             // TODO: does tolist work?
             return WriteDefineVariableEqualsExpression(writer, listType, "result", $"{po.Declaration}.ToList()");
         }
 
-        internal static MgmtExplorerVariable? WriteInvokeNormalOperation(CodeWriter writer, MgmtClientOperation op, MgmtExplorerVariable providerVar)
+        internal static MgmtExplorerVariable? WriteInvokeNormalOperation(CodeWriter writer, MgmtClientOperation operation, MgmtExplorerVariable providerVar)
         {
             // Expect to get Azure.Response or Azure.Response<T> ?
-            CSharpType returnType = op.ReturnType.IsGenericType ? op.ReturnType.Arguments.First() : op.ReturnType;
-            return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"await {providerVar.Declaration}.{op.Name}Async", op.MethodParameters);
+            CSharpType returnType = operation.ReturnType.IsGenericType ? operation.ReturnType.Arguments.First() : operation.ReturnType;
+            return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"await {providerVar.Declaration}.{operation.Name}Async", GetOperationParameters(operation));
         }
         #endregion
 

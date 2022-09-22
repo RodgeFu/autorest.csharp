@@ -18,8 +18,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public MgmtTypeProvider Provider { get; }
         public MgmtClientOperation Operation { get; }
 
-        public string UniqueName => $"{Provider.Type.Name}__{Operation.First().OperationId}__{Operation.Name}";
-        public string Description => $"Method {Operation.Name}() on {Provider.ResourceName}";
+        public string UniqueName => $"{Provider.Type.Name}_{Operation.Name}_Or_OperationId_{Operation.First().OperationId}";
+        public string Description => $"Method {Operation.Name}() on {Provider.Type.Name}";
     }
 
 }

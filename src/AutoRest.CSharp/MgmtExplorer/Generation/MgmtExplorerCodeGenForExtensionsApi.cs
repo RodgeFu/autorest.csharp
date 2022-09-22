@@ -14,24 +14,24 @@ using Azure.ResourceManager;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
-    internal class MgmtExplorerWriterForResourceApi : MgmtExplorerWriterBase
+    internal class MgmtExplorerCodeGenForExtensionsApi : MgmtExplorerCodeGenBase
     {
-        private Resource Resource => (Resource)this.ApiDesc.Provider;
+        private MgmtExtensions Extension => (MgmtExtensions)this.ApiDesc.Provider;
 
-        public MgmtExplorerWriterForResourceApi(MgmtExplorerApiDesc apiDesc)
+        public MgmtExplorerCodeGenForExtensionsApi(MgmtExplorerApiDesc apiDesc)
             : base(apiDesc)
         {
-            if (!(apiDesc.Provider is Resource))
-                throw new InvalidOperationException("Provider is not a Resource: " + apiDesc.Provider.Type.Name);
+            if (!(apiDesc.Provider is MgmtExtensions))
+                throw new InvalidOperationException("Provider is not a Extension: " + apiDesc.Provider.Type.Name);
         }
 
-        protected override void WriteStep_PrepareProvider(MgmtExplorerWriterContext context)
+        protected override void WriteStep_PrepareProvider(MgmtExplorerCodeGenContext context)
         {
             base.WriteStep_PrepareProvider(context);
             if (context.ArmClientVar == null)
                 throw new InvalidOperationException("ArmClientVar is null");
 
-            context.ProviderVar = MgmtExplorerWriterUtility.WriteGetResource(context.Writer, this.Resource, context.ArmClientVar);
+            context.ProviderVar = MgmtExplorerCodeGenUtility.WriteGetExtensionResource(context.Writer, this.Extension, context.ArmClientVar);
         }
     }
 }

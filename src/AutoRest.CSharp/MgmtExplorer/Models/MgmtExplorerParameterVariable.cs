@@ -31,8 +31,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                         return ParameterDefinition.DefaultValue.Value.Value.ToString()!;
                     }
                 }
+                else if (ParameterDefinition.Type.Equals(typeof(Azure.WaitUntil)))
+                {
+                    return "Azure.WaitUntil.Completed";
+                }
                 else
+                {
                     value = Value_PlaceHolder;
+                }
                 return value;
                 //return ParameterDefinition.DefaultValue?.Value?.ToString() ?? Value_PlaceHolder;
             }

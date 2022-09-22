@@ -14,18 +14,18 @@ using Azure.ResourceManager;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
-    internal class MgmtExplorerWriterForResourceCollectionApi : MgmtExplorerWriterBase
+    internal class MgmtExplorerCodeGenForResourceCollectionApi : MgmtExplorerCodeGenBase
     {
         private ResourceCollection Collection => (ResourceCollection)this.ApiDesc.Provider;
 
-        public MgmtExplorerWriterForResourceCollectionApi(MgmtExplorerApiDesc apiDesc)
+        public MgmtExplorerCodeGenForResourceCollectionApi(MgmtExplorerApiDesc apiDesc)
             : base(apiDesc)
         {
             if (!(apiDesc.Provider is ResourceCollection))
                 throw new InvalidOperationException("Provider is not a ResourceCollection: " + apiDesc.Provider.Type.Name);
         }
 
-        protected override void WriteStep_PrepareProviderHost(MgmtExplorerWriterContext context)
+        protected override void WriteStep_PrepareProviderHost(MgmtExplorerCodeGenContext context)
         {
             base.WriteStep_PrepareProviderHost(context);
 
@@ -49,14 +49,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 }
                 else
                 {
-                    context.ProviderHostVar = MgmtExplorerWriterUtility.WriteGetExtensionResource(context.Writer, ext, context.ArmClientVar);
+                    context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetExtensionResource(context.Writer, ext, context.ArmClientVar);
                 }
 
             }
             else if (host is Resource)
             {
                 var hostName = host.Type.Name;
-                context.ProviderHostVar = MgmtExplorerWriterUtility.WriteGetResource(context.Writer, (Resource)host, context.ArmClientVar);
+                context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetResource(context.Writer, (Resource)host, context.ArmClientVar);
             }
             else
             {
@@ -64,7 +64,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
         }
 
-        protected override void WriteStep_PrepareProvider(MgmtExplorerWriterContext context)
+        protected override void WriteStep_PrepareProvider(MgmtExplorerCodeGenContext context)
         {
             base.WriteStep_PrepareProvider(context);
 
@@ -76,7 +76,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
             else
             {
-                context.ProviderVar = MgmtExplorerWriterUtility.WriteGetResourceCollection(context.Writer, this.Collection, context.ProviderHostVar);
+                context.ProviderVar = MgmtExplorerCodeGenUtility.WriteGetResourceCollection(context.Writer, this.Collection, context.ProviderHostVar);
             }
         }
     }

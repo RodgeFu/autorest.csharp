@@ -4,12 +4,14 @@
 using System;
 using System.Collections.Generic;
 using AutoRest.CSharp.Generation.Writers;
+using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Models;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
-    internal class MgmtExplorerWriterContext
+    internal class MgmtExplorerCodeGenContext
     {
+        public MgmtExplorerCodeWriter ExplorerCodeWriter { get; set; } = new MgmtExplorerCodeWriter();
         public CodeWriter Writer { get; set; } = new CodeWriter();
 
         public MgmtExplorerVariable? ArmClientVar

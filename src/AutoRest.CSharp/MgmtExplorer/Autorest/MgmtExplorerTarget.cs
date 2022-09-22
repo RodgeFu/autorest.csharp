@@ -52,11 +52,11 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             Dictionary<string, string> r = new Dictionary<string, string>();
             foreach (var desc in library.EnumerateAllExplorerApis())
             {
-                MgmtExplorerWriterBase? writer = desc.Provider switch
+                MgmtExplorerCodeGenBase? writer = desc.Provider switch
                 {
-                    ResourceCollection rc => new MgmtExplorerWriterForResourceCollectionApi(desc),
-                    Resource res => new MgmtExplorerWriterForResourceApi(desc),
-                    MgmtExtensions ex => new MgmtExplorerWriterForExtensionsApi(desc),
+                    ResourceCollection rc => new MgmtExplorerCodeGenForResourceCollectionApi(desc),
+                    Resource res => new MgmtExplorerCodeGenForResourceApi(desc),
+                    MgmtExtensions ex => new MgmtExplorerCodeGenForExtensionsApi(desc),
                     // TODO: throw exception after we add all support
                     _ => null,
                 };

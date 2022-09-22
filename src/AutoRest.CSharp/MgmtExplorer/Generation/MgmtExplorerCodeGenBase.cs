@@ -10,11 +10,11 @@ using AutoRest.CSharp.MgmtExplorer.Models;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
-    internal abstract class MgmtExplorerWriterBase
+    internal abstract class MgmtExplorerCodeGenBase
     {
         protected MgmtExplorerApiDesc ApiDesc { get; private set; }
 
-        public MgmtExplorerWriterBase(MgmtExplorerApiDesc apiDesc)
+        public MgmtExplorerCodeGenBase(MgmtExplorerApiDesc apiDesc)
         {
             this.ApiDesc = apiDesc;
         }
@@ -22,7 +22,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         #region Write Steps
         public string WriteExplorerApi()
         {
-            var context = new MgmtExplorerWriterContext();
+            var context = new MgmtExplorerCodeGenContext();
             WriteStep_Header(context);
             WriteStep_PrepareArmClient(context);
             WriteStep_PrepareProviderHost(context);
@@ -33,26 +33,28 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             return context.Writer.ToString();
         }
 
-        protected virtual void WriteStep_Header(MgmtExplorerWriterContext context)
+        protected virtual void WriteStep_Header(MgmtExplorerCodeGenContext context)
         {
-            context.Writer.Line($"// generate {ApiDesc.UniqueName}");
+            string desc = $"generate {ApiDesc.UniqueName}";
+            context.Writer.Line($"// {desc}");
             context.Writer.Line();
+            context.ExplorerCodeWriter.Description = desc;
         }
 
-        protected virtual void WriteStep_PrepareArmClient(MgmtExplorerWriterContext context)
+        protected virtual void WriteStep_PrepareArmClient(MgmtExplorerCodeGenContext context)
         {
-            context.ArmClientVar = MgmtExplorerWriterUtility.WriteGetArmClient(context.Writer);
+            context.ArmClientVar = MgmtExplorerCodeGenUtility.WriteGetArmClient(context.Writer);
         }
 
-        protected virtual void WriteStep_PrepareProviderHost(MgmtExplorerWriterContext context)
-        {
-        }
-
-        protected virtual void WriteStep_PrepareProvider(MgmtExplorerWriterContext context)
+        protected virtual void WriteStep_PrepareProviderHost(MgmtExplorerCodeGenContext context)
         {
         }
 
-        protected virtual void WriteStep_Invoke(MgmtExplorerWriterContext context)
+        protected virtual void WriteStep_PrepareProvider(MgmtExplorerCodeGenContext context)
+        {
+        }
+
+        protected virtual void WriteStep_Invoke(MgmtExplorerCodeGenContext context)
         {
             if (context.ProviderVar == null)
                 throw new InvalidOperationException("ProviderVar is null when calling WriteStep_Invoke");
@@ -60,19 +62,19 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             var op = this.ApiDesc.Operation;
             if (op.IsLongRunningOperation)
             {
-                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokeLongRunningOperation(context.Writer, op, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeLongRunningOperation(context.Writer, op, context.ProviderVar);
             }
             else if (op.IsPagingOperation)
             {
-                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokePagedOperation(context.Writer, op, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokePagedOperation(context.Writer, op, context.ProviderVar);
             }
             else
             {
-                context.ResultVar = MgmtExplorerWriterUtility.WriteInvokeNormalOperation(context.Writer, op, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeNormalOperation(context.Writer, op, context.ProviderVar);
             }
         }
 
-        protected virtual void WriteStep_HandleResult(MgmtExplorerWriterContext context)
+        protected virtual void WriteStep_HandleResult(MgmtExplorerCodeGenContext context)
         {
             if (context.ResultVar != null)
             {
@@ -100,7 +102,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
         }
 
-        protected virtual void WriteStep_End(MgmtExplorerWriterContext context)
+        protected virtual void WriteStep_End(MgmtExplorerCodeGenContext context)
         {
             // TODO: remove this
             context.Writer.Line($"// end of generation");
