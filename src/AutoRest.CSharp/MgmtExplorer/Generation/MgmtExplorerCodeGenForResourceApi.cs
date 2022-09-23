@@ -31,7 +31,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             if (context.ArmClientVar == null)
                 throw new InvalidOperationException("ArmClientVar is null");
 
-            context.ProviderVar = MgmtExplorerCodeGenUtility.WriteGetResource(context.Writer, this.Resource, context.ArmClientVar);
+            context.ProviderVar = MgmtExplorerCodeGenUtility.WriteGetResource(context.CodeSegmentWriter, this.Resource, context.ArmClientVar);
         }
     }
 }

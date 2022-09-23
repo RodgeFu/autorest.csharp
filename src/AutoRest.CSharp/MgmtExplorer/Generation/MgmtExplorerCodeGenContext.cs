@@ -11,8 +11,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal class MgmtExplorerCodeGenContext
     {
-        public MgmtExplorerCodeWriter ExplorerCodeWriter { get; set; } = new MgmtExplorerCodeWriter();
-        public CodeWriter Writer { get; set; } = new CodeWriter();
+        public MgmtExplorerCode ExplorerCode { get; set; } = new MgmtExplorerCode();
+        public MgmtExplorerCodeSegmentWriter CodeSegmentWriter { get; set; }
+        private MgmtExplorerCodeSegment CurCodeSegment { get; set; }
 
         public MgmtExplorerVariable? ArmClientVar
         {
@@ -37,6 +38,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         private Dictionary<string, MgmtExplorerVariable> Variables { get; set; } = new Dictionary<string, MgmtExplorerVariable>();
 
+        public MgmtExplorerCodeGenContext(string firstCodeSegmentKey, string firstCodeSegmentSuggstedName)
+        {
+            this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
+            this.CurCodeSegment = new MgmtExplorerCodeSegment(firstCodeSegmentKey, firstCodeSegmentSuggstedName);
+        }
+
         public MgmtExplorerVariable? GetVariable(string key)
         {
             if (string.IsNullOrEmpty(key))
@@ -55,6 +62,16 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             {
                 this.Variables.Add(key, declaration);
             }
+        }
+
+        public void PushCodeSegment(Action<MgmtExplorerCodeSegment> processOldSegment, string newSegmentKey = "", string newSuggestedName = "")
+        {
+            this.CodeSegmentWriter.WriteToCodeSegment(this.CurCodeSegment);
+            processOldSegment(this.CurCodeSegment);
+            this.ExplorerCode.AddCodeSegment(this.CurCodeSegment);
+
+            this.CurCodeSegment  = new MgmtExplorerCodeSegment(newSegmentKey, newSuggestedName);
+            this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
         }
     }
 }

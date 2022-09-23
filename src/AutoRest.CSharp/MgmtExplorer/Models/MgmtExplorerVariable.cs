@@ -1,31 +1,35 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
+using AutoRest.CSharp.MgmtExplorer.Contract;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
-    internal class MgmtExplorerVariable
+    internal class MgmtExplorerVariable : MgmtExplorerPlaceHolder
     {
-        public CodeWriterDeclaration Declaration { get; set; }
-        public CSharpType Type { get; set; }
+        public string SuggestedName => this.DefaultReplacement!;
+        public CodeWriterDeclaration KeyDeclaration { get; init; }
+        private MgmtExplorerCodeSegmentVariable _codeSegmentVariable;
 
-        public MgmtExplorerVariable(string varName, CSharpType type)
-            : this(new CodeWriterDeclaration(varName), type)
+        public MgmtExplorerVariable(string suggestedName, CSharpType type)
+            :base(
+                 $"__VS__{suggestedName}__VE__",
+                 type,
+                 suggestedName)
         {
-
+            this.KeyDeclaration = new CodeWriterDeclaration(this.Key);
+            this._codeSegmentVariable = new MgmtExplorerCodeSegmentVariable(
+                this.Key, this.SuggestedName, this.Type.ToCodeSegmentCSharpType());
         }
 
-        public MgmtExplorerVariable(CodeWriterDeclaration variable, CSharpType type)
+        public MgmtExplorerCodeSegmentVariable AsCodeSegmentVariable()
         {
-            this.Declaration = variable;
-            this.Type = type;
+            return _codeSegmentVariable;
         }
 
-        public override string ToString()
-        {
-            return this.Declaration.ActualName;
-        }
     }
 }

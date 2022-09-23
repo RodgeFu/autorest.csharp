@@ -49,14 +49,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 }
                 else
                 {
-                    context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetExtensionResource(context.Writer, ext, context.ArmClientVar);
+                    context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetExtensionResource(context.CodeSegmentWriter, ext, context.ArmClientVar);
                 }
 
             }
             else if (host is Resource)
             {
                 var hostName = host.Type.Name;
-                context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetResource(context.Writer, (Resource)host, context.ArmClientVar);
+                context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetResource(context.CodeSegmentWriter, (Resource)host, context.ArmClientVar);
             }
             else
             {
@@ -76,7 +76,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
             else
             {
-                context.ProviderVar = MgmtExplorerCodeGenUtility.WriteGetResourceCollection(context.Writer, this.Collection, context.ProviderHostVar);
+                context.ProviderVar = MgmtExplorerCodeGenUtility.WriteGetResourceCollection(context.CodeSegmentWriter, this.Collection, context.ProviderHostVar);
             }
         }
     }

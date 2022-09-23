@@ -21,6 +21,11 @@ namespace AutoRest.CSharp.Generation.Writers
         private static readonly string _braceNewLine = "{\n";
 
         private readonly List<string> _usingNamespaces = new List<string>();
+        public List<string> Namespaces => _usingNamespaces
+            .Distinct()
+            .OrderByDescending(ns => ns.StartsWith("System"))
+            .ThenBy(ns => ns)
+            .ToList();
 
         private readonly Stack<CodeWriterScope> _scopes;
         private string? _currentNamespace;
@@ -559,11 +564,7 @@ namespace AutoRest.CSharp.Generation.Writers
             }
 
             var builder = new StringBuilder();
-            string[] namespaces = _usingNamespaces
-                    .Distinct()
-                    .OrderByDescending(ns => ns.StartsWith("System"))
-                    .ThenBy(ns => ns)
-                    .ToArray();
+            List<string> namespaces = this.Namespaces;
             if (header)
             {
                 builder.AppendLine("// Copyright (c) Microsoft Corporation. All rights reserved.");
