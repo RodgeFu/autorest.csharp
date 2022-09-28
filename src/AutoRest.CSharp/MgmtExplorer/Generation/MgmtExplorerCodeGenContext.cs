@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using AutoRest.CSharp.Generation.Writers;
 using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Models;
 
@@ -11,9 +10,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal class MgmtExplorerCodeGenContext
     {
-        public MgmtExplorerCode ExplorerCode { get; set; } = new MgmtExplorerCode();
+        public MgmtExplorerCodeDesc ExplorerCode { get; init; }
         public MgmtExplorerCodeSegmentWriter CodeSegmentWriter { get; set; }
         private MgmtExplorerCodeSegment CurCodeSegment { get; set; }
+        private MgmtExplorerApiDesc ApiDesc { get; init; }
 
         public MgmtExplorerVariable? ArmClientVar
         {
@@ -38,10 +38,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         private Dictionary<string, MgmtExplorerVariable> Variables { get; set; } = new Dictionary<string, MgmtExplorerVariable>();
 
-        public MgmtExplorerCodeGenContext(string firstCodeSegmentKey, string firstCodeSegmentSuggstedName)
+        public MgmtExplorerCodeGenContext(MgmtExplorerApiDesc apiDesc, string firstCodeSegmentKey, string firstCodeSegmentSuggstedName)
         {
+            this.ApiDesc = apiDesc;
             this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
             this.CurCodeSegment = new MgmtExplorerCodeSegment(firstCodeSegmentKey, firstCodeSegmentSuggstedName);
+            this.ExplorerCode = new MgmtExplorerCodeDesc(apiDesc);
         }
 
         public MgmtExplorerVariable? GetVariable(string key)
@@ -70,7 +72,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             processOldSegment(this.CurCodeSegment);
             this.ExplorerCode.AddCodeSegment(this.CurCodeSegment);
 
-            this.CurCodeSegment  = new MgmtExplorerCodeSegment(newSegmentKey, newSuggestedName);
+            this.CurCodeSegment = new MgmtExplorerCodeSegment(newSegmentKey, newSuggestedName);
             this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
         }
     }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Output;
@@ -14,6 +13,18 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal abstract class MgmtExplorerCodeGenBase
     {
+        public static MgmtExplorerCodeGenBase Create(MgmtExplorerApiDesc apiDesc)
+        {
+            return (apiDesc.Provider) switch
+            {
+                ResourceCollection rc => new MgmtExplorerCodeGenForResourceCollectionApi(apiDesc),
+                Resource res => new MgmtExplorerCodeGenForResourceApi(apiDesc),
+                MgmtExtensions ex => new MgmtExplorerCodeGenForExtensionsApi(apiDesc),
+                // TODO: throw exception after we add all support
+                _ => throw new InvalidOperationException("Unexpected apiDesc.Provider type: " + apiDesc.Provider.GetType().ToString()),
+            };
+        }
+
         protected string LocalId = Guid.NewGuid().ToString();
         protected MgmtExplorerApiDesc ApiDesc { get; private set; }
 
@@ -23,9 +34,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         }
 
         #region Write Steps
-        public string WriteExplorerApi()
+        public MgmtExplorerCodeDesc WriteExplorerApi()
         {
-            var context = new MgmtExplorerCodeGenContext("GET_ARM_CLIENT", "GetArmClient");
+            var context = new MgmtExplorerCodeGenContext(this.ApiDesc, "GET_ARM_CLIENT", "GetArmClient");
+
             // Now we separate the code into two segment: Get_Client and Invoke_Api
             // Consider separate it into more segment like Get_Tenant, Get_Subscription considering it may be shared between multiple APIs
             // *if it worth the increasement of complexity*
@@ -34,11 +46,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             WriteStep_PrepareArmClient(context);
             if (context.ArmClientVar == null)
                 throw new InvalidOperationException("context.ArmClientVar is null");
-            var seg = new MgmtExplorerCodeSegment("GET_ARM_CLIENT", "GetArmClient");
             context.PushCodeSegment((oldSegment) =>
             {
                 oldSegment.OutputResult = new List<MgmtExplorerCodeSegmentVariable>() { context.ArmClientVar.AsCodeSegmentVariable() };
-                oldSegment.Scope = MgmtExplorerCodeSegment.CodeSegmentScope.Global;
             }, "INVOKE_API_" + LocalId, "Invoke_" + this.ApiDesc.UniqueName);
 
             WriteStep_PrepareProviderHost(context);
@@ -50,10 +60,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             {
                 oldSegment.Dependencies = new List<MgmtExplorerCodeSegmentVariable>() { context.ArmClientVar.AsCodeSegmentVariable() };
                 oldSegment.OutputResult = context.ResultVar == null ? new List<MgmtExplorerCodeSegmentVariable>() : new List<MgmtExplorerCodeSegmentVariable>() { context.ResultVar.AsCodeSegmentVariable() };
-                oldSegment.Scope = MgmtExplorerCodeSegment.CodeSegmentScope.Local;
             });
 
-            return context.ExplorerCode.ToString();
+            return context.ExplorerCode;
         }
 
         protected virtual void WriteStep_Header(MgmtExplorerCodeGenContext context)

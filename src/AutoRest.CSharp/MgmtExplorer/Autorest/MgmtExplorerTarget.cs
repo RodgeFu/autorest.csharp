@@ -1,16 +1,22 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
+using AutoRest.CSharp.Mgmt.AutoRest;
 using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.AutoRest;
+using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Generation;
+using AutoRest.CSharp.MgmtExplorer.Models;
 using AutoRest.CSharp.MgmtTest.AutoRest;
 using Azure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,22 +55,18 @@ namespace AutoRest.CSharp.AutoRest.Plugins
 
         private static void GenerateOperations(MgmtExplorerOutputLibrary library, Dictionary<string, string> output)
         {
-            Dictionary<string, string> r = new Dictionary<string, string>();
             foreach (var desc in library.EnumerateAllExplorerApis())
             {
-                MgmtExplorerCodeGenBase? writer = desc.Provider switch
+                MgmtExplorerCodeGenBase writer = MgmtExplorerCodeGenBase.Create(desc);
+                var v = writer.WriteExplorerApi();
+                // exception will be thrown if the name already exists, is it possible? let's see
+                if (Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat?.ToLower() == "yaml")
                 {
-                    ResourceCollection rc => new MgmtExplorerCodeGenForResourceCollectionApi(desc),
-                    Resource res => new MgmtExplorerCodeGenForResourceApi(desc),
-                    MgmtExtensions ex => new MgmtExplorerCodeGenForExtensionsApi(desc),
-                    // TODO: throw exception after we add all support
-                    _ => null,
-                };
-                if (writer != null)
+                    output.Add($"Explorer/{desc.UniqueName}.yaml", v.ToYaml());
+                }
+                else
                 {
-                    string v = writer.WriteExplorerApi();
-                    // exception will be thrown if the name already exists, is it possible? let's see
-                    output.Add($"Explorer/{desc.UniqueName}.cs", v);
+                    output.Add($"Explorer/{desc.UniqueName}.cs", v.ToCode(true));
                 }
             }
         }

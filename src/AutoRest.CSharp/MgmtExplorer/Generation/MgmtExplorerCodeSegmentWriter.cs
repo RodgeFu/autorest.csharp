@@ -16,7 +16,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         private List<MgmtExplorerCodeSegmentParameter> _parameters = new List<MgmtExplorerCodeSegmentParameter>();
         private List<MgmtExplorerCodeSegmentVariable> _variables = new List<MgmtExplorerCodeSegmentVariable>();
 
-        // for debugging and troubleshooting purpose
+        // just for debugging and troubleshooting purpose
         private CodeWriter? _extraCodeWriter = null;
 
         public MgmtExplorerCodeSegmentWriter(CodeWriter? extraWriter = null)
@@ -58,6 +58,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
         }
 
+        public void LineRaw(string str)
+        {
+            this._codeWriter.LineRaw(str);
+            this._extraCodeWriter?.LineRaw(str);
+        }
+
         public void Append(FormattableString str)
         {
             this._codeWriter.Append(str);
@@ -78,8 +84,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         public void WriteToCodeSegment(MgmtExplorerCodeSegment codeSegment)
         {
-            codeSegment.Code.Append(this._codeWriter.ToString(false));
-            codeSegment.Namespaces = codeSegment.Namespaces.Concat(this._codeWriter.Namespaces).Distinct().ToList();
+            codeSegment.Code += this._codeWriter.ToString(false);
+            codeSegment.UsingNamespaces = codeSegment.UsingNamespaces.Concat(this._codeWriter.Namespaces).Distinct().ToList();
             codeSegment.Parameters.AddRange(this._parameters);
             codeSegment.Variables.AddRange(this._variables);
         }

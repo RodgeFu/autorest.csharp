@@ -23,7 +23,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         {
             this.KeyDeclaration = new CodeWriterDeclaration(this.Key);
             this._codeSegmentVariable = new MgmtExplorerCodeSegmentVariable(
-                this.Key, this.SuggestedName, this.Type.ToCodeSegmentCSharpType());
+                this.Key, this.SuggestedName, new MgmtExplorerCodeSegmentCSharpType(this.Type));
         }
 
         public MgmtExplorerCodeSegmentVariable AsCodeSegmentVariable()

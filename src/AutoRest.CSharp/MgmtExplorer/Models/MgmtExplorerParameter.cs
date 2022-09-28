@@ -29,7 +29,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             this._codeSegmentParameter = new MgmtExplorerCodeSegmentParameter(
                 this.Key,
                 this.ParameterName,
-                this.Type.ToCodeSegmentCSharpType(),
+                new MgmtExplorerCodeSegmentCSharpType(this.Type),
                 this.Description,
                 this.DefaultReplacement);
         }

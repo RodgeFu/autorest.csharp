@@ -5,27 +5,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using AutoRest.CSharp.Generation.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
     internal class MgmtExplorerCodeSegment
     {
-        internal enum CodeSegmentScope
-        {
-            Global = 0,
-            Local
-        }
-
+        [JsonPropertyName("key")]
         public string Key { get; init; }
+        [JsonPropertyName("suggestName")]
         public string SuggestName { get; init; }
-        public CodeSegmentScope Scope { get; set; } = CodeSegmentScope.Local;
-
-        public StringBuilder Code { get; set; } = new StringBuilder();
-        public List<string> Namespaces { get; set; } = new List<string>();
+        [JsonPropertyName("code")]
+        public string Code { get; set; } = String.Empty;
+        [JsonPropertyName("usingNamespaces")]
+        public List<string> UsingNamespaces { get; set; } = new List<string>();
+        [JsonPropertyName("dependencies")]
         public List<MgmtExplorerCodeSegmentVariable> Dependencies { get; set; } = new List<MgmtExplorerCodeSegmentVariable>();
+        [JsonPropertyName("outputResult")]
         public List<MgmtExplorerCodeSegmentVariable> OutputResult { get; set; } = new List<MgmtExplorerCodeSegmentVariable>();
+        [JsonPropertyName("variables")]
         public List<MgmtExplorerCodeSegmentVariable> Variables { get; set; } = new List<MgmtExplorerCodeSegmentVariable>();
+        [JsonPropertyName("parameters")]
         public List<MgmtExplorerCodeSegmentParameter> Parameters { get; set; } = new List<MgmtExplorerCodeSegmentParameter>();
 
         public MgmtExplorerCodeSegment(string key, string suggestedName)
@@ -34,8 +35,6 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             this.SuggestName = suggestedName;
         }
     }
-
-    internal record class MgmtExplorerCodeSegmentCSharpType(string name, string @namespace, bool isGeneric, MgmtExplorerCodeSegmentCSharpType[] arguments);
 
     internal record class MgmtExplorerCodeSegmentVariable(string key, string suggestedName, MgmtExplorerCodeSegmentCSharpType type);
 
