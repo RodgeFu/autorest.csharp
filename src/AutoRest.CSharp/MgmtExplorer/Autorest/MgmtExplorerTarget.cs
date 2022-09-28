@@ -1,25 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
-using AutoRest.CSharp.Mgmt.AutoRest;
-using AutoRest.CSharp.Mgmt.Models;
-using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.AutoRest;
-using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Generation;
-using AutoRest.CSharp.MgmtExplorer.Models;
 using AutoRest.CSharp.MgmtTest.AutoRest;
-using Azure;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoRest.CSharp.AutoRest.Plugins
 {
@@ -59,12 +50,13 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             {
                 MgmtExplorerCodeGenBase writer = MgmtExplorerCodeGenBase.Create(desc);
                 var v = writer.WriteExplorerApi();
-                // exception will be thrown if the name already exists, is it possible? let's see
-                if (Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat?.ToLower() == "yaml")
+
+                List<string> outputFormat = Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat?.ToLower().Split(",").ToList() ?? new List<string>();
+                if (outputFormat.Contains("yaml"))
                 {
                     output.Add($"Explorer/{desc.UniqueName}.yaml", v.ToYaml());
                 }
-                else
+                if (outputFormat.Contains("cs"))
                 {
                     output.Add($"Explorer/{desc.UniqueName}.cs", v.ToCode(true));
                 }

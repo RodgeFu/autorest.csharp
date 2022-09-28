@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using AutoRest.CSharp.Mgmt.AutoRest;
 using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Contract;
@@ -20,7 +21,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
 
         public MgmtExplorerCodeGenInfo Info { get; set; }
 
-        public string ServiceName => this.Info.SdkPackageName;
+        public string ServiceName => MgmtContext.Context.DefaultNamespace;
         public string ResourceName => this.Provider.Type.Name;
         public string OperationName => this.Operation.Name;
         public string OperationId => this.Operation.First().OperationId;

@@ -9,29 +9,29 @@ using System.Text.Json.Serialization;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
-    internal class MgmtExplorerCodeGenInfo
+    public class MgmtExplorerCodeGenInfo
     {
         [JsonPropertyName("sdkPackageName")]
-        public string SdkPackageName { get; set; } = string.Empty;
+        public string? SdkPackageName { get; set; }
         [JsonPropertyName("sdkPackageVersion")]
-        public string SdkPackageVersion { get; set; } = string.Empty;
+        public string? SdkPackageVersion { get; set; }
         [JsonPropertyName("explorerCodeGenVersion")]
         public string ExplorerCodeGenVersion { get; set; } = "1.0.0";
         [JsonPropertyName("generatedDateTime")]
-        public DateTimeOffset GeneratedDateTime { get; set; } = DateTimeOffset.Now;
-        [JsonPropertyName("nugetPackages")]
-        public List<string> NugetPackages { get; set; } = new List<string>();
+        public string? GeneratedTimestamp { get; set; }
+        [JsonPropertyName("dependencies")]
+        public List<string> Dependencies { get; set; } = new List<string>();
 
         public MgmtExplorerCodeGenInfo()
         {
         }
 
-        public MgmtExplorerCodeGenInfo(string sdkPackageName, string sdkPackageVersion, DateTimeOffset generatedDateTime, List<string> nugetPackages)
+        public MgmtExplorerCodeGenInfo(string sdkPackageName, string sdkPackageVersion, DateTimeOffset generatedTimestamp, List<string> nugetPackages)
         {
             SdkPackageName = sdkPackageName;
             SdkPackageVersion = sdkPackageVersion;
-            GeneratedDateTime = generatedDateTime;
-            NugetPackages = nugetPackages.Concat(new List<string>() { $"{SdkPackageName}@{SdkPackageVersion}" }).Distinct(StringComparer.Create(CultureInfo.InvariantCulture, true)).ToList();
+            GeneratedTimestamp = generatedTimestamp.ToString("yyyy-MM-dd_HH-mm-ss-ffffff");
+            Dependencies = nugetPackages.Concat(new List<string>() { $"{SdkPackageName}@{SdkPackageVersion}" }).Distinct(StringComparer.Create(CultureInfo.InvariantCulture, true)).ToList();
 
             this.ExplorerCodeGenVersion = "1.0.0";
         }

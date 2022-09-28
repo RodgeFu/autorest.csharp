@@ -9,19 +9,23 @@ using AutoRest.CSharp.Generation.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
-    internal class MgmtExplorerCodeSegmentCSharpType
+    public class MgmtExplorerCodeSegmentCSharpType
     {
-        public string Name { get; }
-        public string Namespace { get; }
-        public bool IsValueType { get; }
-        public bool IsEnum { get; }
-        public bool IsNullable { get; }
-        public bool isGenericType { get; }
-        public List<MgmtExplorerCodeSegmentCSharpType> Arguments { get; }
-        public string FullNameWithNamespace { get; }
-        public string FullNameWithoutNamespace { get; }
+        public string? Name { get; set; }
+        public string? Namespace { get; set; }
+        public bool IsValueType { get; set; }
+        public bool IsEnum { get; set; }
+        public bool IsNullable { get; set; }
+        public bool isGenericType { get; set; }
+        public List<MgmtExplorerCodeSegmentCSharpType> Arguments { get; set; } = new List<MgmtExplorerCodeSegmentCSharpType>();
+        public string? FullNameWithNamespace { get; set; }
+        public string? FullNameWithoutNamespace { get; set; }
 
-        public MgmtExplorerCodeSegmentCSharpType(CSharpType csharpType)
+        public MgmtExplorerCodeSegmentCSharpType()
+        {
+        }
+
+        internal MgmtExplorerCodeSegmentCSharpType(CSharpType csharpType)
         {
             this.Name = csharpType.Name;
             this.Namespace = csharpType.Namespace;
@@ -43,7 +47,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
         private string GetFullName(bool includeNamespace)
         {
-            string name = includeNamespace ? $"{this.Namespace}.{this.Name}" : this.Name;
+            string name = includeNamespace ? $"{this.Namespace ?? "__N/A__"}.{this.Name ?? "__N/A__"}" : this.Name ?? "__N/A__";
             if (IsNullable)
                 name += "?";
             if (isGenericType)

@@ -7,37 +7,47 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 using AutoRest.CSharp.MgmtExplorer.Models;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
-    internal class MgmtExplorerCodeDesc
+    public class MgmtExplorerCodeDesc
     {
         [JsonPropertyName("info")]
-        public MgmtExplorerCodeGenInfo Info { get; init; }
+        public MgmtExplorerCodeGenInfo? Info { get; init; }
         [JsonPropertyName("serviceName")]
-        public string ServiceName { get; set; }
+        public string? ServiceName { get; set; }
         [JsonPropertyName("resourceName")]
-        public string ResourceName { get; set; }
+        public string? ResourceName { get; set; }
         [JsonPropertyName("operationName")]
-        public string OperationName { get; set; }
+        public string? OperationName { get; set; }
         [JsonPropertyName("operationId")]
-        public string OperationId { get; set; }
+        public string? OperationId { get; set; }
         [JsonPropertyName("operationMethodParameters")]
-        public List<MgmtExplorerCodeSegmentParameter> OperationMethodParameters { get; set; }
+        public List<MgmtExplorerCodeSegmentParameter> OperationMethodParameters { get; set; } = new List<MgmtExplorerCodeSegmentParameter>();
 
         [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; } = string.Empty;
         [JsonPropertyName("codeSegments")]
-        public List<MgmtExplorerCodeSegment> CodeSegments { get; } = new List<MgmtExplorerCodeSegment>();
+        public List<MgmtExplorerCodeSegment> CodeSegments { get; set; } = new List<MgmtExplorerCodeSegment>();
 
-        public MgmtExplorerCodeDesc(MgmtExplorerApiDesc apiDesc)
+        [JsonPropertyName("uniqueName")]
+        public string? UniqueName { get; set; }
+
+        public MgmtExplorerCodeDesc()
+        {
+        }
+
+        internal MgmtExplorerCodeDesc(MgmtExplorerApiDesc apiDesc)
         {
             this.Info = apiDesc.Info;
             this.ServiceName = apiDesc.ServiceName;
             this.ResourceName = apiDesc.ResourceName;
             this.OperationName = apiDesc.OperationName;
             this.OperationId = apiDesc.OperationId;
+            this.UniqueName = apiDesc.UniqueName;
             this.OperationMethodParameters = apiDesc.OperationMethodParameters.Select(p => new MgmtExplorerCodeSegmentParameter(p.Name, p.Name, new MgmtExplorerCodeSegmentCSharpType(p.Type), null, null)).ToList();
         }
 
@@ -70,6 +80,15 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             var builder = new YamlDotNet.Serialization.SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
             var v = builder.Serialize(this);
             return v;
+        }
+
+        public static MgmtExplorerCodeDesc FromYaml(string yaml)
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)  // see height_in_inches in sample yml
+                .Build();
+
+            return deserializer.Deserialize<MgmtExplorerCodeDesc>(yaml);
         }
     }
 }
