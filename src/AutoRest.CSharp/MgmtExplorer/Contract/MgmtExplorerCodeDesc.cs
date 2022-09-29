@@ -34,7 +34,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public List<MgmtExplorerCodeSegment> CodeSegments { get; set; } = new List<MgmtExplorerCodeSegment>();
 
         [JsonPropertyName("uniqueName")]
-        public string? UniqueName { get; set; }
+        public string? FullApiNameWithoutNamespace { get; set; }
+        [JsonPropertyName("operationNameWithoutNamespace")]
+        public string? FullOperationNameWithoutNamespace { get; set; }
 
         public MgmtExplorerCodeDesc()
         {
@@ -47,7 +49,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             this.ResourceName = apiDesc.ResourceName;
             this.OperationName = apiDesc.OperationName;
             this.OperationId = apiDesc.OperationId;
-            this.UniqueName = apiDesc.UniqueName;
+            this.FullApiNameWithoutNamespace = apiDesc.FullApiNameWithoutNamespace;
+            this.FullOperationNameWithoutNamespace = apiDesc.FullOperationNameWithoutNamespace;
             this.OperationMethodParameters = apiDesc.OperationMethodParameters.Select(p => new MgmtExplorerCodeSegmentParameter(p.Name, p.Name, new MgmtExplorerCodeSegmentCSharpType(p.Type), null, null)).ToList();
         }
 

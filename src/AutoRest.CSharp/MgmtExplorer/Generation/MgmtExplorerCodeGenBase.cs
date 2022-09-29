@@ -49,7 +49,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             context.PushCodeSegment((oldSegment) =>
             {
                 oldSegment.OutputResult = new List<MgmtExplorerCodeSegmentVariable>() { context.ArmClientVar.AsCodeSegmentVariable() };
-            }, "INVOKE_API_" + LocalId, "Invoke_" + this.ApiDesc.UniqueName);
+            }, "INVOKE_API_" + LocalId, "Invoke_" + this.ApiDesc.SuggestedUniqueOperationName );
 
             WriteStep_PrepareProviderHost(context);
             WriteStep_PrepareProvider(context);
@@ -67,7 +67,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         protected virtual void WriteStep_Header(MgmtExplorerCodeGenContext context)
         {
-            string desc = $"generate {ApiDesc.UniqueName}";
+            string desc = $"Code generated for {ApiDesc.FullApiNameWithoutNamespace}";
             context.ExplorerCode.Description = desc;
         }
 
@@ -112,7 +112,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             if (context.ResultVar != null)
             {
                 CSharpType r = context.ResultVar.Type;
-                context.CodeSegmentWriter.Line($"Console.WriteLine(\"Result returned for {this.ApiDesc.UniqueName}:\")");
+                context.CodeSegmentWriter.Line($"Console.WriteLine(\"Result returned for {this.ApiDesc.FullApiNameWithoutNamespace}:\")");
                 if (r.IsFrameworkType && r.FrameworkType == typeof(List<>))
                 {
                     context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Count = \" + {context.ResultVar.KeyDeclaration}.Count)");
@@ -132,7 +132,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
             else
             {
-                context.CodeSegmentWriter.Line($"Console.WriteLine(\"No result returned for {this.ApiDesc.UniqueName}\")");
+                context.CodeSegmentWriter.Line($"Console.WriteLine(\"No result returned for {this.ApiDesc.FullApiNameWithoutNamespace}\")");
             }
         }
 
