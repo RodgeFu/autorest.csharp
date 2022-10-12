@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.Json.Serialization;
 using AutoRest.CSharp.Generation.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract

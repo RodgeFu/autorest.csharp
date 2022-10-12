@@ -21,15 +21,16 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
 
         public MgmtExplorerCodeGenInfo Info { get; set; }
 
-        public string SuggestedUniqueOperationName => this.GetSuggestedUniqueOperatioName();
+        public string FullUniqueName => $"{ServiceName}_{ResourceName}_{SdkOperationId}";
 
         public string ServiceName => MgmtContext.Context.DefaultLibraryName;
         public string ResourceName => this.Provider.Type.Name;
         public string OperationName => this.Operation.Name;
-        public string OperationId => this.Operation.First().OperationId;
+        public string SwaggerOperationId => this.Operation.First().OperationId;
+        public string SdkOperationId => $"{this.OperationName}_For_OperationId_{this.SwaggerOperationId}";
         // seems no need to include namespace to make it more readable
-        public string FullApiNameWithoutNamespace => this.GetFullApiName(false /*includeNamespace*/);
-        public string FullOperationNameWithoutNamespace => this.GetFullOperationName(false /*includeNamespace*/);
+        public string OperationNameWithParameters => this.GetOperationNameWithParameters(false /*includeNamespace*/);
+        public string OperationNameWithScopeAndParameters => this.GetOperationNameWithScopeAndParameters(false /*includeNamespace*/);
 
         public IReadOnlyList<Parameter> OperationMethodParameters => this.Operation.MethodParameters;
 
@@ -40,23 +41,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             Operation = operation;
         }
 
-        public string GetSuggestedUniqueOperatioName()
-        {
-            // TODO: does it enough to only include the first char of each type? seems should be enough in one service scope, make it configurable if we found it's not true
-            string postfix = string.Join("", this.OperationMethodParameters.Select(p => p.Type.Name[0]));
-            if (postfix.Length > 0)
-                postfix = "_" + postfix;
-            return $"{this.ServiceName}_{this.ResourceName}_{this.OperationName}{postfix}";
-        }
-
-        public string GetFullOperationName(bool includeNamespace)
+        public string GetOperationNameWithParameters(bool includeNamespace)
         {
             return this.OperationName + "(" + string.Join(", ", this.OperationMethodParameters.Select(p => p.Type.GetFullName(includeNamespace))) + ")";
         }
 
-        public string GetFullApiName(bool includeNamespace)
+        public string GetOperationNameWithScopeAndParameters(bool includeNamespace)
         {
-            return $"{this.ServiceName}.{this.ResourceName}.{this.GetFullOperationName(includeNamespace)}";
+            return $"{this.ServiceName}.{this.ResourceName}.{this.GetOperationNameWithParameters(includeNamespace)}";
         }
     }
 

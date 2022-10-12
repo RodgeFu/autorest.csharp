@@ -54,11 +54,11 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 List<string> outputFormat = Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat?.ToLower().Split(",").ToList() ?? new List<string>();
                 if (outputFormat.Contains("yaml"))
                 {
-                    output.Add($"Explorer/{desc.SuggestedUniqueOperationName}.yaml", v.ToYaml());
+                    output.Add($"Explorer/{desc.FullUniqueName}.yaml", v.ToYaml());
                 }
                 if (outputFormat.Contains("cs"))
                 {
-                    output.Add($"Explorer/{desc.SuggestedUniqueOperationName}.cs", v.ToCode(true));
+                    output.Add($"Explorer/{desc.FullUniqueName}.cs", v.ToCode(true));
                 }
             }
         }

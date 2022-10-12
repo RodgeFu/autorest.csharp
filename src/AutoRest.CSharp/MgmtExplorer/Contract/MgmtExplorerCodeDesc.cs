@@ -15,28 +15,21 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
     public class MgmtExplorerCodeDesc
     {
-        [JsonPropertyName("info")]
         public MgmtExplorerCodeGenInfo? Info { get; init; }
-        [JsonPropertyName("serviceName")]
+        public string? Language { get; set; }
         public string? ServiceName { get; set; }
-        [JsonPropertyName("resourceName")]
         public string? ResourceName { get; set; }
-        [JsonPropertyName("operationName")]
         public string? OperationName { get; set; }
-        [JsonPropertyName("operationId")]
-        public string? OperationId { get; set; }
-        [JsonPropertyName("operationMethodParameters")]
+        public string? SwaggerOperationId { get; set; }
+        public string? SdkOperationId { get; set; }
         public List<MgmtExplorerCodeSegmentParameter> OperationMethodParameters { get; set; } = new List<MgmtExplorerCodeSegmentParameter>();
 
-        [JsonPropertyName("description")]
         public string? Description { get; set; } = string.Empty;
-        [JsonPropertyName("codeSegments")]
         public List<MgmtExplorerCodeSegment> CodeSegments { get; set; } = new List<MgmtExplorerCodeSegment>();
 
-        [JsonPropertyName("uniqueName")]
-        public string? FullApiNameWithoutNamespace { get; set; }
-        [JsonPropertyName("operationNameWithoutNamespace")]
-        public string? FullOperationNameWithoutNamespace { get; set; }
+        public string? OperationNameWithScopeAndParameters { get; set; }
+        public string? OperationNameWithParameters { get; set; }
+        public string? FullUniqueName { get; set; }
 
         public MgmtExplorerCodeDesc()
         {
@@ -44,13 +37,16 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
         internal MgmtExplorerCodeDesc(MgmtExplorerApiDesc apiDesc)
         {
+            this.Language = "DotNet";
             this.Info = apiDesc.Info;
             this.ServiceName = apiDesc.ServiceName;
             this.ResourceName = apiDesc.ResourceName;
             this.OperationName = apiDesc.OperationName;
-            this.OperationId = apiDesc.OperationId;
-            this.FullApiNameWithoutNamespace = apiDesc.FullApiNameWithoutNamespace;
-            this.FullOperationNameWithoutNamespace = apiDesc.FullOperationNameWithoutNamespace;
+            this.SwaggerOperationId = apiDesc.SwaggerOperationId;
+            this.SdkOperationId = apiDesc.SdkOperationId;
+            this.FullUniqueName = apiDesc.FullUniqueName;
+            this.OperationNameWithScopeAndParameters = apiDesc.OperationNameWithScopeAndParameters;
+            this.OperationNameWithParameters = apiDesc.OperationNameWithParameters;
             this.OperationMethodParameters = apiDesc.OperationMethodParameters.Select(p => new MgmtExplorerCodeSegmentParameter(p.Name, p.Name, new MgmtExplorerCodeSegmentCSharpType(p.Type), null, null)).ToList();
         }
 

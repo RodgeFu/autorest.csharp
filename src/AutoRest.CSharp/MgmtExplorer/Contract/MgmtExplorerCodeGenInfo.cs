@@ -11,15 +11,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
     public class MgmtExplorerCodeGenInfo
     {
-        [JsonPropertyName("sdkPackageName")]
         public string? SdkPackageName { get; set; }
-        [JsonPropertyName("sdkPackageVersion")]
         public string? SdkPackageVersion { get; set; }
-        [JsonPropertyName("explorerCodeGenVersion")]
         public string ExplorerCodeGenVersion { get; set; } = "1.0.0";
-        [JsonPropertyName("generatedDateTime")]
         public string? GeneratedTimestamp { get; set; }
-        [JsonPropertyName("dependencies")]
         public List<string> Dependencies { get; set; } = new List<string>();
 
         public MgmtExplorerCodeGenInfo()
