@@ -22,6 +22,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public string? OperationName { get; set; }
         public string? SwaggerOperationId { get; set; }
         public string? SdkOperationId { get; set; }
+        public List<string> ExampleNames { get; set; } = new List<string>();
         public List<MgmtExplorerCodeSegmentParameter> OperationMethodParameters { get; set; } = new List<MgmtExplorerCodeSegmentParameter>();
 
         public string? Description { get; set; } = string.Empty;
@@ -47,7 +48,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             this.FullUniqueName = apiDesc.FullUniqueName;
             this.OperationNameWithScopeAndParameters = apiDesc.OperationNameWithScopeAndParameters;
             this.OperationNameWithParameters = apiDesc.OperationNameWithParameters;
-            this.OperationMethodParameters = apiDesc.OperationMethodParameters.Select(p => new MgmtExplorerCodeSegmentParameter(p.Name, p.Name, new MgmtExplorerCodeSegmentCSharpType(p.Type), null, null)).ToList();
+            this.OperationMethodParameters = apiDesc.MethodParameters.Select(p => p.ToCodeSegmentParameter(false /*includeSchema*/)).ToList();
+            this.ExampleNames = apiDesc.ExampleGroup?.Examples.Select(e => e.Name).ToList() ?? new List<string>();
         }
 
         public void AddCodeSegment(MgmtExplorerCodeSegment newSegment)

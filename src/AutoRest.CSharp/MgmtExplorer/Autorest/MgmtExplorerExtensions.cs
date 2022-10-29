@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using System.Text;
 using AutoRest.CSharp.Generation.Types;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using AutoRest.CSharp.Input;
 
 namespace AutoRest.CSharp.MgmtExplorer.Autorest
 {
@@ -24,5 +20,32 @@ namespace AutoRest.CSharp.MgmtExplorer.Autorest
             }
             return name;
         }
+
+        public static string GetSerializerNameOrName(this Languages lang, string langName = "default")
+        {
+            var getResult = (Language l) => l.SerializedName ?? l.Name;
+            switch (langName)
+            {
+                //  TODO: add more language support as needed
+                case "dotnet":
+                    return getResult(lang.CSharp ?? lang.Default);
+                default:
+                    return getResult(lang.Default);
+            }
+        }
+
+        public static string GetName(this Languages lang, string langName = "default")
+        {
+            var getResult = (Language l) => l.Name;
+            switch (langName)
+            {
+                //  TODO: add more language support as needed
+                case "dotnet":
+                    return getResult(lang.CSharp ?? lang.Default);
+                default:
+                    return getResult(lang.Default);
+            }
+        }
+
     }
 }

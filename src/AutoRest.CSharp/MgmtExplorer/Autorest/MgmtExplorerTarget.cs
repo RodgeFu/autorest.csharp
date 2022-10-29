@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +9,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
+using AutoRest.CSharp.Mgmt.AutoRest;
 using AutoRest.CSharp.MgmtExplorer.AutoRest;
+using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Generation;
 using AutoRest.CSharp.MgmtTest.AutoRest;
 
@@ -49,7 +52,8 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             foreach (var desc in library.EnumerateAllExplorerApis())
             {
                 MgmtExplorerCodeGenBase writer = MgmtExplorerCodeGenBase.Create(desc);
-                var v = writer.WriteExplorerApi();
+                MgmtExplorerCodeDesc v = writer.WriteExplorerApi();
+                MgmtExplorerCodeGenExampleHelper.AttachExample(desc, v);
 
                 List<string> outputFormat = Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat?.ToLower().Split(",").ToList() ?? new List<string>();
                 if (outputFormat.Contains("yaml"))

@@ -49,14 +49,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 }
                 else
                 {
-                    context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetExtensionResource(context.CodeSegmentWriter, ext, context.ArmClientVar);
+                    context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetExtensionResource(context.CodeSegmentWriter, ext, context.ApiDesc.GetHostParameters(ext.ContextualPath), context.ArmClientVar);
                 }
 
             }
             else if (host is Resource)
             {
                 var hostName = host.Type.Name;
-                context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetResource(context.CodeSegmentWriter, (Resource)host, context.ArmClientVar);
+                context.ProviderHostVar = MgmtExplorerCodeGenUtility.WriteGetResource(context.CodeSegmentWriter, (Resource)host, context.ApiDesc.GetHostParameters(((Resource)host).RequestPath), context.ArmClientVar);
             }
             else
             {

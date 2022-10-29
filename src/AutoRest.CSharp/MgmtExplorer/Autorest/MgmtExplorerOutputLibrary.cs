@@ -13,6 +13,7 @@ using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Models;
+using AutoRest.CSharp.MgmtTest.Models;
 using AutoRest.CSharp.Output.Models.Types;
 using AutoRest.CSharp.Utilities;
 
@@ -82,17 +83,24 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
 
         public IEnumerable<MgmtExplorerApiDesc> EnumerateAllExplorerApis()
         {
+            var exampleDict = MgmtContext.CodeModel.TestModel!.MockTest.ExampleGroups.ToDictionary(
+                g => g.OperationId,
+                g => g);
+
             foreach (var (p, o) in this.EnumerateOperationsOnResource())
             {
-                yield return new MgmtExplorerApiDesc(this.Info, p, o);
+                exampleDict.TryGetValue(o.First().OperationId, out var exampleGroup);
+                yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup);
             }
             foreach (var (p, o) in this.EnumerateOperationsOnResourceCollection())
             {
-                yield return new MgmtExplorerApiDesc(this.Info, p, o);
+                exampleDict.TryGetValue(o.First().OperationId, out var exampleGroup);
+                yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup);
             }
             foreach (var (p, o) in this.EnumerateOperationsOnExtension())
             {
-                yield return new MgmtExplorerApiDesc(this.Info, p, o);
+                exampleDict.TryGetValue(o.First().OperationId, out var exampleGroup);
+                yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup);
             }
         }
 

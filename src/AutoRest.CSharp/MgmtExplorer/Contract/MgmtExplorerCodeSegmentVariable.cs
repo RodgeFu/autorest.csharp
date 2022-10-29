@@ -7,9 +7,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
     {
         public string? Key { get; set; }
         public string? SuggestedName { get; set; }
-        public MgmtExplorerCodeSegmentCSharpType? Type { get; set; }
+        public MgmtExplorerCSharpType? Type { get; set; }
 
-        public MgmtExplorerCodeSegmentVariable(string key, string suggestedName, MgmtExplorerCodeSegmentCSharpType type)
+        public MgmtExplorerCodeSegmentVariable(string key, string suggestedName, MgmtExplorerCSharpType type)
         {
             Key = key;
             SuggestedName = suggestedName;

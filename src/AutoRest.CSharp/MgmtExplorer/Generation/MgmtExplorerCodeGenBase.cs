@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Output;
@@ -92,17 +94,18 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 throw new ArgumentNullException("context.ArmClientVar");
 
             var op = this.ApiDesc.Operation;
+            var parameters = this.ApiDesc.MethodParameters.ToList();
             if (op.IsLongRunningOperation)
             {
-                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeLongRunningOperation(context.CodeSegmentWriter, op, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeLongRunningOperation(context.CodeSegmentWriter, op, parameters, context.ProviderVar);
             }
             else if (op.IsPagingOperation)
             {
-                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokePagedOperation(context.CodeSegmentWriter, op, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokePagedOperation(context.CodeSegmentWriter, op, parameters, context.ProviderVar);
             }
             else
             {
-                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeNormalOperation(context.CodeSegmentWriter, op, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeNormalOperation(context.CodeSegmentWriter, op, parameters, context.ProviderVar);
             }
 
         }

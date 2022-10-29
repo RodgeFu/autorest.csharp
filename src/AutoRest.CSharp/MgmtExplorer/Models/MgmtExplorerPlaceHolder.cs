@@ -9,7 +9,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
     {
         public string Key { get; init; }
         public CSharpType Type { get; init; }
-        public string? DefaultReplacement { get; init; }
+        protected string? DefaultReplacement { get; init; }
 
         public MgmtExplorerPlaceHolder(string key, CSharpType type, string? defaultReplacement)
         {

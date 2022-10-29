@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Models;
 
@@ -13,7 +14,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         public MgmtExplorerCodeDesc ExplorerCode { get; init; }
         public MgmtExplorerCodeSegmentWriter CodeSegmentWriter { get; set; }
         private MgmtExplorerCodeSegment CurCodeSegment { get; set; }
-        private MgmtExplorerApiDesc ApiDesc { get; init; }
+        public MgmtExplorerApiDesc ApiDesc { get; init; }
 
         public MgmtExplorerVariable? ArmClientVar
         {
@@ -75,5 +76,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             this.CurCodeSegment = new MgmtExplorerCodeSegment(newSegmentKey, newSuggestedName);
             this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
         }
+
+        //public List<MgmtExplorerCodeSegmentParameter> GetAllCodeSegementParameters()
+        //{
+        //    return this.ExplorerCode.CodeSegments.SelectMany(c => c.Parameters).ToList();
+        //}
     }
 }
