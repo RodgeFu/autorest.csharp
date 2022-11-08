@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
+using AutoRest.CSharp.MgmtExplorer.Autorest;
+using AutoRest.CSharp.MgmtExplorer.Generation;
 using AutoRest.CSharp.MgmtExplorer.Models;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -22,15 +24,16 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public string? OperationName { get; set; }
         public string? SwaggerOperationId { get; set; }
         public string? SdkOperationId { get; set; }
-        public List<string> ExampleNames { get; set; } = new List<string>();
         public List<MgmtExplorerCodeSegmentParameter> OperationMethodParameters { get; set; } = new List<MgmtExplorerCodeSegmentParameter>();
 
         public string? Description { get; set; } = string.Empty;
         public List<MgmtExplorerCodeSegment> CodeSegments { get; set; } = new List<MgmtExplorerCodeSegment>();
-
         public string? OperationNameWithScopeAndParameters { get; set; }
         public string? OperationNameWithParameters { get; set; }
         public string? FullUniqueName { get; set; }
+
+        public List<MgmtExplorerSchemaObject> SchemaObjects = new List<MgmtExplorerSchemaObject>();
+        public List<MgmtExplorerSchemaEnum> SchemaEnums = new List<MgmtExplorerSchemaEnum>();
 
         public MgmtExplorerCodeDesc()
         {
@@ -49,7 +52,6 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             this.OperationNameWithScopeAndParameters = apiDesc.OperationNameWithScopeAndParameters;
             this.OperationNameWithParameters = apiDesc.OperationNameWithParameters;
             this.OperationMethodParameters = apiDesc.MethodParameters.Select(p => p.ToCodeSegmentParameter(false /*includeSchema*/)).ToList();
-            this.ExampleNames = apiDesc.ExampleGroup?.Examples.Select(e => e.Name).ToList() ?? new List<string>();
         }
 
         public void AddCodeSegment(MgmtExplorerCodeSegment newSegment)
@@ -76,20 +78,15 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             return usingsCode + newLine + code;
         }
 
-        public string ToYaml()
+        public void RefreshSchema()
         {
-            var builder = new YamlDotNet.Serialization.SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
-            var v = builder.Serialize(this);
-            return v;
+            this.SchemaObjects = MgmtExplorerCodeGenSchemaStore.Instance.ObjectSchemas.Values.ToList();
+            this.SchemaEnums = MgmtExplorerCodeGenSchemaStore.Instance.EnumSchemas.Values.ToList();
         }
 
         public static MgmtExplorerCodeDesc FromYaml(string yaml)
         {
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)  // see height_in_inches in sample yml
-                .Build();
-
-            return deserializer.Deserialize<MgmtExplorerCodeDesc>(yaml);
+            return MgmtExplorerExtensions.FromYaml<MgmtExplorerCodeDesc>(yaml);
         }
     }
 }

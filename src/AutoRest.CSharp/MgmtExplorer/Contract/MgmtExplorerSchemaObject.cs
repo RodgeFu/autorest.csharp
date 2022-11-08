@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
-    public class MgmtExplorerSchemaObject
+    public class MgmtExplorerSchemaObject : MgmtExplorerSchemaBase
     {
         public List<MgmtExplorerSchemaProperty> Properties { get; set; } = new List<MgmtExplorerSchemaProperty>();
         public MgmtExplorerCSharpType? InheritFrom { get; set; }
@@ -16,6 +16,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public bool IsStruct { get; set; }
 
         public MgmtExplorerSchemaObject()
+            :base()
         {
 
         }

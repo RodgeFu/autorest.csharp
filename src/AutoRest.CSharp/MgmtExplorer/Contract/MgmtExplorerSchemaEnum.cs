@@ -5,12 +5,13 @@ using System.Collections.Generic;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
-    public class MgmtExplorerSchemaEnum
+    public class MgmtExplorerSchemaEnum : MgmtExplorerSchemaBase
     {
         public List<MgmtExplorerSchemaEnumValue> Values { get; set; } = new List<MgmtExplorerSchemaEnumValue>();
         public string Description { get; set; } = string.Empty;
 
         public MgmtExplorerSchemaEnum()
+            :base()
         {
 
         }

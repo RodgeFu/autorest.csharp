@@ -4,6 +4,10 @@
 using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Input;
+using AutoRest.CSharp.MgmtExplorer.Contract;
+using YamlDotNet.Serialization.NamingConventions;
+using YamlDotNet.Serialization;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoRest.CSharp.MgmtExplorer.Autorest
 {
@@ -47,5 +51,20 @@ namespace AutoRest.CSharp.MgmtExplorer.Autorest
             }
         }
 
+        public static string ToYaml(this object obj)
+        {
+            var builder = new YamlDotNet.Serialization.SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+            var v = builder.Serialize(obj);
+            return v;
+        }
+
+        public static T FromYaml<T>(string yaml)
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)  // see height_in_inches in sample yml
+                .Build();
+
+            return deserializer.Deserialize<T>(yaml);
+        }
     }
 }

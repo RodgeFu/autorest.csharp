@@ -29,7 +29,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             // this.CombinedName = this.Name;
             this.Name = prop.Declaration.Name;
             this.SerializerPath = prop.SchemaProperty?.SerializedName ?? this.Name;
-            this.Type = new MgmtExplorerCSharpType(prop.Declaration.Type, true /* include sceham*/);
+            this.Type = new MgmtExplorerCSharpType(prop.Declaration.Type);
             this.IsRequired = prop.SchemaProperty?.IsRequired ?? false;
             this.IsReadonly = prop.IsReadOnly;
 

@@ -14,7 +14,6 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public MgmtExplorerCSharpType? Type { get; set; }
         public string? Description { get; set; }
         public string? DefaultValue { get; set; }
-        public Dictionary<string, MgmtExplorerExampleValue> ExampleValues { get; set; } = new Dictionary<string, MgmtExplorerExampleValue>();
 
         public MgmtExplorerCodeSegmentParameter()
         {

@@ -38,6 +38,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         #region Write Steps
         public MgmtExplorerCodeDesc WriteExplorerApi()
         {
+            MgmtExplorerCodeGenSchemaStore.CreateStore();
+
             var context = new MgmtExplorerCodeGenContext(this.ApiDesc, "GET_ARM_CLIENT", "GetArmClient");
 
             // Now we separate the code into two segment: Get_Client and Invoke_Api
@@ -64,6 +66,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 oldSegment.OutputResult = context.ResultVar == null ? new List<MgmtExplorerCodeSegmentVariable>() : new List<MgmtExplorerCodeSegmentVariable>() { context.ResultVar.AsCodeSegmentVariable() };
             });
 
+            context.ExplorerCode.RefreshSchema();
             return context.ExplorerCode;
         }
 

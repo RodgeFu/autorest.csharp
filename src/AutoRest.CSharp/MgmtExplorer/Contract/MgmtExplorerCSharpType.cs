@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using AutoRest.CSharp.Generation.Types;
+using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Mgmt.Output;
+using AutoRest.CSharp.MgmtExplorer.Generation;
 using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
@@ -17,28 +20,30 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public bool IsValueType { get; set; }
         public bool IsEnum { get; set; }
         public bool IsNullable { get; set; }
-        public bool isGenericType { get; set; }
+        public bool IsGenericType { get; set; }
+        public bool IsFrameworkType { get; set; }
+        public bool IsList { get; set; }
+        public bool IsDictionary { get; set; }
+        public bool IsBinaryData { get; set; }
         public List<MgmtExplorerCSharpType> Arguments { get; set; } = new List<MgmtExplorerCSharpType>();
         public string? FullNameWithNamespace { get; set; }
         public string? FullNameWithoutNamespace { get; set; }
-
-        public MgmtExplorerSchemaObject? ObjectSchema { get; set; }
-        public MgmtExplorerSchemaEnum? EnumSchema { get; set; }
 
         public MgmtExplorerCSharpType()
         {
         }
 
-        internal MgmtExplorerCSharpType(CSharpType csharpType, bool includeSchema = false)
+        internal MgmtExplorerCSharpType(CSharpType csharpType)
         {
             this.Name = csharpType.Name;
             this.Namespace = csharpType.Namespace;
             this.IsValueType = csharpType.IsValueType;
             this.IsEnum = csharpType.IsEnum;
             this.IsNullable = csharpType.IsNullable;
-            this.isGenericType = csharpType.IsGenericType;
+            this.IsGenericType = csharpType.IsGenericType;
+            this.IsFrameworkType = csharpType.IsFrameworkType;
             this.Arguments = new List<MgmtExplorerCSharpType>();
-            if (isGenericType)
+            if (IsGenericType)
             {
                 foreach (var t in csharpType.Arguments)
                 {
@@ -48,32 +53,41 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             this.FullNameWithNamespace = GetFullName(true);
             this.FullNameWithoutNamespace = GetFullName(false);
 
-            if (includeSchema)
+            if (csharpType.IsFrameworkType)
             {
-                if (csharpType.IsFrameworkType)
-                {
-                    // TODO: check all used framework type, handle raw type, there shouldn't be many complex type, let's see whether we can handle them hard-code to keep the code simple
-                }
-                else if (csharpType.Implementation is EnumType)
-                {
-                    var imp = (EnumType)csharpType.Implementation;
+                if (TypeFactory.IsList(csharpType))
+                    this.IsList = true;
 
-                    this.EnumSchema = new MgmtExplorerSchemaEnum();
-                    this.EnumSchema.Values = imp.Values.Select(v => new MgmtExplorerSchemaEnumValue(v)).ToList();
-                }
-                else if (csharpType.Implementation is MgmtObjectType)
-                {
-                    var imp = (MgmtObjectType)csharpType.Implementation;
+                if (TypeFactory.IsDictionary(csharpType))
+                    this.IsDictionary = true;
 
-                    this.ObjectSchema = new MgmtExplorerSchemaObject();
-                    this.ObjectSchema.IsStruct = imp.IsStruct;
-                    this.ObjectSchema.InheritFrom = imp.Inherits == null ? null : new MgmtExplorerCSharpType(imp.Inherits, true /* includeObjectSchema */);
-                    // TODO: add support for discriminator
-                    this.ObjectSchema.InheritBy = new List<MgmtExplorerCSharpType>();
-                    this.ObjectSchema.Description = imp.Description ?? "";
-                    this.ObjectSchema.Properties = imp.Properties.Where(p => p.Declaration.Accessibility == "public" && !p.IsReadOnly).Select(p => new MgmtExplorerSchemaProperty(p)).ToList();
-                    this.ObjectSchema.InitializationConstructor = new MgmtExplorerSchemaConstructor(imp.InitializationConstructor);
-                }
+                if (csharpType.FrameworkType == typeof(BinaryData))
+                    this.IsBinaryData = true;
+
+                // TODO: check all used complex framework type, handle raw type, there shouldn't be many complex type, let's see whether we can handle them hard-code to keep the code simple
+            }
+            else if (csharpType.Implementation is EnumType)
+            {
+                var imp = (EnumType)csharpType.Implementation;
+
+                var schema = new MgmtExplorerSchemaEnum();
+                schema.Values = imp.Values.Select(v => new MgmtExplorerSchemaEnumValue(v)).ToList();
+                schema.SchemaKey = this.FullNameWithNamespace;
+                MgmtExplorerCodeGenSchemaStore.Instance.AddSchema(this.FullNameWithNamespace, schema);
+            }
+            else if (csharpType.Implementation is MgmtObjectType)
+            {
+                var imp = (MgmtObjectType)csharpType.Implementation;
+
+                var schema = new MgmtExplorerSchemaObject();
+                schema.IsStruct = imp.IsStruct;
+                schema.InheritFrom = imp.Inherits == null ? null : new MgmtExplorerCSharpType(imp.Inherits);
+                schema.InheritBy = new List<MgmtExplorerCSharpType>();
+                schema.Description = imp.Description ?? "";
+                schema.Properties = imp.Properties.Where(p => p.Declaration.Accessibility == "public" && !p.IsReadOnly).Select(p => new MgmtExplorerSchemaProperty(p)).ToList();
+                schema.InitializationConstructor = new MgmtExplorerSchemaConstructor(imp.InitializationConstructor);
+                schema.SchemaKey = this.FullNameWithNamespace;
+                MgmtExplorerCodeGenSchemaStore.Instance.AddSchema(this.FullNameWithNamespace, schema);
             }
         }
 
@@ -82,7 +96,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             string name = includeNamespace ? $"{this.Namespace ?? "__N/A__"}.{this.Name ?? "__N/A__"}" : this.Name ?? "__N/A__";
             if (IsNullable)
                 name += "?";
-            if (isGenericType)
+            if (IsGenericType)
             {
                 name += "<" + string.Join(", ", this.Arguments.Select(a => a.GetFullName(includeNamespace))) + ">";
             }

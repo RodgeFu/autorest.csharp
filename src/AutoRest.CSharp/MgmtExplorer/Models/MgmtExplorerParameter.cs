@@ -47,7 +47,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                 this.CSharpName,
                 this.ModelName,
                 this.SerializerName,
-                new MgmtExplorerCSharpType(this.Type, includeSchema),
+                new MgmtExplorerCSharpType(this.Type),
                 this.Description,
                 this.DefaultReplacement);
         }
