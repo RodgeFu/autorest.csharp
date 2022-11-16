@@ -32,8 +32,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public string? OperationNameWithParameters { get; set; }
         public string? FullUniqueName { get; set; }
 
-        public List<MgmtExplorerSchemaObject> SchemaObjects = new List<MgmtExplorerSchemaObject>();
-        public List<MgmtExplorerSchemaEnum> SchemaEnums = new List<MgmtExplorerSchemaEnum>();
+        public List<MgmtExplorerSchemaObject> SchemaObjects { get; set; } = new List<MgmtExplorerSchemaObject>();
+        public List<MgmtExplorerSchemaEnum> SchemaEnums { get; set; } = new List<MgmtExplorerSchemaEnum>();
+        public List<MgmtExplorerSchemaNone> SchemaNones { get; set; } = new List<MgmtExplorerSchemaNone>();
 
         public MgmtExplorerCodeDesc()
         {
@@ -82,6 +83,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         {
             this.SchemaObjects = MgmtExplorerCodeGenSchemaStore.Instance.ObjectSchemas.Values.ToList();
             this.SchemaEnums = MgmtExplorerCodeGenSchemaStore.Instance.EnumSchemas.Values.ToList();
+            this.SchemaNones = MgmtExplorerCodeGenSchemaStore.Instance.NoneSchema.Values.ToList();
         }
 
         public static MgmtExplorerCodeDesc FromYaml(string yaml)

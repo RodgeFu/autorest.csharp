@@ -13,14 +13,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Autorest
 {
     internal static class MgmtExplorerExtensions
     {
-        public static string GetFullName(this CSharpType type, bool includeNamespace)
+        public static string GetFullName(this CSharpType type, bool includeNamespace, bool includeNullable = true)
         {
             string name = includeNamespace ? $"{type.Namespace}.{type.Name}" : type.Name;
-            if (type.IsNullable)
+            if (includeNullable && type.IsNullable)
                 name += "?";
             if (type.IsGenericType)
             {
-                name += "<" + string.Join(", ", type.Arguments.Select(a => a.GetFullName(includeNamespace))) + ">";
+                name += "<" + string.Join(", ", type.Arguments.Select(a => a.GetFullName(includeNamespace, true))) + ">";
             }
             return name;
         }

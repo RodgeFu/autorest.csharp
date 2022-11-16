@@ -6,10 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using AutoRest.CSharp.Generation.Types;
-using AutoRest.CSharp.Input;
-using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Generation;
-using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
@@ -29,17 +26,30 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public string? FullNameWithNamespace { get; set; }
         public string? FullNameWithoutNamespace { get; set; }
 
+        public string? schemaType { get; set; }
+        public string? schemaKey { get; set; }
+
         public MgmtExplorerCSharpType()
         {
         }
 
         internal MgmtExplorerCSharpType(CSharpType csharpType)
         {
+            if (csharpType.IsFrameworkType && csharpType.FrameworkType == typeof(Nullable<>))
+            {
+                // use the real type and mark it as nullable
+                csharpType = csharpType.Arguments[0];
+                this.IsNullable = true;
+            }
+            else
+            {
+                this.IsNullable = csharpType.IsNullable;
+            }
+
             this.Name = csharpType.Name;
             this.Namespace = csharpType.Namespace;
             this.IsValueType = csharpType.IsValueType;
             this.IsEnum = csharpType.IsEnum;
-            this.IsNullable = csharpType.IsNullable;
             this.IsGenericType = csharpType.IsGenericType;
             this.IsFrameworkType = csharpType.IsFrameworkType;
             this.Arguments = new List<MgmtExplorerCSharpType>();
@@ -55,7 +65,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
             if (csharpType.IsFrameworkType)
             {
-                if (TypeFactory.IsList(csharpType))
+                if (TypeFactory.IsList(csharpType) || csharpType.FrameworkType == typeof(List<>))
                     this.IsList = true;
 
                 if (TypeFactory.IsDictionary(csharpType))
@@ -63,32 +73,16 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
                 if (csharpType.FrameworkType == typeof(BinaryData))
                     this.IsBinaryData = true;
-
-                // TODO: check all used complex framework type, handle raw type, there shouldn't be many complex type, let's see whether we can handle them hard-code to keep the code simple
             }
-            else if (csharpType.Implementation is EnumType)
-            {
-                var imp = (EnumType)csharpType.Implementation;
 
-                var schema = new MgmtExplorerSchemaEnum();
-                schema.Values = imp.Values.Select(v => new MgmtExplorerSchemaEnumValue(v)).ToList();
-                schema.SchemaKey = this.FullNameWithNamespace;
-                MgmtExplorerCodeGenSchemaStore.Instance.AddSchema(this.FullNameWithNamespace, schema);
-            }
-            else if (csharpType.Implementation is MgmtObjectType)
-            {
-                var imp = (MgmtObjectType)csharpType.Implementation;
+            var schema = MgmtExplorerCodeGenSchemaStore.Instance.CreateAndAddSchema(this, csharpType);
+            this.SetSchema(schema);
+        }
 
-                var schema = new MgmtExplorerSchemaObject();
-                schema.IsStruct = imp.IsStruct;
-                schema.InheritFrom = imp.Inherits == null ? null : new MgmtExplorerCSharpType(imp.Inherits);
-                schema.InheritBy = new List<MgmtExplorerCSharpType>();
-                schema.Description = imp.Description ?? "";
-                schema.Properties = imp.Properties.Where(p => p.Declaration.Accessibility == "public" && !p.IsReadOnly).Select(p => new MgmtExplorerSchemaProperty(p)).ToList();
-                schema.InitializationConstructor = new MgmtExplorerSchemaConstructor(imp.InitializationConstructor);
-                schema.SchemaKey = this.FullNameWithNamespace;
-                MgmtExplorerCodeGenSchemaStore.Instance.AddSchema(this.FullNameWithNamespace, schema);
-            }
+        private void SetSchema(MgmtExplorerSchemaBase schema)
+        {
+            this.schemaKey = schema.SchemaKey;
+            this.schemaType = schema.SchemaType;
         }
 
         private string GetFullName(bool includeNamespace)
