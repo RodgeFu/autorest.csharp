@@ -9,6 +9,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
     public class MgmtExplorerSchemaEnumValue
     {
         public string? Value { get; set; }
+        public string? InternalValue { get; set; }
         public string Description { get; set; } = string.Empty;
 
         public MgmtExplorerSchemaEnumValue()
@@ -18,7 +19,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
         internal MgmtExplorerSchemaEnumValue(EnumTypeValue enumValue)
         {
-            this.Value = enumValue.Value.Value!.ToString();
+            this.Value = enumValue.Declaration.Name;
+            this.InternalValue = enumValue.Value.Value!.ToString();
             this.Description = enumValue.Description;
         }
     }

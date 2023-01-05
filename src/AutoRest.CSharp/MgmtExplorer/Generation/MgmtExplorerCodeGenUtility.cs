@@ -48,9 +48,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         {
             // TODO: checked the code and found nothing is added to ExtraConstructorParameters (or any special case?), so just use the name as serailizerName should be safe for now which can be verified when compiling generated code
             //       if any special case found, try to retrieve the constructor method -> methodParameter -> inputParameter -> seralizerName  (refer to GetOperationParameters)
+            string requestPath = collection.RequestPath.SerializedPath ?? "";
             return WriteDefineVariableEqualsFuncWithVarDefined(writer,
                 collection.Type, $"{collection.Type.Name}Var", $"{collectionHost.KeyDeclaration}.Get{collection.ResourceName.ResourceNameToPlural()}",
-                collection.ExtraConstructorParameters.Select(p => new MgmtExplorerParameter(p, p.Name, p.Name)));
+                collection.ExtraConstructorParameters.Select(p => new MgmtExplorerParameter(p, p.Name, p.Name, requestPath)));
         }
 
         public static MgmtExplorerVariable WriteGetResource(MgmtExplorerCodeSegmentWriter writer, Resource resource, List<MgmtExplorerParameter> hostParameters, MgmtExplorerVariable armClient)
@@ -101,7 +102,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         public static MgmtExplorerVariable WriteInvokePagedOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerVariable providerVar)
         {
-            var po = WriteDefineVariableEqualsFuncWithVarDefined(writer, new CSharpType(typeof(AsyncPageable<>), operation.ReturnType), $"{operation.Resource?.Type.Name.ToVariableName() ?? "paged"}List", $"await {providerVar.KeyDeclaration}.{operation.Name}Async", parameters);
+            var po = WriteDefineVariableEqualsFuncWithVarDefined(writer, new CSharpType(typeof(Pageable<>), operation.ReturnType), $"{operation.Resource?.Type.Name.ToVariableName() ?? "paged"}List", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters);
             CSharpType listType = new CSharpType(typeof(List<>), operation.ReturnType);
             // TODO: does tolist work?
             return WriteDefineVariableEqualsExpression(writer, listType, "result", $"{po.KeyDeclaration}.ToList()");

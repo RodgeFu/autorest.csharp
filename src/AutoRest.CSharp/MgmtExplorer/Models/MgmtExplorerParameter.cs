@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using AutoRest.CSharp.Common.Input;
-using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Input;
-using AutoRest.CSharp.Mgmt.AutoRest.PostProcess;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.Output.Models.Shared;
@@ -21,14 +18,20 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public string SerializerName { get; set; }
         public string Description { get; init; }
         public string RequestLocation { get; init; }
+        public string? RequestPath { get; init; }
         public string? DefaultValue { get { return this.DefaultReplacement; } }
+        /// <summary>
+        /// Only support requestPath now, add more when needed
+        /// </summary>
+        public string? Source { get; set; }
+        public string? SourceArg { get; set; }
 
-        public MgmtExplorerParameter(Parameter definition, RequestParameter requestParameter)
-            : this(definition, requestParameter.Language.GetName(), requestParameter.Language.GetSerializerNameOrName())
+        public MgmtExplorerParameter(Parameter definition, RequestParameter requestParameter, string requestPath)
+            : this(definition, requestParameter.Language.GetName(), requestParameter.Language.GetSerializerNameOrName(), requestPath)
         {
         }
 
-        public MgmtExplorerParameter(Parameter definition, string modelName, string serializerName)
+        public MgmtExplorerParameter(Parameter definition, string modelName, string serializerName, string requestPath)
             : base($"__PS__{definition.Name}__PE__", definition.Type, GetDefaultValue(definition) ?? "__N/A__")
         {
             this.CSharpName = definition.Name;
@@ -36,9 +39,23 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             this.SerializerName = serializerName;
             Description = definition.Description ?? string.Empty;
             this.RequestLocation = definition.RequestLocation.ToString();
+            this.RequestPath = requestPath;
+
+            if (definition.RequestLocation == Common.Input.RequestLocation.Path)
+            {
+                string search = $"{{{this.CSharpName}}}";
+                int index = this.RequestPath.IndexOf(search);
+                if (index >= 0)
+                {
+                    this.Source = "RequestPath";
+                    this.SourceArg = requestPath.Substring(0, index + search.Length);
+                }
+                else
+                {
+                    throw new System.InvalidOperationException($"Can't find param in request Path. param: {this.CSharpName}, requestPath: {this.RequestPath}");
+                }
+            }
         }
-
-
 
         public MgmtExplorerCodeSegmentParameter ToCodeSegmentParameter(bool includeSchema)
         {
@@ -49,7 +66,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                 this.SerializerName,
                 new MgmtExplorerCSharpType(this.Type),
                 this.Description,
-                this.DefaultReplacement);
+                this.DefaultReplacement,
+                this.RequestPath,
+                this.Source,
+                this.SourceArg);
         }
 
         private static string? GetDefaultValue(Parameter param)
@@ -68,7 +88,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             }
             else if (param.Type.Equals(typeof(Azure.WaitUntil)))
             {
-                return "Azure.WaitUntil.Completed";
+                return "global::Azure.WaitUntil.Completed";
             }
             return value;
         }

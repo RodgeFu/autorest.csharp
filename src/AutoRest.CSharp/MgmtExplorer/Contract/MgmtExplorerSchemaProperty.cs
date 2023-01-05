@@ -14,9 +14,6 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public bool IsRequired { get; set; }
         public bool IsReadonly { get; set; }
 
-        public string? CombinedName { get; set; }
-        public string? CombinedSerializerPath { get; set; }
-
         public MgmtExplorerSchemaProperty()
         {
         }

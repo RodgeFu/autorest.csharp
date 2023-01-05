@@ -14,12 +14,19 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public MgmtExplorerCSharpType? Type { get; set; }
         public string? Description { get; set; }
         public string? DefaultValue { get; set; }
+        public string? RequestPath { get; set; }
+        /// <summary>
+        /// Only support requestPath now, add more when needed
+        /// </summary>
+        public string? Source { get; set; }
+        public string? SourceArg { get; set; }
 
         public MgmtExplorerCodeSegmentParameter()
         {
         }
 
-        public MgmtExplorerCodeSegmentParameter(string key, string suggestedName, string modelName, string serializerName, MgmtExplorerCSharpType type, string? description, string? defaultValue)
+        public MgmtExplorerCodeSegmentParameter(
+            string key, string suggestedName, string modelName, string serializerName, MgmtExplorerCSharpType type, string? description, string? defaultValue, string? requestPath, string? source, string? sourceArg)
         {
             this.Key = key;
             this.SuggestedName = suggestedName;
@@ -28,6 +35,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             this.DefaultValue = defaultValue;
             this.ModelName = modelName;
             this.SerializerName = serializerName;
+            this.RequestPath = requestPath;
+            this.Source = source;
+            this.SourceArg = sourceArg;
         }
     }
 }

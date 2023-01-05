@@ -80,6 +80,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                     csharpType.FrameworkType == typeof(Response) ||
                     csharpType.FrameworkType == typeof(SystemData) ||
                     csharpType.FrameworkType == typeof(AsyncPageable<>) ||
+                    csharpType.FrameworkType == typeof(Pageable<>) ||
                     csharpType.FrameworkType == typeof(SubscriptionResource) ||
                     csharpType.FrameworkType == typeof(ResourceGroupResource) ||
                     csharpType.FrameworkType == typeof(System.IO.Stream))

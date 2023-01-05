@@ -150,6 +150,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             else if (csharpType.FrameworkType == typeof(ExtendedLocationType))
             {
                 SetSchemaForCtorWithOneStringParam(schema, csharpType, "The extended location type.", "value", "");
+                schema.IsEnum = true;
+                // prefer hardcode to reflection to avoid unexpected change which will be hard to maintain.
+                schema.EnumValues = generateEnumValues(new string[]
+                {
+                    "EdgeZone",
+                });
             }
             else if (csharpType.FrameworkType == typeof(UserAssignedIdentity))
             {

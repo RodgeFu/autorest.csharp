@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Mgmt.AutoRest;
 using AutoRest.CSharp.Mgmt.Decorator;
@@ -69,12 +68,24 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             }
 
             var r = new List<MgmtExplorerParameter>();
-            foreach (var s in opRequestPathForHost.Where(s => s.IsReference))
+            string hintPath = "";
+            foreach (var s in opRequestPathForHost)
             {
-                var p = this.AllParameters.FirstOrDefault(pp => pp.CSharpName == s.ReferenceName);
-                if (p == null)
-                    throw new InvalidOperationException("Can't find host parameter in all parameter list: " + s.ReferenceName);
-                r.Add(p);
+                if (s.IsReference)
+                {
+                    hintPath += $"/{{{s.ReferenceName}}}";
+
+                    var p = this.AllParameters.FirstOrDefault(pp => pp.CSharpName == s.ReferenceName);
+                    p.Source = "RequestPath";
+                    p.SourceArg = hintPath;
+                    if (p == null)
+                        throw new InvalidOperationException("Can't find host parameter in all parameter list: " + s.ReferenceName);
+                    r.Add(p);
+                }
+                else
+                {
+                    hintPath += $"/{s.ConstantValue}";
+                }
             }
             return r;
         }
@@ -106,20 +117,22 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                 }
             }
 
+            var requestPath = this.Operation.FirstOrDefault().RequestPath.SerializedPath;
             List<MgmtExplorerParameter> r = new List<MgmtExplorerParameter>();
             foreach (var mp in allParameters)
             {
                 if (CLIENT_PARAMETER_NAMES.Contains(mp.Name))
                 {
                     // use the serializerName = Name for client parameters
-                    r.Add(new MgmtExplorerParameter(mp, mp.Name, mp.Name));
+                    r.Add(new MgmtExplorerParameter(mp, mp.Name, mp.Name, requestPath));
                 }
                 else
                 {
                     var rp = this.AllRequestParameters.Find(p => p.Language.GetName().ToVariableName() == mp.Name);
                     if (rp == null)
                         throw new InvalidOperationException("Can't find Input Parameter for Method Parameter: " + mp.Name);
-                    r.Add(new MgmtExplorerParameter(mp, rp));
+
+                    r.Add(new MgmtExplorerParameter(mp, rp, requestPath));
                 }
             }
             return r;

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Output;
@@ -53,7 +52,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             context.PushCodeSegment((oldSegment) =>
             {
                 oldSegment.OutputResult = new List<MgmtExplorerCodeSegmentVariable>() { context.ArmClientVar.AsCodeSegmentVariable() };
-            }, "INVOKE_API_" + LocalId, "Invoke_" + this.ApiDesc.FullUniqueName );
+            }, "INVOKE_API_" + LocalId, "Invoke_" + this.ApiDesc.FullUniqueName);
 
             WriteStep_PrepareProviderHost(context);
             WriteStep_PrepareProvider(context);
@@ -118,27 +117,48 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             if (context.ResultVar != null)
             {
                 CSharpType r = context.ResultVar.Type;
-                context.CodeSegmentWriter.Line($"Console.WriteLine(\"Result returned for {this.ApiDesc.OperationNameWithScopeAndParameters}:\")");
+                context.CodeSegmentWriter.Line($"Console.WriteLine(\"Result returned for {this.ApiDesc.OperationNameWithScopeAndParameters}:\");");
                 if (r.IsFrameworkType && r.FrameworkType == typeof(List<>))
                 {
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Count = \" + {context.ResultVar.KeyDeclaration}.Count)");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Count = \" + {context.ResultVar.KeyDeclaration}.Count);");
+                    // try to output the list if it's a resource list.
+                    if (r.Arguments != null && r.Arguments.Length == 1)
+                    {
+                        var arg = r.Arguments[0];
+                        if (!arg.IsFrameworkType && arg.Implementation is Resource)
+                        {
+                            context.CodeSegmentWriter.Line($"foreach(var item in {context.ResultVar.KeyDeclaration})");
+                            context.CodeSegmentWriter.Line($"{{");
+                            MgmtExplorerCodeGenUtility.Tab(context.CodeSegmentWriter);
+                            context.CodeSegmentWriter.Line($"Console.WriteLine(\"    \" + item.Data.Id);");
+                            context.CodeSegmentWriter.Line($"}}");
+                        }
+                        else if (!arg.IsFrameworkType && arg.IsResourceDataType(out ResourceData? data))
+                        {
+                            context.CodeSegmentWriter.Line($"foreach(var item in {context.ResultVar.KeyDeclaration})");
+                            context.CodeSegmentWriter.Line($"{{");
+                            MgmtExplorerCodeGenUtility.Tab(context.CodeSegmentWriter);
+                            context.CodeSegmentWriter.Line($"Console.WriteLine(\"    \" + item.Id);");
+                            context.CodeSegmentWriter.Line($"}}");
+                        }
+                    }
                 }
                 else if (!r.IsFrameworkType && r.Implementation is Resource)
                 {
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Data.Id = \" + {context.ResultVar.KeyDeclaration}.Data.Id)");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  Id of {context.ResultVar.KeyDeclaration} Data = \" + {context.ResultVar.KeyDeclaration}.Data.Id);");
                 }
                 else if (!r.IsFrameworkType && r.IsResourceDataType(out ResourceData? data))
                 {
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Id = \" + {context.ResultVar.KeyDeclaration}.Id)");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  Id of {context.ResultVar.KeyDeclaration} = \" + {context.ResultVar.KeyDeclaration}.Id);");
                 }
                 else
                 {
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.ToString() = \" + {context.ResultVar.KeyDeclaration}.ToString())");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} = \" + {context.ResultVar.KeyDeclaration}.ToString());");
                 }
             }
             else
             {
-                context.CodeSegmentWriter.Line($"Console.WriteLine(\"No result returned for {this.ApiDesc.OperationNameWithScopeAndParameters}\")");
+                context.CodeSegmentWriter.Line($"Console.WriteLine(\"No result returned for {this.ApiDesc.OperationNameWithScopeAndParameters}\");");
             }
         }
 

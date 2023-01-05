@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.Json.Serialization;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
@@ -26,7 +25,11 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             SdkPackageName = sdkPackageName;
             SdkPackageVersion = sdkPackageVersion;
             GeneratedTimestamp = generatedTimestamp.ToString("yyyy-MM-dd_HH-mm-ss-ffffff");
-            Dependencies = nugetPackages.Concat(new List<string>() { $"{SdkPackageName}@{SdkPackageVersion}" }).Distinct(StringComparer.Create(CultureInfo.InvariantCulture, true)).ToList();
+            Dependencies = nugetPackages.Concat(new List<string>() {
+                $"{SdkPackageName}@{SdkPackageVersion}",
+                // TODO: shall we use latest?
+                "Azure.Identity@1.8.0"
+            }).Distinct(StringComparer.Create(CultureInfo.InvariantCulture, true)).ToList();
 
             this.ExplorerCodeGenVersion = "1.0.0";
         }
