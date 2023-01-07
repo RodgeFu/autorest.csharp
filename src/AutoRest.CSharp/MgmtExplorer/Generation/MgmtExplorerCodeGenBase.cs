@@ -145,11 +145,15 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 }
                 else if (!r.IsFrameworkType && r.Implementation is Resource)
                 {
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  Id of {context.ResultVar.KeyDeclaration} Data = \" + {context.ResultVar.KeyDeclaration}.Data.Id);");
+                    context.CodeSegmentWriter.UseNamespace("System.Text.Json");
+                    context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
                 }
                 else if (!r.IsFrameworkType && r.IsResourceDataType(out ResourceData? data))
                 {
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  Id of {context.ResultVar.KeyDeclaration} = \" + {context.ResultVar.KeyDeclaration}.Id);");
+                    context.CodeSegmentWriter.UseNamespace("System.Text.Json");
+                    context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
                 }
                 else
                 {

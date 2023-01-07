@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.MgmtExplorer.Generation;
+using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
@@ -39,6 +40,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             {
                 // use the real type and mark it as nullable
                 csharpType = csharpType.Arguments[0];
+                this.IsNullable = true;
+            }
+            else if (!csharpType.IsFrameworkType && csharpType.Implementation is SystemObjectType && ((SystemObjectType)csharpType.Implementation).SystemType.IsClass)
+            {
                 this.IsNullable = true;
             }
             else
