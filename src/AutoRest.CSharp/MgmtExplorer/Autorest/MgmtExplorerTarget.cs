@@ -21,7 +21,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
         public static async Task<Dictionary<string, string>> ExecuteAsync(CodeModel codeModel)
         {
             Debug.Assert(codeModel.TestModel is not null);
-            Debug.Assert(Configuration.MgmtConfiguration.TestGen is not null);
+            //Debug.Assert(Configuration.MgmtConfiguration.TestGen is not null);
 
             try
             {
@@ -55,7 +55,8 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 MgmtExplorerCodeDesc v = writer.WriteExplorerApi();
                 List<MgmtExplorerExampleDesc> examples = MgmtExplorerCodeGenExampleHelper.GenerateExampleDescs(desc, v);
 
-                List<string> outputFormat = Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat?.ToLower().Split(",").ToList() ?? new List<string>();
+                List<string> outputFormat = string.IsNullOrEmpty(Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat) ?
+                    new List<string>() { "cs", "yaml" } : Configuration.MgmtConfiguration.ExplorerGen.OutputFormat.ToLower().Split(",").ToList();
                 if (outputFormat.Contains("yaml"))
                 {
                     output.Add($"Explorer/{desc.FullUniqueName}.yaml", v.ToYaml());

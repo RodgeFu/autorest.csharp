@@ -35,6 +35,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         public static MgmtExplorerVariable WriteGetExtensionResource(MgmtExplorerCodeSegmentWriter writer, MgmtExtensions extension, List<MgmtExplorerParameter> hostParameters, MgmtExplorerVariable armClientVar)
         {
+            writer.UseNamespace(extension.Namespace);
             if (extension.ArmCoreType == typeof(TenantResource))
                 return WriteGetTenantResource(writer, extension, armClientVar);
             else

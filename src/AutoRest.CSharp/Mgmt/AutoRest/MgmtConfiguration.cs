@@ -71,15 +71,15 @@ namespace AutoRest.CSharp.Input
         {
             private const string ExplorerGenOptionsFormat = "explorergen.{0}";
             public bool Model { get; }
-            // i.e. https://github.com/Azure/azure-sdk-for-net/blob/main/eng/Packages.Data.props
-            public string? SdkPackagesDataFile { get; }
+            // i.e. "C:\git\azure-sdk-for-net\sdk\compute\Azure.ResourceManager.Compute\CHANGELOG.md"
+            public string? ChangeLogFile { get; }
             public string? OutputFormat { get; }
 
             public ExplorerGenConfiguration(
-                JsonElement? model = default, JsonElement? sdkPackagesDataFile = default, JsonElement? outputFormat = default)
+                JsonElement? model = default, JsonElement? changeLogFile = default, JsonElement? outputFormat = default)
             {
                 Model = DeserializeBoolean(model, false);
-                SdkPackagesDataFile = sdkPackagesDataFile?.ToString();
+                ChangeLogFile = changeLogFile?.ToString();
                 OutputFormat = outputFormat?.ToString();
             }
 
@@ -89,11 +89,11 @@ namespace AutoRest.CSharp.Input
                     return null;
 
                 root.TryGetProperty(nameof(Model), out var model);
-                root.TryGetProperty(nameof(SdkPackagesDataFile), out var sdkPackagesDataFile);
+                root.TryGetProperty(nameof(ChangeLogFile), out var changeLogFile);
                 root.TryGetProperty(nameof(OutputFormat), out var outputFormat);
 
                 return new ExplorerGenConfiguration(
-                    model: model, sdkPackagesDataFile: sdkPackagesDataFile, outputFormat: outputFormat);
+                    model: model, changeLogFile: changeLogFile, outputFormat: outputFormat);
             }
 
             internal static ExplorerGenConfiguration? GetConfiguration(IPluginCommunication autoRest)
@@ -104,10 +104,10 @@ namespace AutoRest.CSharp.Input
                     return null;
                 }
                 JsonElement? m = autoRest.GetValue<JsonElement?>(string.Format(ExplorerGenOptionsFormat, "model")).GetAwaiter().GetResult();
-                JsonElement? s = autoRest.GetValue<JsonElement?>(string.Format(ExplorerGenOptionsFormat, "sdkPackageDataFile")).GetAwaiter().GetResult();
+                JsonElement? s = autoRest.GetValue<JsonElement?>(string.Format(ExplorerGenOptionsFormat, "changeLogFile")).GetAwaiter().GetResult();
                 JsonElement? f = autoRest.GetValue<JsonElement?>(string.Format(ExplorerGenOptionsFormat, "outputFormat")).GetAwaiter().GetResult();
                 return new ExplorerGenConfiguration(
-                    model: m, sdkPackagesDataFile:s, outputFormat:f);
+                    model: m, changeLogFile:s, outputFormat:f);
             }
 
             public void Write(Utf8JsonWriter writer, string settingName)

@@ -26,7 +26,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
 
         public MgmtExplorerCodeGenInfo Info { get; set; }
 
-        public string FullUniqueName => $"{ServiceName}_{ResourceName}_{SdkOperationId}";
+        public string FullUniqueName => $"{ServiceName}_{ResourceName}_{SdkOperationId}_{this.Info.SdkPackageVersion}";
 
         public string ServiceName => MgmtContext.Context.DefaultLibraryName;
         public string ResourceName => this.Provider.Type.Name;

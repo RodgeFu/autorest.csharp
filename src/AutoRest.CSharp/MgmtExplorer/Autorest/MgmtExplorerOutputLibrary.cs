@@ -4,8 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Xml;
+using System.Text.RegularExpressions;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
 using AutoRest.CSharp.Mgmt.AutoRest;
@@ -13,7 +14,6 @@ using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Models;
-using AutoRest.CSharp.MgmtTest.Models;
 using AutoRest.CSharp.Output.Models.Types;
 using AutoRest.CSharp.Utilities;
 
@@ -23,20 +23,38 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
     {
         private static string GetSdkPackageVersion()
         {
-            string? file = Configuration.MgmtConfiguration.ExplorerGen?.SdkPackagesDataFile;
-            if (!string.IsNullOrEmpty(file))
+            string? file = Configuration.MgmtConfiguration.ExplorerGen?.ChangeLogFile;
+            // try to find changelog.md from outputFolder if it's not set explicitly
+            if (string.IsNullOrEmpty(file))
             {
-                XmlReader reader = new XmlTextReader(file) { Namespaces = false };
-
-                XmlDocument xd = new XmlDocument();
-                xd.Load(reader);
-                XmlNode node = xd.SelectSingleNode($"/Project/ItemGroup/PackageReference[@Update='{MgmtContext.Context.DefaultNamespace}']");
-                if (node != null)
+                DirectoryInfo di = Directory.GetParent(Configuration.OutputFolder);
+                while (di != null)
                 {
-                    return node.Attributes["Version"].Value;
+                    FileInfo[] fis = di.GetFiles("CHANGELOG.md", SearchOption.TopDirectoryOnly);
+                    if (fis.Length > 0)
+                    {
+                        file = fis[0].FullName;
+                        break;
+                    }
+                    di = di.Parent;
                 }
             }
-            return "0.0.0";
+
+            if (string.IsNullOrEmpty(file))
+                throw new InvalidOperationException("ChangeLogFile argument is missing for retriving the sdk package version");
+            string changelog = File.ReadAllText(file);
+            if (!string.IsNullOrEmpty(changelog))
+            {
+                // try to match released version like: ## 1.0.1 (2022-11-29)
+                Regex reg = new Regex(@"^##\s+(?<version>\S+)\s+\(\d+-\d+-\d+\)\s*$", RegexOptions.Multiline);
+
+                var m = reg.Match(changelog);
+                if (m.Success)
+                {
+                    return m.Groups["version"].Value;
+                }
+            }
+            throw new InvalidOperationException("Failed to get latest released sdk version from: " + file);
         }
 
         public MgmtExplorerCodeGenInfo Info { get; init; }
