@@ -48,7 +48,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                     this.InheritBy = new List<MgmtExplorerCSharpType>();
                     this.Description = imp.Description ?? "";
                     this.Properties = imp.Properties
-                        .Where(p => p.Declaration.Accessibility == "public" && (!p.IsReadOnly || TypeFactory.IsCollectionType(p.Declaration.Type)))
+                        .Where(p => p.Declaration.Accessibility == "public" &&
+                            (!p.IsReadOnly || (p.Declaration.Type.IsFrameworkType && (TypeFactory.IsReadWriteList(p.Declaration.Type) || TypeFactory.IsReadWriteDictionary(p.Declaration.Type)))))
                         .Select(p =>
                         {
                             return GenerateProperty(p);
