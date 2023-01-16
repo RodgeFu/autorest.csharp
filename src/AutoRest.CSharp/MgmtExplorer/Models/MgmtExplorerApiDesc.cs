@@ -16,6 +16,8 @@ using AutoRest.CSharp.Utilities;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
+
+
     internal class MgmtExplorerApiDesc
     {
         public MgmtTypeProvider Provider { get; }
@@ -36,6 +38,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         // seems no need to include namespace to make it more readable
         public string OperationNameWithParameters => this.GetOperationNameWithParameters(false /*includeNamespace*/);
         public string OperationNameWithScopeAndParameters => this.GetOperationNameWithScopeAndParameters(false /*includeNamespace*/);
+        public MgmtExplorerProviderAzureResourceType? OperationProviderAzureResourceType { get; set; }
+        public MgmtExplorerProviderType OperationProviderType { get; set; }
 
         // RequestParameter (type) contains more metadata we need to reference objects
         private List<RequestParameter> AllRequestParameters { get; set; }
@@ -49,6 +53,28 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             Provider = provider;
             Operation = operation;
             ExampleGroup = exampleGroup;
+            switch (provider)
+            {
+                case ResourceCollection rc:
+                    this.OperationProviderType = MgmtExplorerProviderType.ResourceCollection;
+                    this.OperationProviderAzureResourceType = new MgmtExplorerProviderAzureResourceType(
+                        rc.ResourceType.Namespace.ConstantValue,
+                        string.Join("/", rc.ResourceType.Types.Select(t => t.ConstantValue)));
+                    break;
+                case Resource res:
+                    this.OperationProviderType = MgmtExplorerProviderType.Resource;
+                    this.OperationProviderAzureResourceType = new MgmtExplorerProviderAzureResourceType(
+                        res.ResourceType.Namespace.ConstantValue,
+                        string.Join("/", res.ResourceType.Types.Select(t => t.ConstantValue)));
+                    break;
+                case MgmtExtensions ex:
+                    this.OperationProviderType = MgmtExplorerProviderType.Extension;
+                    this.OperationProviderAzureResourceType = null;
+                    break;
+                default:
+                    throw new InvalidOperationException("Unexpected apiDesc.Provider type: " + provider.GetType().ToString());
+            }
+
             this.AllRequestParameters = InitAllRequestParameters();
             this.AllParameters = InitAllParameters();
             this.MethodParameters = InitMethodParameters();
