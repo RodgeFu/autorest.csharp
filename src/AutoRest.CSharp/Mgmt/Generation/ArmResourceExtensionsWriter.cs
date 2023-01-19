@@ -84,7 +84,7 @@ namespace AutoRest.CSharp.Mgmt.Generation
                 resource.Type,
                 $"Returns a <see cref=\"{resource.Type}\" /> object.",
                 GetParametersForSingletonEntry());
-            using (WriteCommonMethod(signature, null, false))
+            using (_writer.WriteCommonMethod(signature, null, false, This.Accessibility == "public"))
             {
                 WriteMethodBodyWrapper(signature, false, false);
             }
@@ -107,7 +107,7 @@ namespace AutoRest.CSharp.Mgmt.Generation
                 resourceCollection.Type,
                 $"An object representing collection of {resource.Type.Name.LastWordToPlural()} and their operations over a {resource.Type.Name}.",
                 GetParametersForCollectionEntry(resourceCollection));
-            using (WriteCommonMethod(signature, null, false))
+            using (_writer.WriteCommonMethod(signature, null, false, This.Accessibility == "public"))
             {
                 WriteMethodBodyWrapper(signature, false, false);
             }
@@ -130,10 +130,11 @@ namespace AutoRest.CSharp.Mgmt.Generation
                 Modifiers = GetMethodModifiers(),
                 // There could be parameters to get resource collection
                 Parameters = GetParametersForCollectionEntry(resourceCollection).Concat(GetParametersForResourceEntry(resourceCollection)).ToArray(),
+                Attributes = new[] { new CSharpAttribute(typeof(ForwardsClientCallsAttribute)) }
             };
 
             _writer.Line();
-            using (WriteCommonMethodWithoutValidation(methodSignature, getOperation.ReturnsDescription != null ? getOperation.ReturnsDescription(isAsync) : null, isAsync, true, new List<Attribute> { new ForwardsClientCallsAttribute() }))
+            using (_writer.WriteCommonMethodWithoutValidation(methodSignature, getOperation.ReturnsDescription != null ? getOperation.ReturnsDescription(isAsync) : null, isAsync, This.Accessibility == "public"))
             {
                 WriteResourceEntry(resourceCollection, isAsync);
             }

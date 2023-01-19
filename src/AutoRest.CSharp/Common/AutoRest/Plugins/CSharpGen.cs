@@ -23,8 +23,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             ValidateConfiguration();
 
             Directory.CreateDirectory(Configuration.OutputFolder);
-            var projectDirectory = Path.Combine(Configuration.OutputFolder, Configuration.ProjectFolder);
-            var project = await GeneratedCodeWorkspace.Create(projectDirectory, Configuration.OutputFolder, Configuration.SharedSourceFolders);
+            var project = await GeneratedCodeWorkspace.Create(Configuration.AbsoluteProjectFolder, Configuration.OutputFolder, Configuration.SharedSourceFolders);
             var sourceInputModel = new SourceInputModel(await project.GetCompilationAsync());
 
             var codeModel = await codeModelTask;
@@ -35,7 +34,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             }
             else if (Configuration.AzureArm)
             {
-                if (Configuration.MgmtConfiguration.TestGen is not null)
+                if (Configuration.MgmtTestConfiguration is not null)
                 {
                     // we currently do not need this sourceInputModel when generating the test code because it only has information about the "non-generated" test code.
                     await MgmtTestTarget.ExecuteAsync(project, codeModel);
@@ -47,7 +46,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             }
             else
             {
-                LowLevelTarget.Execute(project, new CodeModelConverter().CreateNamespace(codeModel, new SchemaUsageProvider(codeModel)), sourceInputModel, false);
+                await LowLevelTarget.ExecuteAsync(project, new CodeModelConverter().CreateNamespace(codeModel, new SchemaUsageProvider(codeModel)), sourceInputModel, false);
             }
             return project;
         }
@@ -68,10 +67,9 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             ValidateConfiguration();
 
             Directory.CreateDirectory(Configuration.OutputFolder);
-            var projectDirectory = Path.Combine(Configuration.OutputFolder, Configuration.ProjectFolder);
-            var project = await GeneratedCodeWorkspace.Create(projectDirectory, Configuration.OutputFolder, Configuration.SharedSourceFolders);
+            var project = await GeneratedCodeWorkspace.Create(Configuration.AbsoluteProjectFolder, Configuration.OutputFolder, Configuration.SharedSourceFolders);
             var sourceInputModel = new SourceInputModel(await project.GetCompilationAsync());
-            LowLevelTarget.Execute(project, rootNamespace, sourceInputModel, true);
+            await LowLevelTarget.ExecuteAsync(project, rootNamespace, sourceInputModel, true);
             return project;
         }
 
@@ -85,6 +83,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
 
         public async Task<bool> Execute(IPluginCommunication autoRest)
         {
+            Console.SetOut(Console.Error); //if you send anything to stdout there is an autorest error so this protects us against that happening
             string codeModelFileName = (await autoRest.ListInputs()).FirstOrDefault();
             if (string.IsNullOrEmpty(codeModelFileName))
                 throw new Exception("Generator did not receive the code model file.");
