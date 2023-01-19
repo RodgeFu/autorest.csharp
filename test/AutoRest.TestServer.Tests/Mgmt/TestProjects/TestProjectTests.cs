@@ -208,7 +208,7 @@ namespace AutoRest.TestServer.Tests.Mgmt.TestProjects
                 VerifyMethodReturnType(collection, resource, "Get");
 
                 if (!ListExceptionCollections.Contains(collection))
-                    VerifyMethodReturnType(collection, resource, collection.GetMethods().First(m => m.Name == "GetAll" && !m.GetParameters().Any(p => !p.IsOptional)));
+                    VerifyMethodReturnType(collection, resource, collection.GetMethods().First(m => m.Name == "GetAll" && !m.GetParameters().Any(p => !p.IsOptional && !p.ParameterType.Name.EndsWith("GetAllOptions"))));
 
                 if (collection.GetMethod("CreateOrUpdate") is not null)
                     VerifyMethodReturnType(collection, resource, "CreateOrUpdate");
@@ -231,11 +231,12 @@ namespace AutoRest.TestServer.Tests.Mgmt.TestProjects
 
         private Type? GetResourceFromCollection(Type collection)
         {
-            var baseName = collection.Name.Substring(0, collection.Name.IndexOf("Collection"));
+            var baseName = collection.Name.Substring(0, collection.Name.LastIndexOf("Collection"));
             return MyTypes().FirstOrDefault(t => t.Name == baseName.AddResourceSuffixToResourceName() || t.Name == baseName);
         }
 
         protected virtual HashSet<Type> ListExceptionCollections { get; } = new HashSet<Type>();
+
         [Test]
         public void IEnumerableShouldMatchResource()
         {

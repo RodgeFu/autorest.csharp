@@ -17,6 +17,9 @@
   "GenerateArmResourceExtensions": [
     "/{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}"
   ],
+  "RequestPathToParent": {
+    "/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}/validate": "/{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}"
+  },
   "FormatByNameRules": {
     "tenantId": "uuid",
     "resourceType": "resource-type",
@@ -26,9 +29,14 @@
     "*Uris": "Uri"
   },
   "RenameMapping": {
-    "Type": "EncryptionType"
+    "Type": "EncryptionType",
+    "FirewallPolicyThreatIntelWhitelist.ipAddresses": "-|ip-address"
   },
-  "TestGen": {
+  "testgen": {
+    "SkippedOperations": [
+      "Vaults_GetDeleted",
+      "Vaults_Update"
+    ],
     "Mock": true,
     "Sample": true
   }
