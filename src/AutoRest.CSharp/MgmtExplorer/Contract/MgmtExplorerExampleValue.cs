@@ -49,7 +49,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             this.PropertyValues = ev.Properties?.ToDictionary(
                 v => v.Key,
                 v => new MgmtExplorerExampleValue(v.Value));
-            this.ArrayValues = ev.Elements.Select(v => new MgmtExplorerExampleValue(v)).ToList();
+            this.ArrayValues = ev.Elements?.Select(v => new MgmtExplorerExampleValue(v)).ToList();
 
         }
     }

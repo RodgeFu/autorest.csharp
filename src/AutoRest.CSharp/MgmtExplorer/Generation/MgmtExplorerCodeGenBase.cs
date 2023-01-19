@@ -125,7 +125,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                     if (r.Arguments != null && r.Arguments.Length == 1)
                     {
                         var arg = r.Arguments[0];
-                        if (!arg.IsFrameworkType && arg.Implementation is Resource)
+                        if (!arg.IsFrameworkType && r.TryCastResource(out Resource? res))
                         {
                             context.CodeSegmentWriter.Line($"foreach(var item in {context.ResultVar.KeyDeclaration})");
                             context.CodeSegmentWriter.Line($"{{");
@@ -133,7 +133,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                             context.CodeSegmentWriter.Line($"Console.WriteLine(\"    \" + item.Data.Id);");
                             context.CodeSegmentWriter.Line($"}}");
                         }
-                        else if (!arg.IsFrameworkType && arg.IsResourceDataType(out ResourceData? data))
+                        else if (!arg.IsFrameworkType && r.TryCastResourceData(out ResourceData? data))
                         {
                             context.CodeSegmentWriter.Line($"foreach(var item in {context.ResultVar.KeyDeclaration})");
                             context.CodeSegmentWriter.Line($"{{");
@@ -143,13 +143,13 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                         }
                     }
                 }
-                else if (!r.IsFrameworkType && r.Implementation is Resource)
+                else if (!r.IsFrameworkType && r.TryCastResource(out Resource? res))
                 {
                     context.CodeSegmentWriter.UseNamespace("System.Text.Json");
                     context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
                     context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
                 }
-                else if (!r.IsFrameworkType && r.IsResourceDataType(out ResourceData? data))
+                else if (!r.IsFrameworkType && r.TryCastResourceData(out ResourceData? data))
                 {
                     context.CodeSegmentWriter.UseNamespace("System.Text.Json");
                     context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
