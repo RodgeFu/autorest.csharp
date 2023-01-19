@@ -31,7 +31,7 @@ namespace AutoRest.CSharp.Generation.Writers
         {
             if (_actualName != null)
             {
-                throw new InvalidOperationException("Declaration already initialized");
+                throw new InvalidOperationException($"Declaration {_actualName} already initialized");
             }
 
             _actualName = actualName;

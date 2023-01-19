@@ -1,6 +1,6 @@
 {
  "$id": "1",
- "Name": "cadl.headclient",
+ "Name": "Cadl.HeadClient",
  "Description": "Illustrates clients generated from a Cadl with head parameter.",
  "ApiVersions": [
   "1.0.0"
@@ -12,6 +12,7 @@
    "Name": "Thing",
    "Namespace": "Cadl.HeadClient",
    "IsNullable": false,
+   "Usage": "None",
    "Properties": [
     {
      "$id": "3",
@@ -34,12 +35,13 @@
  "Clients": [
   {
    "$id": "5",
-   "Name": "HeadClient",
+   "Name": "HeadClientClient",
    "Description": "Illustrates clients generated from a Cadl with head parameter.",
    "Operations": [
     {
      "$id": "6",
      "Name": "opWithHead",
+     "ResourceName": "HeadClient",
      "Parameters": [
       {
        "$id": "7",
@@ -127,14 +129,21 @@
        "IsEndpoint": false,
        "SkipUrlEncoding": false,
        "Explode": false,
-       "Kind": "Constant"
+       "Kind": "Constant",
+       "DefaultValue": {
+        "$id": "16",
+        "Type": {
+         "$ref": "15"
+        },
+        "Value": "application/json"
+       }
       },
       {
-       "$id": "16",
-       "Name": "Accept",
+       "$id": "17",
+       "Name": "accept",
        "NameInRequest": "Accept",
        "Type": {
-        "$id": "17",
+        "$id": "18",
         "Name": "String",
         "Kind": "String",
         "IsNullable": false
@@ -149,20 +158,20 @@
        "Explode": false,
        "Kind": "Constant",
        "DefaultValue": {
-        "$id": "18",
+        "$id": "19",
         "Type": {
-         "$ref": "17"
+         "$ref": "18"
         },
         "Value": "application/json"
        }
       },
       {
-       "$id": "19",
+       "$id": "20",
        "Name": "apiVersion",
        "NameInRequest": "api-version",
        "Description": "",
        "Type": {
-        "$id": "20",
+        "$id": "21",
         "Name": "String",
         "Kind": "String",
         "IsNullable": false
@@ -177,9 +186,9 @@
        "Explode": false,
        "Kind": "Client",
        "DefaultValue": {
-        "$id": "21",
+        "$id": "22",
         "Type": {
-         "$id": "22",
+         "$id": "23",
          "Name": "String",
          "Kind": "String",
          "IsNullable": false
@@ -190,11 +199,13 @@
      ],
      "Responses": [
       {
-       "$id": "23",
+       "$id": "24",
        "StatusCodes": [
         204
        ],
-       "BodyMediaType": "Json"
+       "BodyMediaType": "Json",
+       "Headers": [],
+       "IsErrorResponse": false
       }
      ],
      "HttpMethod": "GET",
@@ -202,34 +213,40 @@
      "Uri": "{host}",
      "Path": "/head",
      "RequestMediaTypes": [
-      "application/json",
-      "image/jpeg"
+      "application/json"
      ],
-     "BufferResponse": false,
+     "BufferResponse": true,
      "GenerateConvenienceMethod": false
     },
     {
-     "$id": "24",
+     "$id": "25",
      "Name": "opWithContentTypeHead",
+     "ResourceName": "HeadClient",
      "Parameters": [
       {
        "$ref": "7"
       },
       {
-       "$id": "25",
+       "$id": "26",
        "Name": "contentType",
        "NameInRequest": "content-type",
        "Type": {
-        "$id": "26",
-        "Name": "String",
-        "Kind": "String",
+        "$id": "27",
+        "Name": "Literal",
+        "LiteralValueType": {
+         "$id": "28",
+         "Name": "String",
+         "Kind": "String",
+         "IsNullable": false
+        },
+        "Value": "text/plain",
         "IsNullable": false
        },
        "Location": "Header",
        "DefaultValue": {
-        "$id": "27",
+        "$id": "29",
         "Type": {
-         "$ref": "26"
+         "$ref": "27"
         },
         "Value": "text/plain"
        },
@@ -243,7 +260,7 @@
        "Kind": "Constant"
       },
       {
-       "$id": "28",
+       "$id": "30",
        "Name": "body",
        "NameInRequest": "body",
        "Type": {
@@ -260,19 +277,45 @@
        "Kind": "Method"
       },
       {
-       "$ref": "16"
+       "$id": "31",
+       "Name": "accept",
+       "NameInRequest": "Accept",
+       "Type": {
+        "$id": "32",
+        "Name": "String",
+        "Kind": "String",
+        "IsNullable": false
+       },
+       "Location": "Header",
+       "IsApiVersion": false,
+       "IsResourceParameter": false,
+       "IsContentType": false,
+       "IsRequired": true,
+       "IsEndpoint": false,
+       "SkipUrlEncoding": false,
+       "Explode": false,
+       "Kind": "Constant",
+       "DefaultValue": {
+        "$id": "33",
+        "Type": {
+         "$ref": "32"
+        },
+        "Value": "application/json"
+       }
       },
       {
-       "$ref": "19"
+       "$ref": "20"
       }
      ],
      "Responses": [
       {
-       "$id": "29",
+       "$id": "34",
        "StatusCodes": [
         204
        ],
-       "BodyMediaType": "Json"
+       "BodyMediaType": "Json",
+       "Headers": [],
+       "IsErrorResponse": false
       }
      ],
      "HttpMethod": "GET",
@@ -282,13 +325,14 @@
      "RequestMediaTypes": [
       "text/plain"
      ],
-     "BufferResponse": false,
+     "BufferResponse": true,
      "GenerateConvenienceMethod": false
     }
    ],
    "Protocol": {
-    "$id": "30"
-   }
+    "$id": "35"
+   },
+   "Creatable": true
   }
  ]
 }

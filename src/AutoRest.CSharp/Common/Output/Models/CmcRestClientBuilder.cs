@@ -126,7 +126,9 @@ namespace AutoRest.CSharp.Output.Models
                 }
                 return new InputOperation(
                     Name: operation.Language.Default.Name,
+                    ResourceName: null,
                     Summary: operation.Language.Default.Summary,
+                    Deprecated: operation.Deprecated?.Reason,
                     Description: operation.Language.Default.Description,
                     Accessibility: operation.Accessibility,
                     Parameters: new List<InputParameter>(),
@@ -563,7 +565,7 @@ namespace AutoRest.CSharp.Output.Models
             var isNullable = requestParameter.IsNullable || !requestParameter.IsRequired;
             CSharpType type = typeOverride != null
                 ? new CSharpType(typeOverride, isNullable)
-                : _context.TypeFactory.CreateType(requestParameter.Schema, requestParameter.Extensions, isNullable);
+                : _context.TypeFactory.CreateType(requestParameter.Schema, requestParameter.Extensions?.Format, isNullable);
             return Parameter.FromRequestParameter(requestParameter, type, _context.TypeFactory);
         }
 
