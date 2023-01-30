@@ -98,7 +98,11 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
             else if (csharpType.Implementation is SchemaObjectType || csharpType.Implementation is SystemObjectType)
             {
-                schema = new MgmtExplorerSchemaObject(csharpType);
+                var objSchema = new MgmtExplorerSchemaObject(csharpType);
+                // add first to avoid creating this again when creating schema for children
+                this.AddSchema(objSchema);
+                objSchema.Initialize();
+                schema = objSchema;
             }
             else if (csharpType.Implementation is MgmtTypeProvider)
             {

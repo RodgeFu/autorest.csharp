@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AutoRest.CSharp.Generation.Types;
-using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
@@ -34,20 +33,27 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         /// </summary>
         public List<MgmtExplorerSchemaEnumValue> EnumValues { get; set; } = new List<MgmtExplorerSchemaEnumValue>();
 
+        private CSharpType? _csharpType;
         internal MgmtExplorerSchemaObject(CSharpType csharpType)
             : base(generateKey(csharpType), SCHEMA_TYPE)
         {
-            if (!csharpType.IsFrameworkType)
+            this._csharpType = csharpType;
+        }
+
+        internal void Initialize()
+        {
+            if (this._csharpType != null && !this._csharpType.IsFrameworkType)
             {
-                if (csharpType.Implementation is SchemaObjectType)
+                if (this._csharpType.Implementation is SchemaObjectType)
                 {
-                    var imp = (SchemaObjectType)csharpType.Implementation;
+                    var imp = (SchemaObjectType)this._csharpType.Implementation;
 
                     this.IsStruct = imp.IsStruct;
                     this.InheritFrom = imp.Inherits == null ? null : new MgmtExplorerCSharpType(imp.Inherits);
                     this.InheritBy = new List<MgmtExplorerCSharpType>();
                     this.Description = imp.Description ?? "";
                     this.Properties = imp.Properties
+                        .Select(p => p.FlattenedProperty ?? p)
                         .Where(p => p.Declaration.Accessibility == "public" &&
                             (!p.IsReadOnly || (p.Declaration.Type.IsFrameworkType && (TypeFactory.IsReadWriteList(p.Declaration.Type) || TypeFactory.IsReadWriteDictionary(p.Declaration.Type)))))
                         .Select(p =>
@@ -57,16 +63,18 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                     this.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.InitializationConstructor) : null;
                     this.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.SerializationConstructor) : null;
                 }
-                else if (csharpType.Implementation is SystemObjectType)
+                else if (this._csharpType.Implementation is SystemObjectType)
                 {
-                    var imp = (SystemObjectType)csharpType.Implementation;
+                    var imp = (SystemObjectType)this._csharpType.Implementation;
 
                     this.IsStruct = false;
                     this.InheritFrom = imp.Inherits == null ? null : new MgmtExplorerCSharpType(imp.Inherits);
                     this.InheritBy = new List<MgmtExplorerCSharpType>();
                     this.Description = ""; // not supported in SystemObjectType...
                     this.Properties = imp.Properties
-                        .Where(p => p.Declaration.Accessibility == "public" && (!p.IsReadOnly || TypeFactory.IsCollectionType(p.Declaration.Type)))
+                        .Select(p => p.FlattenedProperty ?? p)
+                        .Where(p => p.Declaration.Accessibility == "public" &&
+                         (!p.IsReadOnly || (p.Declaration.Type.IsFrameworkType && (TypeFactory.IsReadWriteList(p.Declaration.Type) || TypeFactory.IsReadWriteDictionary(p.Declaration.Type)))))
                         .Select(p => GenerateProperty(p)).ToList();
                     this.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.InitializationConstructor) : null;
                     this.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.SerializationConstructor) : null;
@@ -78,7 +86,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
         private MgmtExplorerSchemaProperty GenerateProperty(ObjectTypeProperty p)
         {
-            return new MgmtExplorerSchemaProperty(p);
+            if (p is FlattenedObjectTypeProperty fp)
+                return new MgmtExplorerSchemaProperty(fp);
+            else
+                return new MgmtExplorerSchemaProperty(p);
         }
 
         private bool IsConstructorMatch(ConstructorInfo a, MgmtExplorerSchemaConstructor b)
@@ -150,7 +161,6 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public MgmtExplorerSchemaObject()
             : base()
         {
-
         }
 
     }

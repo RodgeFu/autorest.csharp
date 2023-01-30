@@ -117,7 +117,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             if (context.ResultVar != null)
             {
                 CSharpType r = context.ResultVar.Type;
-                context.CodeSegmentWriter.Line($"Console.WriteLine(\"Result returned for {this.ApiDesc.OperationNameWithScopeAndParameters}:\");");
+                context.CodeSegmentWriter.Line($"Console.WriteLine(\"Result returned from {this.ApiDesc.OperationNameWithScopeAndParameters}:\");");
                 if (r.IsFrameworkType && r.FrameworkType == typeof(List<>))
                 {
                     context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Count = \" + {context.ResultVar.KeyDeclaration}.Count);");
@@ -125,15 +125,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                     if (r.Arguments != null && r.Arguments.Length == 1)
                     {
                         var arg = r.Arguments[0];
-                        if (!arg.IsFrameworkType && r.TryCastResource(out Resource? res))
-                        {
-                            context.CodeSegmentWriter.Line($"foreach(var item in {context.ResultVar.KeyDeclaration})");
-                            context.CodeSegmentWriter.Line($"{{");
-                            MgmtExplorerCodeGenUtility.Tab(context.CodeSegmentWriter);
-                            context.CodeSegmentWriter.Line($"Console.WriteLine(\"    \" + item.Data.Id);");
-                            context.CodeSegmentWriter.Line($"}}");
-                        }
-                        else if (!arg.IsFrameworkType && r.TryCastResourceData(out ResourceData? data))
+                         if (!arg.IsFrameworkType && (arg.TryCastResource(out Resource? res) || arg.TryCastResourceData(out ResourceData? data)))
                         {
                             context.CodeSegmentWriter.Line($"foreach(var item in {context.ResultVar.KeyDeclaration})");
                             context.CodeSegmentWriter.Line($"{{");
@@ -143,17 +135,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                         }
                     }
                 }
-                else if (!r.IsFrameworkType && r.TryCastResource(out Resource? res))
+                else if (!r.IsFrameworkType && (r.TryCastResource(out Resource? res) || r.TryCastResourceData(out ResourceData? data)))
                 {
                     context.CodeSegmentWriter.UseNamespace("System.Text.Json");
                     context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
-                }
-                else if (!r.IsFrameworkType && r.TryCastResourceData(out ResourceData? data))
-                {
-                    context.CodeSegmentWriter.UseNamespace("System.Text.Json");
-                    context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Id = \" + {context.ResultVar.KeyDeclaration}.Id);");
+                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} toJson = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
                 }
                 else
                 {
