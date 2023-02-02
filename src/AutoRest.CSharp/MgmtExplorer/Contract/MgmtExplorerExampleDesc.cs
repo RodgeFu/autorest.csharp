@@ -7,9 +7,6 @@ using System.IO;
 using System.Linq;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
-using AutoRest.CSharp.MgmtExplorer.Models;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
@@ -61,7 +58,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
                 var methodParameter = allMethodParameters.FirstOrDefault(p => p.SerializerName == sName);
                 if (methodParameter == null)
+                {
+                    if (exampleParam.Parameter.Schema.Type == AllSchemaTypes.Constant)
+                    {
+                        // ignore it if the example is for a constant parameter
+                        continue;
+                    }
                     throw new InvalidOperationException("unable to find parameter for example, name = " + sName);
+                }
                 this.ExampleValues[sName] = new MgmtExplorerExampleValue(exampleParam.ExampleValue);
             }
         }

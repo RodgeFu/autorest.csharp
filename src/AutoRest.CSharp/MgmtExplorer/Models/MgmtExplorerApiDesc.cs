@@ -13,6 +13,7 @@ using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
@@ -30,7 +31,17 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
 
         public string FullUniqueName => $"{ServiceName}_{ResourceName}_{SdkOperationId}_{this.Info.SdkPackageVersion}";
 
-        public string ServiceName => MgmtContext.Context.DefaultLibraryName;
+        public string ServiceName
+        {
+            get
+            {
+                string name = MgmtContext.Context.DefaultLibraryName;
+                const string POST_MANAGEMENTCLIENT = "ManagementClient";
+                if (name.EndsWith(POST_MANAGEMENTCLIENT))
+                    name = name.Substring(0, name.Length - POST_MANAGEMENTCLIENT.Length);
+                return name;
+            }
+        }
         public string ResourceName => this.Provider.Type.Name;
         public string OperationName => this.Operation.Name;
         public string SwaggerOperationId => this.Operation.First().OperationId;
