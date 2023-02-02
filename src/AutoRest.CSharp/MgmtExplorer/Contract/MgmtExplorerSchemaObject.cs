@@ -18,8 +18,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public MgmtExplorerCSharpType? InheritFrom { get; set; }
         // TODO: discriminator support
         public List<MgmtExplorerCSharpType> InheritBy { get; set; } = new List<MgmtExplorerCSharpType>();
-        public MgmtExplorerSchemaConstructor? InitializationConstructor { get; set; }
-        public MgmtExplorerSchemaConstructor? SerializationConstructor { get; set; }
+        public MgmtExplorerSchemaMethod? InitializationConstructor { get; set; }
+        public MgmtExplorerSchemaMethod? SerializationConstructor { get; set; }
+        public MgmtExplorerSchemaMethod? StaticCreateMethod { get; set; }
         public string Description { get; set; } = string.Empty;
         public bool IsStruct { get; set; }
         public string DiscriminatorKey { get; set; } = string.Empty;
@@ -96,8 +97,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                         {
                             return GenerateProperty(p);
                         }).ToList();
-                    this.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.InitializationConstructor) : null;
-                    this.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.SerializationConstructor) : null;
+                    this.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaMethod(imp.InitializationConstructor) : null;
+                    this.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaMethod(imp.SerializationConstructor) : null;
                 }
                 else if (this._csharpType.Implementation is SystemObjectType)
                 {
@@ -112,8 +113,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                         .Where(p => p.Declaration.Accessibility == "public" &&
                          (!p.IsReadOnly || (p.Declaration.Type.IsFrameworkType && (TypeFactory.IsReadWriteList(p.Declaration.Type) || TypeFactory.IsReadWriteDictionary(p.Declaration.Type)))))
                         .Select(p => GenerateProperty(p)).ToList();
-                    this.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.InitializationConstructor) : null;
-                    this.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaConstructor(imp.SerializationConstructor) : null;
+                    this.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaMethod(imp.InitializationConstructor) : null;
+                    this.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? new MgmtExplorerSchemaMethod(imp.SerializationConstructor) : null;
 
                     UpdateSystemObjectType(imp);
                 }
@@ -128,7 +129,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                 return new MgmtExplorerSchemaProperty(p);
         }
 
-        private bool IsConstructorMatch(ConstructorInfo a, MgmtExplorerSchemaConstructor b)
+        private bool IsConstructorMatch(ConstructorInfo a, MgmtExplorerSchemaMethod b)
         {
             var ap = a.GetParameters();
             if (ap.Length != b.MethodParameters.Count)
@@ -175,23 +176,6 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                     }
                 }
             }
-
-            //if (this.SchemaKey == typeof(TrackedResourceData).FullName)
-            //{
-            //    var tags = this.Properties.Find(p => p.Name == "Tags");
-            //    if (tags != null)
-            //        tags.IsReadonly = true;
-            //}
-            //else if (this.SchemaKey == typeof(Azure.ResourceManager.Resources.Models.ExtendedLocation).FullName)
-            //{
-            //    // the ctor should be Internal instead of public, seems a bug at SystemObjectType.cs line 136, the ctor can be NonPublic (not sure whehter we should fix there, so fix here as a temp workaround)
-            //    this.SerializationConstructor = null;
-            //}
-            //else if (this.SchemaKey == typeof(Azure.ResourceManager.Models.ManagedServiceIdentity).FullName)
-            //{
-            //    // the ctor should be Internal instead of public, seems a bug at SystemObjectType.cs line 136, the ctor can be NonPublic (not sure whehter we should fix there, so fix here as a temp workaround)
-            //    this.SerializationConstructor = null;
-            //}
         }
 
         public MgmtExplorerSchemaObject()

@@ -6,7 +6,7 @@ using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
-    public class MgmtExplorerSchemaConstructorParameter
+    public class MgmtExplorerSchemaMethodParameter
     {
         public string? Name { get; set; }
         public string? RelatedPropertySerializerPath { get; set; }
@@ -15,12 +15,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public string? DefaultValue { get; set; }
         public string Description { get; set; } = string.Empty;
 
-        public MgmtExplorerSchemaConstructorParameter()
+        public MgmtExplorerSchemaMethodParameter()
         {
 
         }
 
-        internal MgmtExplorerSchemaConstructorParameter(Parameter param, ObjectTypeProperty? initializedProp)
+        internal MgmtExplorerSchemaMethodParameter(Parameter param, ObjectTypeProperty? initializedProp)
         {
             this.Name = param.Name;
             this.RelatedPropertySerializerPath = initializedProp == null ? null : new MgmtExplorerSchemaProperty(initializedProp).SerializerPath;

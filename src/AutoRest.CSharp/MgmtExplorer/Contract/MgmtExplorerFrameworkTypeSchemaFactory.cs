@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
 using Azure.Core;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources.Models;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
 {
@@ -18,19 +18,41 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         private static void SetSchemaForCtorWithOneStringParam(MgmtExplorerSchemaObject schema, CSharpType csharpType, string description, string paramName, string paramDescription)
         {
             schema.Description = description;
-            schema.SerializationConstructor = new MgmtExplorerSchemaConstructor()
+            schema.InitializationConstructor = null;
+            schema.SerializationConstructor = new MgmtExplorerSchemaMethod()
             {
-                Name = csharpType.GetFullName(true /*includeNamespace*/, false /*includeNullable*/),
-                BaseConstructor = null,
-                MethodParameters = new List<MgmtExplorerSchemaConstructorParameter>()
+                Name = csharpType.GetFullName(false /*includeNamespace*/, false /*includeNullable*/),
+                MethodParameters = new List<MgmtExplorerSchemaMethodParameter>()
                         {
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = paramName,
                                 DefaultValue = null,
                                 Description = paramDescription,
                                 IsOptional = false,
                                 RelatedPropertySerializerPath = csharpType.Name,
+                                Type = new MgmtExplorerCSharpType(new CSharpType(typeof(string))),
+                            }
+                        }
+            };
+        }
+
+        private static void SetSchemaForStaticCreateMethodWithOneStringParam(MgmtExplorerSchemaObject schema, CSharpType cSharpType, string methodName, string description, string paramName, string paramDescription)
+        {
+            schema.Description = description;
+            schema.InitializationConstructor = null;
+            schema.StaticCreateMethod = new MgmtExplorerSchemaMethod()
+            {
+                Name = methodName,
+                MethodParameters = new List<MgmtExplorerSchemaMethodParameter>()
+                        {
+                            new MgmtExplorerSchemaMethodParameter()
+                            {
+                                Name = paramName,
+                                DefaultValue = null,
+                                Description = paramDescription,
+                                IsOptional = false,
+                                RelatedPropertySerializerPath = paramName,
                                 Type = new MgmtExplorerCSharpType(new CSharpType(typeof(string))),
                             }
                         }
@@ -60,11 +82,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             schema.InheritBy = new List<MgmtExplorerCSharpType>();
             schema.Description = "";
             schema.Properties = new List<MgmtExplorerSchemaProperty>();
-            schema.InitializationConstructor = new MgmtExplorerSchemaConstructor()
+            schema.InitializationConstructor = new MgmtExplorerSchemaMethod()
             {
-                Name = csharpType.GetFullName(true /*includeNamespace*/, false /*includeNullable*/),
-                BaseConstructor = null,
-                MethodParameters = new List<MgmtExplorerSchemaConstructorParameter>(),
+                Name = csharpType.GetFullName(false /*includeNamespace*/, false /*includeNullable*/),
+                MethodParameters = new List<MgmtExplorerSchemaMethodParameter>(),
             };
             schema.SerializationConstructor = null;
 
@@ -85,16 +106,20 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             {
                 SetSchemaForCtorWithOneStringParam(schema, csharpType, "Represents a globally unique identifier (GUID).", "g", "A string that contains a GUID in one of the following formats(\"d\" represents a hexadecimal digit whose case is ignored):\ndddddddddddddddddddddddddddddddd\ndddddddd-dddd-dddd-dddd-dddddddddddd\n{dddddddd-dddd-dddd-dddd-dddddddddddd}\n(dddddddd-dddd-dddd-dddd-dddddddddddd)\n{0xdddddddd, 0xdddd, 0xdddd,{0xdd,0xdd,0xdd,0xdd,0xdd,0xdd,0xdd,0xdd}}");
             }
+            else if (csharpType.FrameworkType == typeof(IPAddress))
+            {
+                SetSchemaForStaticCreateMethodWithOneStringParam(schema, csharpType, "Parse",
+                    "Provides an Internet Protocol (IP) address.", "ipString", "A string that contains an IP address in dotted-quad notation for IPv4 and in colon-hexadecimal notation for IPv6.");
+            }
             else if (csharpType.FrameworkType == typeof(TimeSpan))
             {
                 schema.Description = "Represents a time interval.";
-                schema.SerializationConstructor = new MgmtExplorerSchemaConstructor()
+                schema.SerializationConstructor = new MgmtExplorerSchemaMethod()
                 {
-                    Name = csharpType.GetFullName(true /*includeNamespace*/, false /*includeNullable*/),
-                    BaseConstructor = null,
-                    MethodParameters = new List<MgmtExplorerSchemaConstructorParameter>()
+                    Name = csharpType.GetFullName(false /*includeNamespace*/, false /*includeNullable*/),
+                    MethodParameters = new List<MgmtExplorerSchemaMethodParameter>()
                         {
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = "days",
                                 DefaultValue = null,
@@ -103,7 +128,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                                 RelatedPropertySerializerPath = csharpType.Name,
                                 Type = new MgmtExplorerCSharpType(new CSharpType(typeof(int))),
                             },
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = "hours",
                                 DefaultValue = null,
@@ -112,7 +137,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                                 RelatedPropertySerializerPath = csharpType.Name,
                                 Type = new MgmtExplorerCSharpType(new CSharpType(typeof(int))),
                             },
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = "minutes",
                                 DefaultValue = null,
@@ -121,7 +146,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                                 RelatedPropertySerializerPath = csharpType.Name,
                                 Type = new MgmtExplorerCSharpType(new CSharpType(typeof(int))),
                             },
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = "seconds",
                                 DefaultValue = null,
@@ -130,7 +155,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                                 RelatedPropertySerializerPath = csharpType.Name,
                                 Type = new MgmtExplorerCSharpType(new CSharpType(typeof(int))),
                             },
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = "milliseconds",
                                 DefaultValue = null,
@@ -159,7 +184,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             }
             else if (csharpType.FrameworkType == typeof(UserAssignedIdentity))
             {
-                SetSchemaForCtorWithOneStringParam(schema, csharpType, "The reference to a user assigned identity associated with the Batch pool which a compute node will use.", "resourceId", "The ARM resource id of the user assigned identity");
+                schema.Description = "User assigned identity properties";
             }
             else if (csharpType.FrameworkType == typeof(ContentType))
             {
@@ -206,13 +231,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             {
                 // type honestily, portal can expose it as enum for better user experience.
                 schema.Description = "Represents an Azure geography region where supported resource providers live.";
-                schema.SerializationConstructor = new MgmtExplorerSchemaConstructor()
+                schema.SerializationConstructor = new MgmtExplorerSchemaMethod()
                 {
-                    Name = csharpType.GetFullName(true /*includeNamespace*/, false /*includeNullable*/),
-                    BaseConstructor = null,
-                    MethodParameters = new List<MgmtExplorerSchemaConstructorParameter>()
+                    Name = csharpType.GetFullName(false /*includeNamespace*/, false /*includeNullable*/),
+                    MethodParameters = new List<MgmtExplorerSchemaMethodParameter>()
                         {
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = "name",
                                 DefaultValue = null,
@@ -221,7 +245,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                                 RelatedPropertySerializerPath = csharpType.Name,
                                 Type = new MgmtExplorerCSharpType(new CSharpType(typeof(string))),
                             },
-                            new MgmtExplorerSchemaConstructorParameter()
+                            new MgmtExplorerSchemaMethodParameter()
                             {
                                 Name = "displayName",
                                 DefaultValue = null,

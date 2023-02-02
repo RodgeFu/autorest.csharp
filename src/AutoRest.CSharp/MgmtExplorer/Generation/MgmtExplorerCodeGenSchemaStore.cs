@@ -67,7 +67,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                     csharpType.FrameworkType == typeof(DateTimeOffset) ||
                     csharpType.FrameworkType == typeof(float) ||
                     csharpType.FrameworkType == typeof(double) ||
-                    csharpType.FrameworkType == typeof(System.Int64))
+                    csharpType.FrameworkType == typeof(System.Int64) ||
+                    csharpType.FrameworkType == typeof(Byte[]) ||
+                    csharpType.FrameworkType == typeof(Byte))
                 {
                     schema = new MgmtExplorerSchemaNone(csharpType, "No schema needed for Raw Framework Data");
                 }
@@ -81,6 +83,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                     csharpType.FrameworkType == typeof(SystemData) ||
                     csharpType.FrameworkType == typeof(AsyncPageable<>) ||
                     csharpType.FrameworkType == typeof(Pageable<>) ||
+                    csharpType.FrameworkType == typeof(TenantResource) ||
                     csharpType.FrameworkType == typeof(SubscriptionResource) ||
                     csharpType.FrameworkType == typeof(ResourceGroupResource) ||
                     csharpType.FrameworkType == typeof(System.IO.Stream))
