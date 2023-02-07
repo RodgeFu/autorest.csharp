@@ -35,6 +35,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public MgmtExplorerProviderAzureResourceType? OperationProviderAzureResourceType { get; set; }
         public MgmtExplorerProviderType OperationProviderType { get; set; }
 
+        public string? RequestPath { get; set; }
+        public string? ApiVersion { get; set; }
+
         public List<MgmtExplorerSchemaObject> SchemaObjects { get; set; } = new List<MgmtExplorerSchemaObject>();
         public List<MgmtExplorerSchemaEnum> SchemaEnums { get; set; } = new List<MgmtExplorerSchemaEnum>();
         public List<MgmtExplorerSchemaNone> SchemaNones { get; set; } = new List<MgmtExplorerSchemaNone>();
@@ -59,6 +62,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
 
             this.OperationProviderAzureResourceType = apiDesc.OperationProviderAzureResourceType;
             this.OperationProviderType= apiDesc.OperationProviderType;
+
+            this.RequestPath = apiDesc.RequestPath;
+            this.ApiVersion = apiDesc.ApiVersion;
         }
 
         public void AddCodeSegment(MgmtExplorerCodeSegment newSegment)

@@ -17,8 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
-
-
     internal class MgmtExplorerApiDesc
     {
         public MgmtTypeProvider Provider { get; }
@@ -52,6 +50,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public MgmtExplorerProviderAzureResourceType? OperationProviderAzureResourceType { get; set; }
         public MgmtExplorerProviderType OperationProviderType { get; set; }
 
+        public string RequestPath { get; set; }
+        public string ApiVersion { get; set; }
+
         // RequestParameter (type) contains more metadata we need to reference objects
         private List<RequestParameter> AllRequestParameters { get; set; }
         // contains all the parameters for lookup purpose
@@ -64,6 +65,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             Provider = provider;
             Operation = operation;
             ExampleGroup = exampleGroup;
+
+            System.Diagnostics.Debug.Assert(operation.Count == 1);
+            var firstOp = operation.First();
+
+            this.RequestPath = firstOp.RequestPath.ToString();
+            System.Diagnostics.Debug.Assert(firstOp.Operation.ApiVersions.Count == 1);
+            this.ApiVersion = firstOp.Operation.ApiVersions.Last().Version;
+
             switch (provider)
             {
                 case ResourceCollection rc:

@@ -26,7 +26,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public MgmtExplorerSchemaEnum()
             : base()
         {
-
+            this.SchemaType = SCHEMA_TYPE;
         }
     }
 }

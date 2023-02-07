@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AutoRest.CSharp.Generation.Types;
+using AutoRest.CSharp.MgmtExplorer.Generation;
 using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Contract
@@ -58,34 +59,91 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                     if (imp.Discriminator != null)
                     {
                         // TODO: do we have multi-level inherit for discriminator? only consider one level here and support multi-level when we find the case exists
-                        var keyEnum = imp.Discriminator.Property.ValueType.Implementation as EnumType;
-                        if (keyEnum == null)
-                            throw new InvalidOperationException("discriminator's type property is not enum");
-                        if (imp.Discriminator.Implementations.Length > 0)
+                        if (imp.Discriminator.Property.ValueType.IsFrameworkType && imp.Discriminator.Property.ValueType.FrameworkType == typeof(string))
                         {
-                            this.IsDiscriminatorBase = true;
-                            this.DiscriminatorProperty = new MgmtExplorerSchemaProperty(imp.Discriminator.Property);
-                            this.InheritBy = imp.Discriminator.Implementations.Select(m =>
+                            if (imp.Discriminator.Implementations.Length > 0)
                             {
-                                var childImp = (SchemaObjectType)m.Type.Implementation;
-                                EnumTypeValue? etv = childImp.Discriminator?.Value?.Value as EnumTypeValue;
+                                List<MgmtExplorerSchemaEnumValue> keys = new List<MgmtExplorerSchemaEnumValue>();
+                                this.IsDiscriminatorBase = true;
+                                //this.DiscriminatorProperty = new MgmtExplorerSchemaProperty(imp.Discriminator.Property);
+                                this.InheritBy = imp.Discriminator.Implementations.Select(m =>
+                                {
+                                    var childImp = (SchemaObjectType)m.Type.Implementation;
+                                    string? key = childImp.Discriminator?.Value?.Value as string;
+                                    if (key == null)
+                                        throw new InvalidOperationException("Can't find string key for implemenation of discriminator: " + m.Type.Name);
+                                    keys.Add(new MgmtExplorerSchemaEnumValue()
+                                    {
+                                        Value = key,
+                                        Description = childImp.Description ?? "",
+                                        InternalValue = key,
+                                    });
+                                    return new MgmtExplorerCSharpType(m.Type);
+                                }).ToList();
+                                string keyNamespace = $"{this._csharpType.Namespace}.SdkExplorerDiscriminator";
+                                string keyTypeName = $"{imp.Discriminator.Property.Declaration.Name}Enum";
+                                string keySchemaKey = $"{keyNamespace}.{keyTypeName}";
+                                var keysEnumSchema = new MgmtExplorerSchemaEnum()
+                                {
+                                    Description = this.Description,
+                                    Values = keys,
+                                    SchemaKey = keySchemaKey
+                                };
+                                MgmtExplorerCodeGenSchemaStore.Instance.AddSchema(keysEnumSchema);
+                                this.DiscriminatorProperty = new MgmtExplorerSchemaProperty()
+                                {
+                                    Accessibility = "internal",
+                                    IsReadonly = true,
+                                    IsRequired = true,
+                                    Name = imp.Discriminator.Property.Declaration.Name,
+                                    SerializerPath = imp.Discriminator.Property.SchemaProperty?.SerializedName ?? imp.Discriminator.Property.Declaration.Name,
+                                    Type = MgmtExplorerCSharpType.CreateEnumType(keyTypeName, keyNamespace, false, keysEnumSchema),
+                                };
+                            }
+                            if (imp.Discriminator?.Value != null)
+                            {
+                                string? key = imp.Discriminator?.Value?.Value as string;
+                                if (key == null)
+                                    throw new InvalidOperationException("Discriminator's key value is null: " + this._csharpType.Name);
+                                this.DiscriminatorKey = key;
+                            }
+                        }
+                        else if (imp.Discriminator.Property.ValueType.Implementation is EnumType)
+                        {
+                            var keyEnum = imp.Discriminator.Property.ValueType.Implementation as EnumType;
+                            if (keyEnum == null)
+                                throw new InvalidOperationException("discriminator's type property is not enum");
+                            if (imp.Discriminator.Implementations.Length > 0)
+                            {
+                                this.IsDiscriminatorBase = true;
+                                this.DiscriminatorProperty = new MgmtExplorerSchemaProperty(imp.Discriminator.Property);
+                                this.InheritBy = imp.Discriminator.Implementations.Select(m =>
+                                {
+                                    var childImp = (SchemaObjectType)m.Type.Implementation;
+                                    EnumTypeValue? etv = childImp.Discriminator?.Value?.Value as EnumTypeValue;
+                                    string? key = etv?.Value.Value as string;
+                                    if (key == null)
+                                        throw new InvalidOperationException("Can't find key for implemenation of discriminator: " + m.Type.Name);
+                                    if (keyEnum.Values.FirstOrDefault(mm => key == (mm.Value.Value as string)) == null)
+                                        throw new InvalidOperationException("Can't find key for implementation in type enum: " + key);
+                                    return new MgmtExplorerCSharpType(m.Type);
+                                }).ToList();
+                                if (this.InheritBy.Count != keyEnum.Values.Count)
+                                    throw new InvalidOperationException($"implementation and key enum count mismatch: impl={string.Join('|', this.InheritBy.Select(m => m.Name))}, keyEnum={string.Join('|', keyEnum.Values.Select(m => m.Value.Value ?? ""))}");
+                            }
+                            if (imp.Discriminator?.Value != null)
+                            {
+                                EnumTypeValue? etv = imp.Discriminator?.Value?.Value as EnumTypeValue;
                                 string? key = etv?.Value.Value as string;
                                 if (key == null)
-                                    throw new InvalidOperationException("Can't find key for implemenation of discriminator: " + m.Type.Name);
-                                if (keyEnum.Values.FirstOrDefault(mm => key == (mm.Value.Value as string)) == null)
-                                    throw new InvalidOperationException("Can't find key for implementation in type enum: " + key);
-                                return new MgmtExplorerCSharpType(m.Type);
-                            }).ToList();
-                            if (this.InheritBy.Count != keyEnum.Values.Count)
-                                throw new InvalidOperationException($"implementation and key enum count mismatch: impl={string.Join('|', this.InheritBy.Select(m => m.Name))}, keyEnum={string.Join('|', keyEnum.Values.Select(m => m.Value.Value ?? ""))}");
+                                    throw new InvalidOperationException("Discriminator's key value is null: " + this._csharpType.Name);
+                                this.DiscriminatorKey = key;
+                            }
                         }
-                        if (imp.Discriminator?.Value != null)
+                        else
                         {
-                            EnumTypeValue? etv = imp.Discriminator?.Value?.Value as EnumTypeValue;
-                            string? key = etv?.Value.Value as string;
-                            if (key == null)
-                                throw new InvalidOperationException("Discriminator's key value is null: " + this._csharpType.Name);
-                            this.DiscriminatorKey = key;
+                            throw new InvalidOperationException(
+                                $"Unexpected type as discriminator type={this._csharpType.Name}, discriminator property type = {imp.Discriminator.Property.ValueType.Name}");
                         }
                     }
                     this.Description = imp.Description ?? "";

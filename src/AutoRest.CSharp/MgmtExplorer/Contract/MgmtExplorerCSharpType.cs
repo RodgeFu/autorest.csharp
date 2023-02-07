@@ -34,6 +34,28 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         {
         }
 
+        public static MgmtExplorerCSharpType CreateEnumType(string name, string @namespace, bool isNullable, MgmtExplorerSchemaEnum schema)
+        {
+            var o = new MgmtExplorerCSharpType()
+            {
+                Name = name,
+                Namespace = @namespace,
+                IsValueType = true,
+                IsEnum = true,
+                IsNullable = isNullable,
+                IsGenericType = false,
+                IsFrameworkType = false,
+                IsList = false,
+                IsDictionary = false,
+                IsBinaryData = false,
+                Arguments = new List<MgmtExplorerCSharpType>(),
+            };
+            o.FullNameWithNamespace = o.GetFullName(true);
+            o.FullNameWithoutNamespace = o.GetFullName(false);
+            o.SetSchema(schema);
+            return o;
+        }
+
         internal MgmtExplorerCSharpType(CSharpType csharpType)
         {
             if (csharpType.IsFrameworkType && csharpType.FrameworkType == typeof(Nullable<>))
