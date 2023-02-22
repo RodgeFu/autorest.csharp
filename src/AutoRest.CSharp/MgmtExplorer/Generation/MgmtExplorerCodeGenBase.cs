@@ -51,6 +51,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 throw new InvalidOperationException("context.ArmClientVar is null");
             context.PushCodeSegment((oldSegment) =>
             {
+                oldSegment.IsShareable = true;
                 oldSegment.OutputResult = new List<MgmtExplorerCodeSegmentVariable>() { context.ArmClientVar.AsCodeSegmentVariable() };
             }, "INVOKE_API_" + LocalId, "Invoke_" + this.ApiDesc.FullUniqueName);
 
@@ -137,10 +138,11 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 }
                 else if (!r.IsFrameworkType && (r.TryCastResource(out Resource? res) || r.TryCastResourceData(out ResourceData? data)))
                 {
-                    context.CodeSegmentWriter.UseNamespace("System.Text.Json");
-                    context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
+                    // uncomment if we want Json again...
+                    //context.CodeSegmentWriter.UseNamespace("System.Text.Json");
+                    //context.CodeSegmentWriter.UseNamespace("System.Text.Json.Serialization");
                     context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration}.Id = \" + {context.ResultVar.KeyDeclaration}.Id);");
-                    context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} toJson = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
+                    //context.CodeSegmentWriter.Line($"Console.WriteLine(\"  {context.ResultVar.KeyDeclaration} toJson = \" + global::System.Text.Json.JsonSerializer.Serialize({context.ResultVar.KeyDeclaration}, new global::System.Text.Json.JsonSerializerOptions {{ WriteIndented = true, DefaultIgnoreCondition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }}));");
                 }
                 else
                 {

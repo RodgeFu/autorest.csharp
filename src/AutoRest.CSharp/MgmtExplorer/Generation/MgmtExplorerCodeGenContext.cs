@@ -71,15 +71,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         {
             this.CodeSegmentWriter.WriteToCodeSegment(this.CurCodeSegment);
             processOldSegment(this.CurCodeSegment);
+            this.CodeSegmentWriter.SetCodeSegmentFunction(this.CurCodeSegment);
             this.ExplorerCode.AddCodeSegment(this.CurCodeSegment);
 
             this.CurCodeSegment = new MgmtExplorerCodeSegment(newSegmentKey, newSuggestedName);
             this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
         }
 
-        //public List<MgmtExplorerCodeSegmentParameter> GetAllCodeSegementParameters()
-        //{
-        //    return this.ExplorerCode.CodeSegments.SelectMany(c => c.Parameters).ToList();
-        //}
     }
 }

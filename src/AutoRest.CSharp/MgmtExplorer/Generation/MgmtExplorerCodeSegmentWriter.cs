@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
 using AutoRest.CSharp.MgmtExplorer.Contract;
 
@@ -88,6 +87,40 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             codeSegment.UsingNamespaces = codeSegment.UsingNamespaces.Concat(this._codeWriter.Namespaces).Distinct().ToList();
             codeSegment.Parameters.AddRange(this._parameters);
             codeSegment.Variables.AddRange(this._variables);
+        }
+
+        public void SetCodeSegmentFunction(MgmtExplorerCodeSegment codeSegment)
+        {
+            string suggestedName = codeSegment.SuggestName!;
+            MgmtExplorerCSharpType returnType;
+            MgmtExplorerCodeSegmentFunction sf;
+            string returnStatement = "";
+            switch (codeSegment.OutputResult.Count)
+            {
+                case 0:
+                    returnType = new MgmtExplorerCSharpType(typeof(void));
+                    sf = new MgmtExplorerCodeSegmentFunction(suggestedName, returnType);
+                    sf.FunctionInvoke =
+                        $"{sf.Key}({string.Join(", ", codeSegment.Dependencies.Select(dep => dep.Key))})";
+                    break;
+                case 1:
+                    returnType = codeSegment.OutputResult[0].Type!;
+                    sf = new MgmtExplorerCodeSegmentFunction(suggestedName, returnType);
+                    returnStatement = $"return {codeSegment.OutputResult[0].Key};";
+                    sf.FunctionInvoke =
+                        $"global::{returnType.FullNameWithNamespace} {codeSegment.OutputResult[0].Key} = {sf.Key}({string.Join(", ", codeSegment.Dependencies.Select(dep => dep.Key))})";
+                    break;
+                default:
+                    throw new NotSupportedException("multiple return result is not supported");
+            }
+
+            sf.FunctionWrap =
+                $"global::{returnType.FullNameWithNamespace} {sf.Key}({string.Join(", ", codeSegment.Dependencies.Select(dep =>  $"global::{dep.Type!.FullNameWithNamespace} {dep.Key}"))})\n" +
+                "{\n" +
+                $"{MgmtExplorerCodeGenUtility.TAB_STRING}{MgmtExplorerCodeSegmentFunction.FUNC_CODESEGMENT_CODE}\n" +
+                $"{MgmtExplorerCodeGenUtility.TAB_STRING}{returnStatement}\n" +
+                "}\n";
+            codeSegment.Function = sf;
         }
     }
 }

@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
@@ -19,6 +18,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public List<MgmtExplorerCodeSegmentVariable> OutputResult { get; set; } = new List<MgmtExplorerCodeSegmentVariable>();
         public List<MgmtExplorerCodeSegmentVariable> Variables { get; set; } = new List<MgmtExplorerCodeSegmentVariable>();
         public List<MgmtExplorerCodeSegmentParameter> Parameters { get; set; } = new List<MgmtExplorerCodeSegmentParameter>();
+        public MgmtExplorerCodeSegmentFunction? Function { get; set; }
+        public bool IsShareable { get; set; } = false;
 
         public MgmtExplorerCodeSegment()
         {

@@ -22,6 +22,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public MgmtTypeProvider Provider { get; }
         public MgmtClientOperation Operation { get; }
         public ExampleGroup? ExampleGroup { get; }
+        private int _mgmtRestOperationIndex { get; set; }
+        public MgmtRestOperation RestOperation => this.Operation[_mgmtRestOperationIndex];
 
         public string Description => $"Method {Operation.Name}() on {Provider.Type.Name}";
 
@@ -42,7 +44,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         }
         public string ResourceName => this.Provider.Type.Name;
         public string OperationName => this.Operation.Name;
-        public string SwaggerOperationId => this.Operation.First().OperationId;
+        public string SwaggerOperationId => this.RestOperation.OperationId;
         public string SdkOperationId => $"{this.OperationName}_For_OperationId_{this.SwaggerOperationId}";
         // seems no need to include namespace to make it more readable
         public string OperationNameWithParameters => this.GetOperationNameWithParameters(false /*includeNamespace*/);
@@ -59,19 +61,19 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         private List<MgmtExplorerParameter> AllParameters { get; set; }
         public List<MgmtExplorerParameter> MethodParameters { get; set; }
 
-        public MgmtExplorerApiDesc(MgmtExplorerCodeGenInfo info, MgmtTypeProvider provider, MgmtClientOperation operation, ExampleGroup? exampleGroup)
+        public MgmtExplorerApiDesc(MgmtExplorerCodeGenInfo info, MgmtTypeProvider provider, MgmtClientOperation operation, ExampleGroup? exampleGroup, int mgmtRestOperationIndex)
         {
             Info = info;
             Provider = provider;
             Operation = operation;
             ExampleGroup = exampleGroup;
+            this._mgmtRestOperationIndex= mgmtRestOperationIndex;
 
-            System.Diagnostics.Debug.Assert(operation.Count == 1);
-            var firstOp = operation.First();
+            var restOp = this.RestOperation;
 
-            this.RequestPath = firstOp.RequestPath.ToString();
-            System.Diagnostics.Debug.Assert(firstOp.Operation.ApiVersions.Count == 1);
-            this.ApiVersion = firstOp.Operation.ApiVersions.Last().Version;
+            this.RequestPath = restOp.RequestPath.ToString();
+            System.Diagnostics.Debug.Assert(restOp.Operation.ApiVersions.Count == 1);
+            this.ApiVersion = restOp.Operation.ApiVersions.Last().Version;
 
             switch (provider)
             {
@@ -102,7 +104,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
 
         public List<MgmtExplorerParameter> GetHostParameters(RequestPath hostRequestPath)
         {
-            RequestPath opRequestPath = this.Operation.FirstOrDefault().RequestPath;
+            RequestPath opRequestPath = this.RestOperation.RequestPath;
             RequestPath opRequestPathForHost = new RequestPath(opRequestPath.Take(hostRequestPath.Count));
 
             // for troubleshooting
@@ -110,7 +112,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             {
                 throw new InvalidOperationException($"hostRequestPath/opRequestPath reference count mismatch: " +
                     $"hostRequestPath: {string.Join(',', hostRequestPath.Where(s => s.IsReference).Select(s => s.ReferenceName))}" +
-                    $"opRequestPath: {string.Join(',', opRequestPath.Where(s => s.IsReference).Select(s => s.ReferenceName))}");
+                    $" <> opRequestPath: {string.Join(',', opRequestPath.Where(s => s.IsReference).Select(s => s.ReferenceName))}");
             }
 
             var r = new List<MgmtExplorerParameter>();
@@ -139,7 +141,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         private List<RequestParameter> InitAllRequestParameters()
         {
             // TODO: we only consider the first operation for now. When will there be more operations?
-            var op = this.Operation.FirstOrDefault();
+            var op = this.RestOperation;
             var sr = op.Operation.GetServiceRequest();
             var allRequestParameters = sr == null ?
                 op.Operation.Parameters : op.Operation.Parameters.Concat(sr.Parameters);
@@ -163,7 +165,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                 }
             }
 
-            var requestPath = this.Operation.FirstOrDefault().RequestPath.SerializedPath;
+            var requestPath = this.RestOperation.RequestPath.SerializedPath;
             List<MgmtExplorerParameter> r = new List<MgmtExplorerParameter>();
             foreach (var mp in allParameters)
             {

@@ -21,6 +21,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal class MgmtExplorerCodeGenUtility
     {
+        public const string TAB_STRING = "    ";
+
         public static MgmtExplorerVariable WriteGetArmClient(MgmtExplorerCodeSegmentWriter writer)
         {
             writer.UseNamespace("Azure.Identity");
@@ -32,6 +34,24 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         {
             return WriteDefineVariableEqualsExpression(writer, tenantExtension.ArmCoreType, "tenantResource", $"{armClientVar.KeyDeclaration}.GetTenants().GetAllAsync().GetAsyncEnumerator().Current");
         }
+
+        //public static MgmtExplorerVariable WriteGetScopeResource(MgmtExplorerCodeSegmentWriter writer, RequestPath scopeRequestPath, List<MgmtExplorerParameter> scopeParameters, MgmtExplorerVariable armClientVar)
+        //{
+        //    List<FormattableString> list = new List<FormattableString>();
+
+        //    scopeRequestPath
+
+        //    foreach (MgmtExplorerParameter mep in scopeParameters)
+        //    {
+        //        writer.AddCodeSegmentParameter(mep.ToCodeSegmentParameter(true /*includeSchema*/));
+        //        list.Add(FormattableStringFactory.Create(mep.Key));
+        //    }
+
+        //    return WriteDefineVariableEqualsExpression(writer, new MgmtExplorerVariable("scope", new CSharpType(typeof(string))),
+        //        )
+        //    return WriteDefineVariableEqualsFunc(writer,
+        //        typeof(string), $"{type.Name}Id".ToVariableName(), $"{type}.CreateResourceIdentifier", list);
+        //}
 
         public static MgmtExplorerVariable WriteGetExtensionResource(MgmtExplorerCodeSegmentWriter writer, MgmtExtensions extension, List<MgmtExplorerParameter> hostParameters, MgmtExplorerVariable armClientVar)
         {
@@ -90,7 +110,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         public static MgmtExplorerVariable WriteInvokeLongRunningOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerVariable providerVar)
         {
             // LongRunningOperation should be returning something like ArmOperation<...> or ArmOperation
-            var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"await {providerVar.KeyDeclaration}.{operation.Name}Async", parameters);
+            // TODO: use non-async SDK, any problem?
+            //var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"await {providerVar.KeyDeclaration}.{operation.Name}Async", parameters);
+            var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters);
             if (operation.ReturnType.IsGenericType)
             {
                 return WriteDefineVariableEqualsExpression(writer, operation.ReturnType.Arguments.First(), "result", $"{lro.KeyDeclaration}.Value");
@@ -113,7 +135,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         {
             // Expect to get Azure.Response or Azure.Response<T> ?
             CSharpType returnType = operation.ReturnType.IsGenericType ? operation.ReturnType.Arguments.First() : operation.ReturnType;
-            return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"await {providerVar.KeyDeclaration}.{operation.Name}Async", parameters);
+            // TODO: use non-async SDK instead, any problem?
+            //return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"await {providerVar.KeyDeclaration}.{operation.Name}Async", parameters);
+            return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters);
         }
         #endregion
 
@@ -170,8 +194,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         public static void Tab(MgmtExplorerCodeSegmentWriter writer)
         {
-            const string tab = "    ";
-            writer.AppendRaw(tab);
+            writer.AppendRaw(TAB_STRING);
         }
     }
 }

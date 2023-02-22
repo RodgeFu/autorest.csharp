@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -88,8 +87,6 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
                     // TODO: DO WE NEED TO SKIP THIS for explorer?
                     if (operations.IsConvenientOperation)
                         continue;
-                    // When will this not be 1?
-                    Debug.Assert(operations.Count == 1);
                     yield return new KeyValuePair<T, MgmtClientOperation>(provider, operations);
                 }
             }
@@ -108,17 +105,23 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
             foreach (var (p, o) in this.EnumerateOperationsOnResource())
             {
                 exampleDict.TryGetValue(o.First().OperationId, out var exampleGroup);
-                yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup);
+                int i = 0;
+                foreach (var rop in o)
+                    yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup, i++);
             }
             foreach (var (p, o) in this.EnumerateOperationsOnResourceCollection())
             {
                 exampleDict.TryGetValue(o.First().OperationId, out var exampleGroup);
-                yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup);
+                int i = 0;
+                foreach (var rop in o)
+                    yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup, i++);
             }
             foreach (var (p, o) in this.EnumerateOperationsOnExtension())
             {
                 exampleDict.TryGetValue(o.First().OperationId, out var exampleGroup);
-                yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup);
+                int i = 0;
+                foreach (var rop in o)
+                    yield return new MgmtExplorerApiDesc(this.Info, p, o, exampleGroup, i++);
             }
         }
 
