@@ -98,6 +98,10 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
 
         public IEnumerable<MgmtExplorerApiDesc> EnumerateAllExplorerApis()
         {
+            // call SchemaMap to tirgger model initialize of MgmtContextLibrary first
+            if (MgmtContext.Library.SchemaMap.Count + MgmtContext.Library.ResourceSchemaMap.Count == 0)
+                throw new InvalidOperationException("SchemaMap and ResourceSchemaMap count == 0");
+
             var exampleDict = MgmtContext.CodeModel.TestModel!.MockTest.ExampleGroups.ToDictionary(
                 g => g.OperationId,
                 g => g);
