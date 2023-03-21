@@ -16,6 +16,7 @@ using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
+using Humanizer;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
@@ -71,7 +72,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             //       if any special case found, try to retrieve the constructor method -> methodParameter -> inputParameter -> seralizerName  (refer to GetOperationParameters)
             string requestPath = collection.RequestPath.SerializedPath ?? "";
             return WriteDefineVariableEqualsFuncWithVarDefined(writer,
-                collection.Type, $"{collection.Type.Name}Var", $"{collectionHost.KeyDeclaration}.Get{collection.ResourceName.ResourceNameToPlural()}",
+                collection.Type, $"{collection.Type.Name.Camelize()}Var", $"{collectionHost.KeyDeclaration}.Get{collection.ResourceName.ResourceNameToPlural()}",
                 collection.ExtraConstructorParameters.Select(p => new MgmtExplorerParameter(p, p.Name, p.Name, requestPath)));
         }
 

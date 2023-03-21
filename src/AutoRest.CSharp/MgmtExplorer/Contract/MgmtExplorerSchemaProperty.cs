@@ -11,6 +11,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
         public string? Accessibility { get; set; }
         public MgmtExplorerCSharpType? Type { get; set; }
         public string? Name { get; set; }
+        public string? Description { get; set; }
         public string? SerializerPath { get; set; }
         public bool IsRequired { get; set; }
         public bool IsReadonly { get; set; }
@@ -26,6 +27,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
             // TODO: there is extra logic to handle the single property object in sdk codegen. add handle for it when we hit the case
             // this.CombinedName = this.Name;
             this.Name = prop.Declaration.Name;
+            this.Description = prop.Description;
             this.Type = new MgmtExplorerCSharpType(prop.Declaration.Type);
             this.IsRequired = prop.SchemaProperty?.IsRequired ?? false;
             this.IsReadonly = prop.IsReadOnly;
