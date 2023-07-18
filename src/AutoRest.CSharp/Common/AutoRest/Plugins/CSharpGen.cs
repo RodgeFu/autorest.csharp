@@ -12,21 +12,20 @@ using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
 using AutoRest.CSharp.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoRest.CSharp.AutoRest.Plugins
 {
     [PluginName("csharpgen")]
     internal class CSharpGen : IPlugin
     {
-        public async Task<GeneratedCodeWorkspace> ExecuteAsync(Task<CodeModel> codeModelTask)
+        public async Task<GeneratedCodeWorkspace> ExecuteAsync(CodeModel codeModel)
         {
             ValidateConfiguration();
 
             Directory.CreateDirectory(Configuration.OutputFolder);
             var project = await GeneratedCodeWorkspace.Create(Configuration.AbsoluteProjectFolder, Configuration.OutputFolder, Configuration.SharedSourceFolders);
             var sourceInputModel = new SourceInputModel(await project.GetCompilationAsync());
-
-            var codeModel = await codeModelTask;
 
             if (Configuration.Generation1ConvenienceClient)
             {
@@ -68,7 +67,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
 
             Directory.CreateDirectory(Configuration.OutputFolder);
             var project = await GeneratedCodeWorkspace.Create(Configuration.AbsoluteProjectFolder, Configuration.OutputFolder, Configuration.SharedSourceFolders);
-            var sourceInputModel = new SourceInputModel(await project.GetCompilationAsync());
+            var sourceInputModel = new SourceInputModel(await project.GetCompilationAsync(), await ProtocolCompilationInput.TryCreate());
             await LowLevelTarget.ExecuteAsync(project, rootNamespace, sourceInputModel, true);
             return project;
         }
@@ -84,14 +83,14 @@ namespace AutoRest.CSharp.AutoRest.Plugins
         public async Task<bool> Execute(IPluginCommunication autoRest)
         {
             Console.SetOut(Console.Error); //if you send anything to stdout there is an autorest error so this protects us against that happening
-            string codeModelFileName = (await autoRest.ListInputs()).FirstOrDefault();
+            string? codeModelFileName = (await autoRest.ListInputs()).FirstOrDefault();
             if (string.IsNullOrEmpty(codeModelFileName))
                 throw new Exception("Generator did not receive the code model file.");
 
-            Configuration.Initialize(autoRest);
-
             string codeModelYaml = await autoRest.ReadFile(codeModelFileName);
-            Task<CodeModel> codeModelTask = Task.Run(() => CodeModelSerialization.DeserializeCodeModel(codeModelYaml));
+            CodeModel codeModel = CodeModelSerialization.DeserializeCodeModel(codeModelYaml);
+
+            Configuration.Initialize(autoRest, codeModel.Language.Default.Name, codeModel.Language.Default.Name);
 
             if (!Path.IsPathRooted(Configuration.OutputFolder))
             {
@@ -99,7 +98,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             }
             if (Configuration.SaveInputs)
             {
-                await autoRest.WriteFile("Configuration.json", StandaloneGeneratorRunner.SaveConfiguration(), "source-file-csharp");
+                await autoRest.WriteFile("Configuration.json", Configuration.SaveConfiguration(), "source-file-csharp");
                 await autoRest.WriteFile("CodeModel.yaml", codeModelYaml, "source-file-csharp");
             }
 
@@ -117,7 +116,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 }
                 else
                 {
-                    var project = await ExecuteAsync(codeModelTask);
+                    var project = await ExecuteAsync(codeModel);
                     await foreach (var file in project.GetGeneratedFilesAsync())
                     {
                         await autoRest.WriteFile(file.Name, file.Text, "source-file-csharp");
@@ -136,7 +135,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                     if (Configuration.SaveInputs)
                     {
                         // We are unsuspectingly crashing, so output anything that might help us reproduce the issue
-                        File.WriteAllText(Path.Combine(Configuration.OutputFolder, "Configuration.json"), StandaloneGeneratorRunner.SaveConfiguration());
+                        File.WriteAllText(Path.Combine(Configuration.OutputFolder, "Configuration.json"), Configuration.SaveConfiguration());
                         File.WriteAllText(Path.Combine(Configuration.OutputFolder, "CodeModel.yaml"), codeModelYaml);
                     }
                 }

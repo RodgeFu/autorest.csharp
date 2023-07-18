@@ -2,13 +2,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
+using System.Xml.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
+using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
@@ -16,9 +15,9 @@ using AutoRest.CSharp.MgmtTest.Extensions;
 using AutoRest.CSharp.MgmtTest.Models;
 using AutoRest.CSharp.MgmtTest.Output.Samples;
 using AutoRest.CSharp.Output.Models.Shared;
-using AutoRest.CSharp.Utilities;
 using Azure.Core;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Resources;
 
 namespace AutoRest.CSharp.MgmtTest.Generation.Samples
 {
@@ -93,7 +92,7 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
             {
                 ResourceCollection collection => WriteSampleOperationForResourceCollection(clientStepResult, collection, sample),
                 Resource resource => WriteSampleOperationForResource(clientStepResult, resource, sample),
-                MgmtExtensions extension => WriteSampleOperationForExtension(clientStepResult, extension, sample),
+                MgmtExtension extension => WriteSampleOperationForExtension(clientStepResult, extension, sample),
                 _ => throw new InvalidOperationException("Should never happen"),
             };
 
@@ -173,7 +172,7 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
         private string GetResourceName(MgmtTypeProvider provider) => provider switch
         {
             Resource resource => resource.Type.Name,
-            MgmtExtensions extension => extension.ArmCoreType.Name,
+            MgmtExtension extension => extension.ArmCoreType.Name,
             _ => throw new InvalidOperationException("Should never happen")
         };
 
@@ -200,7 +199,7 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
             return result;
         }
 
-        private CodeWriterVariableDeclaration? WriteSampleOperationForExtension(CodeWriterVariableDeclaration clientVar, MgmtExtensions extension, Sample sample)
+        private CodeWriterVariableDeclaration? WriteSampleOperationForExtension(CodeWriterVariableDeclaration clientVar, MgmtExtension extension, Sample sample)
         {
             _writer.Line();
 
@@ -215,16 +214,31 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
 
         private CodeWriterDeclaration? WriteGetParentResource(MgmtTypeProvider parent, MockTestCase testCase, FormattableString clientExpression)
         {
-            if (parent is MgmtExtensions extension && extension.ArmCoreType == typeof(ArmResource))
+            if (parent is MgmtExtension extension && extension.ArmCoreType == typeof(ArmResource))
                 return null;
 
             return WriteGetResource(parent, testCase, clientExpression);
         }
 
+        private CodeWriterVariableDeclaration WriteGetCollectionWithoutParent(CodeWriterVariableDeclaration clientResult, ResourceCollection collection)
+        {
+            CodeWriterVariableDeclaration col = new CodeWriterVariableDeclaration("collection", collection.Type);
+            // Can't use CSharpType.Equals(typeof(...)) because the CSharpType.Equals(Type) would assume itself is a FrameworkType, but here it's generated when IsArmCore=true
+            if (Configuration.MgmtConfiguration.IsArmCore && collection.Type.Name == nameof(TenantCollection))
+                _writer.Line($"{col.Type} {col.Declaration:D} = {clientResult.Declaration}.GetTenants();");
+            else
+                // TODO: add support when we found any other case
+                throw new NotSupportedException("Unsupported type to get collection without parent: " + collection.Type.Name);
+            return col;
+        }
+
         private CodeWriterVariableDeclaration WriteGetCollection(CodeWriterVariableDeclaration clientResult, ResourceCollection collection, Sample sample)
         {
             var parent = sample.Parent;
-            Debug.Assert(parent != null);
+
+            if (parent == null)
+                // i.e. Tenant doesnt have parent
+                return WriteGetCollectionWithoutParent(clientResult, collection);
 
             var parentName = GetResourceName(parent);
             _writer.Line($"// this example assumes you already have this {parentName} created on azure");
@@ -264,14 +278,22 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
             _writer.AppendDeclaration(collectionResult).AppendRaw(" = ");
             if (parentVar == null)
             {
-                _writer.Append($"{clientResult.Declaration}.{getResourceCollectionMethodName}({idVar}, ");
+                // Can't use CSharpType.Equals(typeof(...)) because the CSharpType.Equals(Type) would assume itself is a FrameworkType, but here it's generated when IsArmCore=true
+                if (Configuration.MgmtConfiguration.IsArmCore && parent.Type.Name == nameof(ArmResource))
+                {
+                    // Retrive the generic resource first for the methods of ArmResource directly which don't have extnsion methods under ArmClient
+                    _writer.Append($"{clientResult.Declaration}.GetGenericResource({idVar}).{getResourceCollectionMethodName}(");
+                }
+                else
+                {
+                    _writer.Append($"{clientResult.Declaration}.{getResourceCollectionMethodName}({idVar}, ");
+                }
             }
             else
             {
                 _writer.Append($"{parentVar}.{getResourceCollectionMethodName}(");
             }
 
-            var parameterValues = sample.ParameterValueMapping;
             // iterate over the parameter list and put them into the invocation
             foreach ((var parameter, var declaration) in parameters)
             {
@@ -402,6 +424,14 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
                     var declaration = new CodeWriterVariableDeclaration(parameter.Name, parameter.Type);
                     _writer.AppendDeclaration(declaration).AppendRaw(" = ")
                         .AppendExampleParameterValue(parameterValue).LineRaw(";");
+                    result.Add(parameter.Name, declaration);
+                }
+
+                else if (parameter.IsPropertyBag)
+                {
+                    var declaration = new CodeWriterVariableDeclaration(parameter.Name, parameter.Type);
+                    _writer.AppendDeclaration(declaration).AppendRaw(" = ")
+                        .AppendExamplePropertyBagParamValue(parameter, sample.PropertyBagParamValueMapping).LineRaw(";");
                     result.Add(parameter.Name, declaration);
                 }
             }
