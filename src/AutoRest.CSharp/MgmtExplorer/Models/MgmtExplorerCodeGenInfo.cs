@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace AutoRest.CSharp.MgmtExplorer.Contract
+namespace AutoRest.CSharp.MgmtExplorer.Models
 {
     public class MgmtExplorerCodeGenInfo
     {
@@ -31,7 +31,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Contract
                 "Azure.Identity@1.8.0"
             }).Distinct(StringComparer.Create(CultureInfo.InvariantCulture, true)).ToList();
 
-            this.ExplorerCodeGenVersion = "1.0.0";
+            ExplorerCodeGenVersion = "1.0.0";
         }
     }
 }

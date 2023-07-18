@@ -4,16 +4,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
-using AutoRest.CSharp.MgmtExplorer.Contract;
+using AutoRest.CSharp.MgmtExplorer.Extensions;
+using SECodeGen.CSharp.Model.Code;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal class MgmtExplorerCodeSegmentWriter
     {
         private CodeWriter _codeWriter = new CodeWriter();
-        private List<MgmtExplorerCodeSegmentParameter> _parameters = new List<MgmtExplorerCodeSegmentParameter>();
-        private List<MgmtExplorerCodeSegmentVariable> _variables = new List<MgmtExplorerCodeSegmentVariable>();
+        private List<ParameterDesc> _parameters = new List<ParameterDesc>();
+        private List<VariableDesc> _variables = new List<VariableDesc>();
 
         // just for debugging and troubleshooting purpose
         private CodeWriter? _extraCodeWriter = null;
@@ -33,12 +35,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
         }
 
-        public void AddCodeSegmentParameter(MgmtExplorerCodeSegmentParameter param)
+        public void AddCodeSegmentParameter(ParameterDesc param)
         {
             this._parameters.Add(param);
         }
 
-        public void AddCodeSegmentVariable(MgmtExplorerCodeSegmentVariable variable)
+        public void AddCodeSegmentVariable(VariableDesc variable)
         {
             this._variables.Add(variable);
         }
@@ -81,7 +83,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             this._extraCodeWriter?.RemoveTrailingComma();
         }
 
-        public void WriteToCodeSegment(MgmtExplorerCodeSegment codeSegment)
+        public void WriteToCodeSegment(CodeSegmentDesc codeSegment)
         {
             codeSegment.Code += this._codeWriter.ToString(false);
             codeSegment.UsingNamespaces = codeSegment.UsingNamespaces.Concat(this._codeWriter.Namespaces).Distinct().ToList();
@@ -89,23 +91,23 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             codeSegment.Variables.AddRange(this._variables);
         }
 
-        public void SetCodeSegmentFunction(MgmtExplorerCodeSegment codeSegment)
+        public void SetCodeSegmentFunction(CodeSegmentDesc codeSegment)
         {
             string suggestedName = codeSegment.SuggestName!;
-            MgmtExplorerCSharpType returnType;
-            MgmtExplorerCodeSegmentFunction sf;
+            TypeDesc returnType;
+            FunctionDesc sf;
             string returnStatement = "";
             switch (codeSegment.OutputResult.Count)
             {
                 case 0:
-                    returnType = new MgmtExplorerCSharpType(typeof(void));
-                    sf = new MgmtExplorerCodeSegmentFunction(suggestedName, returnType);
+                    returnType = typeof(void).CreateSeTypeDesc();
+                    sf = new FunctionDesc(suggestedName, returnType);
                     sf.FunctionInvoke =
                         $"{sf.Key}({string.Join(", ", codeSegment.Dependencies.Select(dep => dep.Key))})";
                     break;
                 case 1:
                     returnType = codeSegment.OutputResult[0].Type!;
-                    sf = new MgmtExplorerCodeSegmentFunction(suggestedName, returnType);
+                    sf = new FunctionDesc(suggestedName, returnType);
                     returnStatement = $"return {codeSegment.OutputResult[0].Key};";
                     sf.FunctionInvoke =
                         $"global::{returnType.FullNameWithNamespace} {codeSegment.OutputResult[0].Key} = {sf.Key}({string.Join(", ", codeSegment.Dependencies.Select(dep => dep.Key))})";
@@ -117,7 +119,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             sf.FunctionWrap =
                 $"global::{returnType.FullNameWithNamespace} {sf.Key}({string.Join(", ", codeSegment.Dependencies.Select(dep =>  $"global::{dep.Type!.FullNameWithNamespace} {dep.Key}"))})\n" +
                 "{\n" +
-                $"{MgmtExplorerCodeGenUtility.TAB_STRING}{MgmtExplorerCodeSegmentFunction.FUNC_CODESEGMENT_CODE}\n" +
+                $"{MgmtExplorerCodeGenUtility.TAB_STRING}{FunctionDesc.FUNC_CODESEGMENT_CODE}\n" +
                 $"{MgmtExplorerCodeGenUtility.TAB_STRING}{returnStatement}\n" +
                 "}\n";
             codeSegment.Function = sf;

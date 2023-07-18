@@ -7,8 +7,9 @@ using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Output;
-using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.MgmtExplorer.Models;
+using SECodeGen.CSharp.Model.Code;
+using SECodeGen.CSharp.Model.Schema;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
@@ -35,9 +36,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         }
 
         #region Write Steps
-        public MgmtExplorerCodeDesc WriteExplorerApi()
+        public OperationDesc WriteExplorerApi()
         {
-            MgmtExplorerCodeGenSchemaStore.CreateStore();
+            SchemaStore.Instance.Reset();
 
             var context = new MgmtExplorerCodeGenContext(this.ApiDesc, "GET_ARM_CLIENT", "GetArmClient");
 
@@ -52,7 +53,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             context.PushCodeSegment((oldSegment) =>
             {
                 oldSegment.IsShareable = true;
-                oldSegment.OutputResult = new List<MgmtExplorerCodeSegmentVariable>() { context.ArmClientVar.AsCodeSegmentVariable() };
+                oldSegment.OutputResult = new List<VariableDesc>() { context.ArmClientVar.AsCodeSegmentVariable() };
             }, "INVOKE_API_" + LocalId, "Invoke_" + this.ApiDesc.FullUniqueName);
 
             WriteStep_PrepareProviderHost(context);
@@ -62,8 +63,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             WriteStep_End(context);
             context.PushCodeSegment((oldSegment) =>
             {
-                oldSegment.Dependencies = new List<MgmtExplorerCodeSegmentVariable>() { context.ArmClientVar.AsCodeSegmentVariable() };
-                oldSegment.OutputResult = context.ResultVar == null ? new List<MgmtExplorerCodeSegmentVariable>() : new List<MgmtExplorerCodeSegmentVariable>() { context.ResultVar.AsCodeSegmentVariable() };
+                oldSegment.Dependencies = new List<VariableDesc>() { context.ArmClientVar.AsCodeSegmentVariable() };
+                oldSegment.OutputResult = context.ResultVar == null ? new List<VariableDesc>() : new List<VariableDesc>() { context.ResultVar.AsCodeSegmentVariable() };
             });
 
             context.ExplorerCode.RefreshSchema();

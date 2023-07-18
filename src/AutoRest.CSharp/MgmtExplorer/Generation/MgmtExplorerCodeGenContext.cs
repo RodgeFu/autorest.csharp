@@ -4,16 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AutoRest.CSharp.MgmtExplorer.Contract;
+using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.MgmtExplorer.Models;
+using SECodeGen.CSharp.Model.Code;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal class MgmtExplorerCodeGenContext
     {
-        public MgmtExplorerCodeDesc ExplorerCode { get; init; }
+        public OperationDesc ExplorerCode { get; init; }
         public MgmtExplorerCodeSegmentWriter CodeSegmentWriter { get; set; }
-        private MgmtExplorerCodeSegment CurCodeSegment { get; set; }
+        private CodeSegmentDesc CurCodeSegment { get; set; }
         public MgmtExplorerApiDesc ApiDesc { get; init; }
 
         public MgmtExplorerVariable? ArmClientVar
@@ -43,8 +44,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         {
             this.ApiDesc = apiDesc;
             this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
-            this.CurCodeSegment = new MgmtExplorerCodeSegment(firstCodeSegmentKey, firstCodeSegmentSuggstedName);
-            this.ExplorerCode = new MgmtExplorerCodeDesc(apiDesc);
+            this.CurCodeSegment = new CodeSegmentDesc(firstCodeSegmentKey, firstCodeSegmentSuggstedName);
+            this.ExplorerCode = apiDesc.CreateOperationDesc();
         }
 
         public MgmtExplorerVariable? GetVariable(string key)
@@ -67,14 +68,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
         }
 
-        public void PushCodeSegment(Action<MgmtExplorerCodeSegment> processOldSegment, string newSegmentKey = "", string newSuggestedName = "")
+        public void PushCodeSegment(Action<CodeSegmentDesc> processOldSegment, string newSegmentKey = "", string newSuggestedName = "")
         {
             this.CodeSegmentWriter.WriteToCodeSegment(this.CurCodeSegment);
             processOldSegment(this.CurCodeSegment);
             this.CodeSegmentWriter.SetCodeSegmentFunction(this.CurCodeSegment);
             this.ExplorerCode.AddCodeSegment(this.CurCodeSegment);
 
-            this.CurCodeSegment = new MgmtExplorerCodeSegment(newSegmentKey, newSuggestedName);
+            this.CurCodeSegment = new CodeSegmentDesc(newSegmentKey, newSuggestedName);
             this.CodeSegmentWriter = new MgmtExplorerCodeSegmentWriter();
         }
 

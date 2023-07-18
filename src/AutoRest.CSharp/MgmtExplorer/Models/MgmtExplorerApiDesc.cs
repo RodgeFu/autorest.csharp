@@ -10,10 +10,11 @@ using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
-using AutoRest.CSharp.MgmtExplorer.Contract;
 using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using SECodeGen.CSharp.Model.Azure;
+using static SECodeGen.CSharp.Model.Code.OperationDesc;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
@@ -49,8 +50,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         // seems no need to include namespace to make it more readable
         public string OperationNameWithParameters => this.GetOperationNameWithParameters(false /*includeNamespace*/);
         public string OperationNameWithScopeAndParameters => this.GetOperationNameWithScopeAndParameters(false /*includeNamespace*/);
-        public MgmtExplorerProviderAzureResourceType? OperationProviderAzureResourceType { get; set; }
-        public MgmtExplorerProviderType OperationProviderType { get; set; }
+        public AzureResourceType? OperationProviderAzureResourceType { get; set; }
+        public ProviderType OperationProviderType { get; set; }
 
         public string RequestPath { get; set; }
         public string ApiVersion { get; set; }
@@ -78,19 +79,19 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             switch (provider)
             {
                 case ResourceCollection rc:
-                    this.OperationProviderType = MgmtExplorerProviderType.ResourceCollection;
-                    this.OperationProviderAzureResourceType = new MgmtExplorerProviderAzureResourceType(
+                    this.OperationProviderType = ProviderType.ResourceCollection;
+                    this.OperationProviderAzureResourceType = new AzureResourceType(
                         rc.ResourceType.Namespace.ConstantValue,
                         string.Join("/", rc.ResourceType.Types.Select(t => t.ConstantValue)));
                     break;
                 case Resource res:
-                    this.OperationProviderType = MgmtExplorerProviderType.Resource;
-                    this.OperationProviderAzureResourceType = new MgmtExplorerProviderAzureResourceType(
+                    this.OperationProviderType = ProviderType.Resource;
+                    this.OperationProviderAzureResourceType = new AzureResourceType(
                         res.ResourceType.Namespace.ConstantValue,
                         string.Join("/", res.ResourceType.Types.Select(t => t.ConstantValue)));
                     break;
                 case MgmtExtensions ex:
-                    this.OperationProviderType = MgmtExplorerProviderType.Extension;
+                    this.OperationProviderType = ProviderType.Extension;
                     this.OperationProviderAzureResourceType = null;
                     break;
                 default:
@@ -124,7 +125,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                     hintPath += $"/{{{s.ReferenceName}}}";
 
                     var p = this.AllParameters.FirstOrDefault(pp => pp.CSharpName == s.ReferenceName);
-                    p.Source = "RequestPath";
+                    p.Source = MgmtExplorerParameter.SOURCE_REQUEST_PATH;
                     p.SourceArg = hintPath;
                     if (p == null)
                         throw new InvalidOperationException("Can't find host parameter in all parameter list: " + s.ReferenceName);

@@ -5,7 +5,8 @@ using System;
 using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
-using AutoRest.CSharp.MgmtExplorer.Contract;
+using AutoRest.CSharp.MgmtExplorer.Extensions;
+using SECodeGen.CSharp.Model.Code;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
@@ -13,7 +14,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
     {
         public string SuggestedName => this.DefaultReplacement!;
         public CodeWriterDeclaration KeyDeclaration { get; init; }
-        private MgmtExplorerCodeSegmentVariable _codeSegmentVariable;
+        private VariableDesc _codeSegmentVariable;
 
         public MgmtExplorerVariable(string suggestedName, CSharpType type)
             :base(
@@ -22,11 +23,11 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                  suggestedName)
         {
             this.KeyDeclaration = new CodeWriterDeclaration(this.Key);
-            this._codeSegmentVariable = new MgmtExplorerCodeSegmentVariable(
-                this.Key, this.SuggestedName, new MgmtExplorerCSharpType(this.Type));
+            this._codeSegmentVariable = new VariableDesc(
+                this.Key, this.SuggestedName, this.Type.CreateSeTypeDesc());
         }
 
-        public MgmtExplorerCodeSegmentVariable AsCodeSegmentVariable()
+        public VariableDesc AsCodeSegmentVariable()
         {
             return _codeSegmentVariable;
         }

@@ -10,9 +10,11 @@ using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.MgmtExplorer.AutoRest;
-using AutoRest.CSharp.MgmtExplorer.Contract;
+using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.MgmtExplorer.Generation;
 using AutoRest.CSharp.MgmtTest.AutoRest;
+using SECodeGen.CSharp.Model.Code;
+using SECodeGen.CSharp.Model.Example;
 
 namespace AutoRest.CSharp.AutoRest.Plugins
 {
@@ -52,14 +54,16 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             foreach (var desc in library.EnumerateAllExplorerApis())
             {
                 MgmtExplorerCodeGenBase writer = MgmtExplorerCodeGenBase.Create(desc);
-                MgmtExplorerCodeDesc v = writer.WriteExplorerApi();
-                List<MgmtExplorerExampleDesc> examples = MgmtExplorerCodeGenExampleHelper.GenerateExampleDescs(desc, v);
+                OperationDesc v = writer.WriteExplorerApi();
+
+                List<ExampleDesc> examples = new List<ExampleDesc>();
+                if (desc.ExampleGroup != null && desc.ExampleGroup.Examples != null && desc.ExampleGroup.Examples.Count > 0)
+                    examples = desc.ExampleGroup.Examples.Select(e => e.CreateExampleDesc(v)).ToList();
 
                 List<string> outputFormat = string.IsNullOrEmpty(Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat) ?
-                    new List<string>() { "cs", "yaml" } : Configuration.MgmtConfiguration.ExplorerGen.OutputFormat.ToLower().Split(",").ToList();
+                    new List<string>() { "cs", "yaml", "sample_cs" } : Configuration.MgmtConfiguration.ExplorerGen.OutputFormat.ToLower().Split(",").ToList();
                 if (outputFormat.Contains("yaml"))
                 {
-                    output.Add($"Explorer/{desc.FullUniqueName}.yaml", v.ToYaml());
                     foreach (var ex in examples)
                     {
                         string filename = $"{ex.OriginalFileNameWithoutExtension}";
@@ -75,10 +79,15 @@ namespace AutoRest.CSharp.AutoRest.Plugins
 
                         output.Add($"Explorer/Example/{filename}.yaml", ex.ToYaml());
                     }
+                    output.Add($"Explorer/{desc.FullUniqueName}.yaml", v.ToYaml());
                 }
                 if (outputFormat.Contains("cs"))
                 {
                     output.Add($"Explorer/{desc.FullUniqueName}.cs", v.ToCode(true));
+                }
+                if (outputFormat.Contains("sample_cs"))
+                {
+                    output.Add($"Explorer/{desc.FullUniqueName}_sample.cs", v.ToCode(true));
                 }
             }
         }

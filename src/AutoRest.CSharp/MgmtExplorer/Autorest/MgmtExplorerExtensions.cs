@@ -4,7 +4,6 @@
 using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Input;
-using AutoRest.CSharp.MgmtExplorer.Contract;
 using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

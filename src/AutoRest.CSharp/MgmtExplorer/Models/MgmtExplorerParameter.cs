@@ -3,8 +3,9 @@
 
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
-using AutoRest.CSharp.MgmtExplorer.Contract;
+using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.Output.Models.Shared;
+using SECodeGen.CSharp.Model.Code;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
@@ -13,6 +14,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
     /// </summary>
     internal class MgmtExplorerParameter : MgmtExplorerPlaceHolder
     {
+        public const string SOURCE_REQUEST_PATH = "RequestPath";
+
         public string CSharpName { get; init; }
         public string ModelName { get; init; }
         public string SerializerName { get; set; }
@@ -47,7 +50,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                 int index = this.RequestPath.IndexOf(search);
                 if (index >= 0)
                 {
-                    this.Source = "RequestPath";
+                    this.Source = SOURCE_REQUEST_PATH;
                     this.SourceArg = requestPath.Substring(0, index + search.Length);
                 }
                 else
@@ -57,19 +60,21 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             }
         }
 
-        public MgmtExplorerCodeSegmentParameter ToCodeSegmentParameter(bool includeSchema)
+        public ParameterDesc ToCodeSegmentParameter(bool includeSchema)
         {
-            return new MgmtExplorerCodeSegmentParameter(
-                this.Key,
-                this.CSharpName,
-                this.ModelName,
-                this.SerializerName,
-                new MgmtExplorerCSharpType(this.Type),
-                this.Description,
-                this.DefaultReplacement,
-                this.RequestPath,
-                this.Source,
-                this.SourceArg);
+            return new ParameterDesc()
+            {
+                Key = this.Key,
+                SuggestedName = this.CSharpName,
+                ModelName = this.ModelName,
+                SerializerName = this.SerializerName,
+                Type = this.Type.CreateSeTypeDesc(),
+                Description = this.Description,
+                DefaultValue = this.DefaultReplacement,
+                RequestPath = this.RequestPath,
+                Source = this.Source,
+                SourceArg = this.SourceArg
+            };
         }
 
         private static string? GetDefaultValue(Parameter param)
