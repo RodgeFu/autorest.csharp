@@ -23,6 +23,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public string RequestLocation { get; init; }
         public string? RequestPath { get; init; }
         public string? DefaultValue { get { return this.DefaultReplacement; } }
+        public bool IsInPropertyBag { get; set; }
         /// <summary>
         /// Only support requestPath now, add more when needed
         /// </summary>
@@ -43,6 +44,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             Description = definition.Description ?? string.Empty;
             this.RequestLocation = definition.RequestLocation.ToString();
             this.RequestPath = requestPath;
+            this.IsInPropertyBag = definition.IsPropertyBag;
 
             if (definition.RequestLocation == Common.Input.RequestLocation.Path)
             {
@@ -60,7 +62,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             }
         }
 
-        public ParameterDesc ToCodeSegmentParameter(bool includeSchema)
+        public ParameterDesc ToCodeSegmentParameter()
         {
             return new ParameterDesc()
             {
@@ -73,7 +75,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                 DefaultValue = this.DefaultReplacement,
                 RequestPath = this.RequestPath,
                 Source = this.Source,
-                SourceArg = this.SourceArg
+                SourceArg = this.SourceArg,
+                IsInPropertyBag = this.IsInPropertyBag,
             };
         }
 

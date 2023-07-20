@@ -13,9 +13,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
 {
     internal static class SeModelCodeExtension
     {
-        internal static OperationDesc CreateOperationDesc(this MgmtExplorerApiDesc apiDesc)
+        internal static ApiDesc CreateOperationDesc(this MgmtExplorerApiDesc apiDesc)
         {
-            OperationDesc r = new OperationDesc()
+            ApiDesc r = new ApiDesc()
             {
                 Language = "DotNet",
                 SdkPackageName = apiDesc.Info.SdkPackageName,
@@ -31,8 +31,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 FullUniqueName = apiDesc.FullUniqueName,
                 OperationNameWithScopeAndParameters = apiDesc.OperationNameWithScopeAndParameters,
                 OperationNameWithParameters = apiDesc.OperationNameWithParameters,
-                OperationMethodParameters = apiDesc.MethodParameters.Select(p => p.ToCodeSegmentParameter(false /*includeSchema*/)).ToList(),
-                AzureResourceType = apiDesc.OperationProviderAzureResourceType,
+                OperationMethodParameters = apiDesc.MethodParameters.Select(p => p.ToCodeSegmentParameter()).ToList(),
+                PropertyBagParameter = apiDesc.PropertyBagParameter?.ToCodeSegmentParameter(),
+                OperationProviderAzureResourceType = apiDesc.OperationProviderAzureResourceType,
                 OperationProviderType = apiDesc.OperationProviderType,
                 RequestPath = apiDesc.RequestPath,
                 ApiVersion = apiDesc.ApiVersion,

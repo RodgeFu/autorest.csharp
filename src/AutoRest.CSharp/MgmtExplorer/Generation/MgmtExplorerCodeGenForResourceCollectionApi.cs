@@ -32,14 +32,14 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             if (context.ArmClientVar == null)
                 throw new InvalidOperationException("ArmClientVar is null");
 
-            var hostList = this.Collection.Parent();
+            var hostList = this.Collection.GetParents();
             // when will this not be 1? let's see
             Debug.Assert(hostList?.Count() == 1);
             var host = hostList.First();
 
-            if (host is MgmtExtensions)
+            if (host is MgmtExtension)
             {
-                var ext = (MgmtExtensions)host;
+                var ext = (MgmtExtension)host;
                 var hostName = ext.ArmCoreType.Name;
                 if (ext.ArmCoreType == typeof(ArmResource))
                 {

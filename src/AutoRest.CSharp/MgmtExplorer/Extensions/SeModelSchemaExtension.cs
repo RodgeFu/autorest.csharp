@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using AutoRest.CSharp.Common.Output.Models.Types;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
@@ -32,7 +33,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
 
         internal static SchemaBase GetOrCreateSeSchema(this CSharpType csharpType)
         {
-            var schema = SchemaStore.Instance.GetSchemaFromStore(csharpType);
+            var schema = csharpType.GetSchemaFromStore();
             if (schema != null)
                 return schema;
             if (csharpType.IsFrameworkType)
@@ -83,7 +84,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
             {
                 schema = csharpType.GetOrCreateSeSchemaEnum();
             }
-            else if (csharpType.Implementation is SchemaObjectType || csharpType.Implementation is SystemObjectType)
+            else if (csharpType.Implementation is SchemaObjectType || csharpType.Implementation is SystemObjectType || csharpType.Implementation is ModelTypeProvider)
             {
                 var objSchema = csharpType.GetOrCreateSeSchemaObjectForNonFrameworkType();
                 schema = objSchema;
@@ -120,135 +121,142 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
 
             SchemaObject r = new SchemaObject(csharpType.GenerateSeSchemaKey());
             SchemaStore.Instance.AddSchema(r);
-            if (!csharpType.IsFrameworkType)
+            if (csharpType.Implementation is SchemaObjectType || csharpType.Implementation is ModelTypeProvider)
             {
-                if (csharpType.Implementation is SchemaObjectType)
-                {
-                    var imp = (SchemaObjectType)csharpType.Implementation;
+                var imp = (SerializableObjectType)csharpType.Implementation;
 
-                    r.IsStruct = imp.IsStruct;
-                    r.InheritFrom = imp.Inherits == null ? null : imp.Inherits.CreateSeTypeDesc();
-                    if (imp.Discriminator != null)
+                r.IsStruct = imp.IsStruct;
+                r.InheritFrom = imp.Inherits == null ? null : imp.Inherits.CreateSeTypeDesc();
+                if (imp.Discriminator != null)
+                {
+                    // TODO: do we have multi-level inherit for discriminator? only consider one level here and support multi-level when we find the case exists
+                    if (imp.Discriminator.Property.ValueType.IsFrameworkType && imp.Discriminator.Property.ValueType.FrameworkType == typeof(string))
                     {
-                        // TODO: do we have multi-level inherit for discriminator? only consider one level here and support multi-level when we find the case exists
-                        if (imp.Discriminator.Property.ValueType.IsFrameworkType && imp.Discriminator.Property.ValueType.FrameworkType == typeof(string))
+                        if (imp.Discriminator.Implementations.Length > 0)
                         {
-                            if (imp.Discriminator.Implementations.Length > 0)
+                            List<SchemaEnumValue> keys = new List<SchemaEnumValue>();
+                            r.IsDiscriminatorBase = true;
+                            //this.DiscriminatorProperty = new MgmtExplorerSchemaProperty(imp.Discriminator.Property);
+                            r.InheritBy = imp.Discriminator.Implementations.Select(m =>
                             {
-                                List<SchemaEnumValue> keys = new List<SchemaEnumValue>();
-                                r.IsDiscriminatorBase = true;
-                                //this.DiscriminatorProperty = new MgmtExplorerSchemaProperty(imp.Discriminator.Property);
-                                r.InheritBy = imp.Discriminator.Implementations.Select(m =>
-                                {
-                                    var childImp = (SchemaObjectType)m.Type.Implementation;
-                                    string? key = childImp.Discriminator?.Value?.Value as string;
-                                    if (key == null)
-                                        throw new InvalidOperationException("Can't find string key for implemenation of discriminator: " + m.Type.Name);
-                                    keys.Add(new SchemaEnumValue()
-                                    {
-                                        Value = key,
-                                        Description = childImp.Description ?? "",
-                                        InternalValue = key,
-                                    });
-                                    return m.Type.CreateSeTypeDesc();
-                                }).ToList();
-                                string keyNamespace = $"{csharpType.Namespace}.SdkExplorerDiscriminator";
-                                string keyTypeName = $"{imp.Discriminator.Property.Declaration.Name}Enum";
-                                string keySchemaKey = $"{keyNamespace}.{keyTypeName}";
-                                var keysEnumSchema = new SchemaEnum(keySchemaKey)
-                                {
-                                    Description = imp.Description ?? "",
-                                    Values = keys,
-                                };
-                                SchemaStore.Instance.AddSchema(keysEnumSchema);
-                                r.DiscriminatorProperty = new SchemaProperty()
-                                {
-                                    Accessibility = "internal",
-                                    IsReadonly = true,
-                                    IsRequired = true,
-                                    Name = imp.Discriminator.Property.Declaration.Name,
-                                    SerializerPath = imp.Discriminator.Property.SchemaProperty?.SerializedName ?? imp.Discriminator.Property.Declaration.Name,
-                                    Type = TypeDesc.CreateEnumType(keyTypeName, keyNamespace, false, keysEnumSchema),
-                                };
-                            }
-                            if (imp.Discriminator?.Value != null)
-                            {
-                                string? key = imp.Discriminator?.Value?.Value as string;
+                                var childImp = (SchemaObjectType)m.Type.Implementation;
+                                string? key = childImp.Discriminator?.Value?.Value as string;
                                 if (key == null)
-                                    throw new InvalidOperationException("Discriminator's key value is null: " + csharpType.Name);
-                                r.DiscriminatorKey = key;
-                            }
-                        }
-                        else if (imp.Discriminator.Property.ValueType.Implementation is EnumType)
-                        {
-                            var keyEnum = imp.Discriminator.Property.ValueType.Implementation as EnumType;
-                            if (keyEnum == null)
-                                throw new InvalidOperationException("discriminator's type property is not enum");
-                            if (imp.Discriminator.Implementations.Length > 0)
-                            {
-                                r.IsDiscriminatorBase = true;
-                                r.DiscriminatorProperty = imp.Discriminator.Property.CreateSeSchemaProperty();
-                                r.InheritBy = imp.Discriminator.Implementations.Select(m =>
+                                    throw new InvalidOperationException("Can't find string key for implemenation of discriminator: " + m.Type.Name);
+                                keys.Add(new SchemaEnumValue()
                                 {
-                                    var childImp = (SchemaObjectType)m.Type.Implementation;
-                                    EnumTypeValue? etv = childImp.Discriminator?.Value?.Value as EnumTypeValue;
-                                    string? key = etv?.Value.Value as string;
-                                    if (key == null)
-                                        throw new InvalidOperationException("Can't find key for implemenation of discriminator: " + m.Type.Name);
-                                    if (keyEnum.Values.FirstOrDefault(mm => key == (mm.Value.Value as string)) == null)
-                                        throw new InvalidOperationException("Can't find key for implementation in type enum: " + key);
-                                    return m.Type.CreateSeTypeDesc();
-                                }).ToList();
-                                if (r.InheritBy.Count != keyEnum.Values.Count)
-                                    throw new InvalidOperationException($"implementation and key enum count mismatch: impl={string.Join('|', r.InheritBy.Select(m => m.Name))}, keyEnum={string.Join('|', keyEnum.Values.Select(m => m.Value.Value ?? ""))}");
-                            }
-                            if (imp.Discriminator?.Value != null)
+                                    Value = key,
+                                    Description = childImp.Description ?? "",
+                                    InternalValue = key,
+                                });
+                                return m.Type.CreateSeTypeDesc();
+                            }).ToList();
+                            string keyNamespace = $"{csharpType.Namespace}.SdkExplorerDiscriminator";
+                            string keyTypeName = $"{imp.Discriminator.Property.Declaration.Name}Enum";
+                            string keySchemaKey = $"{keyNamespace}.{keyTypeName}";
+                            var keysEnumSchema = new SchemaEnum(keySchemaKey)
                             {
-                                EnumTypeValue? etv = imp.Discriminator?.Value?.Value as EnumTypeValue;
-                                string? key = etv?.Value.Value as string;
-                                if (key == null)
-                                    throw new InvalidOperationException("Discriminator's key value is null: " + csharpType.Name);
-                                r.DiscriminatorKey = key;
-                            }
+                                Description = imp.Description ?? "",
+                                Values = keys,
+                            };
+                            SchemaStore.Instance.AddSchema(keysEnumSchema);
+                            r.DiscriminatorProperty = new SchemaProperty()
+                            {
+                                Accessibility = "internal",
+                                IsReadonly = true,
+                                IsRequired = true,
+                                Name = imp.Discriminator.Property.Declaration.Name,
+                                SerializerPath = imp.Discriminator.Property.SchemaProperty?.SerializedName ?? imp.Discriminator.Property.Declaration.Name,
+                                Type = TypeDesc.CreateEnumType(keyTypeName, keyNamespace, false, keysEnumSchema),
+                            };
                         }
-                        else
+                        if (imp.Discriminator?.Value != null)
                         {
-                            throw new InvalidOperationException(
-                                $"Unexpected type as discriminator type={csharpType.Name}, discriminator property type = {imp.Discriminator.Property.ValueType.Name}");
+                            string? key = imp.Discriminator?.Value?.Value as string;
+                            if (key == null)
+                                throw new InvalidOperationException("Discriminator's key value is null: " + csharpType.Name);
+                            r.DiscriminatorKey = key;
                         }
                     }
-                    r.Description = imp.Description ?? "";
-                    r.Properties = imp.Properties
-                        .Select(p => p.FlattenedProperty ?? p)
-                        .Where(p => p.Declaration.Accessibility == "public" &&
-                            (!p.IsReadOnly || (p.Declaration.Type.IsFrameworkType && (TypeFactory.IsReadWriteList(p.Declaration.Type) || TypeFactory.IsReadWriteDictionary(p.Declaration.Type)))))
-                        .Select(p =>
+                    else if (imp.Discriminator.Property.ValueType.Implementation is EnumType)
+                    {
+                        var keyEnum = imp.Discriminator.Property.ValueType.Implementation as EnumType;
+                        if (keyEnum == null)
+                            throw new InvalidOperationException("discriminator's type property is not enum");
+                        if (imp.Discriminator.Implementations.Length > 0)
                         {
-                            return p.CreateSeSchemaProperty();
-                        }).ToList();
-                    r.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.InitializationConstructor.CreateSeSchemaMethod() : null;
-                    r.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.SerializationConstructor.CreateSeSchemaMethod() : null;
+                            r.IsDiscriminatorBase = true;
+                            r.DiscriminatorProperty = imp.Discriminator.Property.CreateSeSchemaProperty();
+                            r.InheritBy = imp.Discriminator.Implementations.Select(m =>
+                            {
+                                var childImp = (SchemaObjectType)m.Type.Implementation;
+                                EnumTypeValue? etv = childImp.Discriminator?.Value?.Value as EnumTypeValue;
+                                string? key = etv?.Value.Value as string;
+                                if (key == null)
+                                    throw new InvalidOperationException("Can't find key for implemenation of discriminator: " + m.Type.Name);
+                                if (keyEnum.Values.FirstOrDefault(mm => key == (mm.Value.Value as string)) == null)
+                                    throw new InvalidOperationException("Can't find key for implementation in type enum: " + key);
+                                return m.Type.CreateSeTypeDesc();
+                            }).ToList();
+                            if (r.InheritBy.Count != keyEnum.Values.Count)
+                                throw new InvalidOperationException($"implementation and key enum count mismatch: impl={string.Join('|', r.InheritBy.Select(m => m.Name))}, keyEnum={string.Join('|', keyEnum.Values.Select(m => m.Value.Value ?? ""))}");
+                        }
+                        if (imp.Discriminator?.Value != null)
+                        {
+                            EnumTypeValue? etv = imp.Discriminator?.Value?.Value as EnumTypeValue;
+                            string? key = etv?.Value.Value as string;
+                            if (key == null)
+                                throw new InvalidOperationException("Discriminator's key value is null: " + csharpType.Name);
+                            r.DiscriminatorKey = key;
+                        }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Unexpected type as discriminator type={csharpType.Name}, discriminator property type = {imp.Discriminator.Property.ValueType.Name}");
+                    }
                 }
-                else if (csharpType.Implementation is SystemObjectType)
-                {
-                    var imp = (SystemObjectType)csharpType.Implementation;
+                r.Description = imp.Description ?? "";
+                r.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.InitializationConstructor.CreateSeSchemaMethod() : null;
+                r.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.SerializationConstructor.CreateSeSchemaMethod() : null;
 
-                    r.IsStruct = false;
-                    r.InheritFrom = imp.Inherits == null ? null : imp.Inherits.CreateSeTypeDesc();
-                    r.InheritBy = new List<TypeDesc>();
-                    r.Description = ""; // not supported in SystemObjectType...
-                    r.Properties = imp.Properties
-                        .Select(p => p.FlattenedProperty ?? p)
-                        .Where(p => p.Declaration.Accessibility == "public" &&
-                         (!p.IsReadOnly || (p.Declaration.Type.IsFrameworkType && (TypeFactory.IsReadWriteList(p.Declaration.Type) || TypeFactory.IsReadWriteDictionary(p.Declaration.Type)))))
-                        .Select(p => p.CreateSeSchemaProperty()).ToList();
-                    r.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.InitializationConstructor.CreateSeSchemaMethod() : null;
-                    r.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.SerializationConstructor.CreateSeSchemaMethod() : null;
-
-                    UpdateSystemObjectType(r, imp);
-                }
+                r.Properties = imp.Properties.GenerateSchemaProperties(r.DefaultConstructor);
             }
+            else if (csharpType.Implementation is SystemObjectType)
+            {
+                var imp = (SystemObjectType)csharpType.Implementation;
+
+                r.IsStruct = false;
+                r.InheritFrom = imp.Inherits == null ? null : imp.Inherits.CreateSeTypeDesc();
+                r.InheritBy = new List<TypeDesc>();
+                r.Description = ""; // not supported in SystemObjectType...
+                r.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.InitializationConstructor.CreateSeSchemaMethod() : null;
+                r.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.SerializationConstructor.CreateSeSchemaMethod() : null;
+                r.Properties = imp.Properties.GenerateSchemaProperties(r.DefaultConstructor);
+
+                UpdateSystemObjectType(r, imp);
+            }
+            else
+                throw new ArgumentException("Unsupported type to create schema for non-frameworktype: " + csharpType.Implementation.GetType().FullName);
+
             return r;
+        }
+
+        private static List<SchemaProperty> GenerateSchemaProperties(this ObjectTypeProperty[] props, SchemaMethod? ctor)
+        {
+            var newProps = props.Select(p => p.FlattenedProperty ?? p)
+                .Where(p => p.Declaration.Accessibility == "public" &&
+                    (!p.IsReadOnly || (p.Declaration.Type.IsFrameworkType && (TypeFactory.IsReadWriteList(p.Declaration.Type) || TypeFactory.IsReadWriteDictionary(p.Declaration.Type)))))
+                .Select(p => p.CreateSeSchemaProperty(isWritableThroughCtor: false));
+            if (ctor != null)
+            {
+                // TODO: Is it enough to use default ctor to figure out all readonly parameters but still writable through ctor? keep things simple as it is now and improve when needed
+                var throughCtorProps = props.Select(p => p.FlattenedProperty ?? p)
+                    .Where(p => p.IsReadOnly && ctor.HasParameter(p.GetSerializerNameOrName()))
+                    .Select(p => p.CreateSeSchemaProperty(isWritableThroughCtor: true));
+                newProps = newProps.Concat(throughCtorProps);
+            }
+            return newProps.ToList();
         }
 
         private static bool IsConstructorMatch(ConstructorInfo a, SchemaMethod b)
@@ -302,11 +310,13 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
 
         private static SchemaNone GetOrCreateSeSchemaNone(this CSharpType csharpType, string reason)
         {
-            var schema = SchemaStore.Instance.GetSchemaFromStore(csharpType);
-            if (schema is not SchemaNone foundSchema)
-                throw new InvalidOperationException($"unexpected schema which is not SchemaNone in store. key:${schema.SchemaKey}, type:${schema.SchemaType}");
-            if (foundSchema != null)
+            var schema = csharpType.GetSchemaFromStore();
+            if (schema != null)
+            {
+                if (schema is not SchemaNone foundSchema)
+                    throw new InvalidOperationException($"unexpected schema which is not SchemaNone in store. key:${schema.SchemaKey}, type:${schema.SchemaType}");
                 return foundSchema;
+            }
 
             SchemaNone r = new SchemaNone(csharpType.GenerateSeSchemaKey())
             {
@@ -316,7 +326,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
             return r;
         }
 
-        private static SchemaProperty CreateSeSchemaProperty(this ObjectTypeProperty prop)
+        private static SchemaProperty CreateSeSchemaProperty(this ObjectTypeProperty prop, bool isWritableThroughCtor = false)
         {
             SchemaProperty r = new SchemaProperty()
             {
@@ -329,6 +339,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 Type = prop.Declaration.Type.CreateSeTypeDesc(),
                 IsRequired = prop.SchemaProperty?.IsRequired ?? false,
                 IsReadonly = prop.IsReadOnly,
+                IsWritableThroughCtor = isWritableThroughCtor,
             };
             if (prop is FlattenedObjectTypeProperty fp)
             {
@@ -338,7 +349,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
             }
             else
             {
-                r.SerializerPath = prop.SchemaProperty?.SerializedName ?? r.Name;
+                r.SerializerPath = prop.GetSerializerNameOrName();
             }
             return r;
         }
@@ -376,11 +387,13 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
 
         private static SchemaEnum GetOrCreateSeSchemaEnum(this CSharpType csharpType)
         {
-            var schema = SchemaStore.Instance.GetSchemaFromStore(csharpType);
-            if (schema is not SchemaEnum foundSchema)
-                throw new InvalidOperationException($"unexpected schema which is not enum in store. key:${schema.SchemaKey}, type:${schema.SchemaType}");
-            if (foundSchema != null)
+            var schema = csharpType.GetSchemaFromStore();
+            if (schema != null)
+            {
+                if (schema is not SchemaEnum foundSchema)
+                    throw new InvalidOperationException($"unexpected schema which is not enum in store. key:${schema.SchemaKey}, type:${schema.SchemaType}");
                 return foundSchema;
+            }
 
             SchemaEnum r = new SchemaEnum(csharpType.GenerateSeSchemaKey());
             var imp = (EnumType)csharpType.Implementation;

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
-using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.MgmtExplorer.AutoRest;
 using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.MgmtExplorer.Generation;
@@ -54,7 +53,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             foreach (var desc in library.EnumerateAllExplorerApis())
             {
                 MgmtExplorerCodeGenBase writer = MgmtExplorerCodeGenBase.Create(desc);
-                OperationDesc v = writer.WriteExplorerApi();
+                ApiDesc v = writer.WriteExplorerApi();
 
                 List<ExampleDesc> examples = new List<ExampleDesc>();
                 if (desc.ExampleGroup != null && desc.ExampleGroup.Examples != null && desc.ExampleGroup.Examples.Count > 0)
@@ -83,11 +82,11 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 }
                 if (outputFormat.Contains("cs"))
                 {
-                    output.Add($"Explorer/{desc.FullUniqueName}.cs", v.ToCode(true));
+                    output.Add($"Explorer/{desc.FullUniqueName}.cs", v.ToCode(true, useSuggestedName: false));
                 }
                 if (outputFormat.Contains("sample_cs"))
                 {
-                    output.Add($"Explorer/{desc.FullUniqueName}_sample.cs", v.ToCode(true));
+                    output.Add($"Explorer/{desc.FullUniqueName}_sample.cs", v.ToCode(true, useSuggestedName: true));
                 }
             }
         }

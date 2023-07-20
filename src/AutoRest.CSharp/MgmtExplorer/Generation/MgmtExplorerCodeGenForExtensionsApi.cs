@@ -16,12 +16,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal class MgmtExplorerCodeGenForExtensionsApi : MgmtExplorerCodeGenBase
     {
-        private MgmtExtensions Extension => (MgmtExtensions)this.ApiDesc.Provider;
+        private MgmtExtension Extension => (MgmtExtension)this.ApiDesc.Provider;
 
         public MgmtExplorerCodeGenForExtensionsApi(MgmtExplorerApiDesc apiDesc)
             : base(apiDesc)
         {
-            if (!(apiDesc.Provider is MgmtExtensions))
+            if (!(apiDesc.Provider is MgmtExtension))
                 throw new InvalidOperationException("Provider is not a Extension: " + apiDesc.Provider.Type.Name);
         }
 

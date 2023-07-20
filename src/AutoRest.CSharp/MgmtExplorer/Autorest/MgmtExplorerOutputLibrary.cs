@@ -25,7 +25,7 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
             // try to find changelog.md from outputFolder if it's not set explicitly
             if (string.IsNullOrEmpty(file))
             {
-                DirectoryInfo di = Directory.GetParent(Configuration.OutputFolder);
+                DirectoryInfo di = Directory.GetParent(Configuration.OutputFolder)!;
                 while (di != null)
                 {
                     FileInfo[] fis = di.GetFiles("CHANGELOG.md", SearchOption.TopDirectoryOnly);
@@ -34,7 +34,7 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
                         file = fis[0].FullName;
                         break;
                     }
-                    di = di.Parent;
+                    di = di.Parent!;
                 }
             }
 
@@ -93,7 +93,7 @@ namespace AutoRest.CSharp.MgmtExplorer.AutoRest
 
         private IEnumerable<KeyValuePair<Resource, MgmtClientOperation>> EnumerateOperationsOnResource() => EnumerateOperations<Resource>(MgmtContext.Library.ArmResources);
         private IEnumerable<KeyValuePair<ResourceCollection, MgmtClientOperation>> EnumerateOperationsOnResourceCollection() => EnumerateOperations<ResourceCollection>(MgmtContext.Library.ResourceCollections);
-        private IEnumerable<KeyValuePair<MgmtExtensions, MgmtClientOperation>> EnumerateOperationsOnExtension() => EnumerateOperations<MgmtExtensions>(MgmtContext.Library.ExtensionWrapper.Extensions);
+        private IEnumerable<KeyValuePair<MgmtExtension, MgmtClientOperation>> EnumerateOperationsOnExtension() => EnumerateOperations<MgmtExtension>(MgmtContext.Library.ExtensionWrapper.Extensions);
 
         public IEnumerable<MgmtExplorerApiDesc> EnumerateAllExplorerApis()
         {

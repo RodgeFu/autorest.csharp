@@ -9,12 +9,13 @@ using AutoRest.CSharp.Input;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
 using SECodeGen.CSharp.Model.Code;
 using SECodeGen.CSharp.Model.Example;
+using SECodeGen.CSharp.Model.Schema;
 
 namespace AutoRest.CSharp.MgmtExplorer.Extensions
 {
     internal static class SeModelExampleExtension
     {
-        internal static ExampleDesc CreateExampleDesc(this ExampleModel em, OperationDesc operationDesc)
+        internal static ExampleDesc CreateExampleDesc(this ExampleModel em, ApiDesc operationDesc)
         {
             ExampleDesc r = new ExampleDesc()
             {
@@ -45,16 +46,19 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                     continue;
 
                 var methodParameter = allMethodParameters.FirstOrDefault(p => p.SerializerName == sName);
-                if (methodParameter == null)
+                if (methodParameter != null)
                 {
-                    if (exampleParam.Parameter.Schema.Type == AllSchemaTypes.Constant)
-                    {
-                        // ignore it if the example is for a constant parameter
-                        continue;
-                    }
+                    r.ExampleValues[sName] = exampleParam.ExampleValue.CreateSeExampleValueDesc();
+                }
+                else if (exampleParam.Parameter.Schema.Type == AllSchemaTypes.Constant)
+                {
+                    // ignore it if the example is for a constant parameter
+                    continue;
+                }
+                else
+                {
                     throw new InvalidOperationException("unable to find parameter for example, name = " + sName);
                 }
-                r.ExampleValues[sName] = exampleParam.ExampleValue.CreateSeExampleValueDesc();
             }
             return r;
         }

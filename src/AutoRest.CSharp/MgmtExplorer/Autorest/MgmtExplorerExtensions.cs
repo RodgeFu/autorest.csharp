@@ -7,6 +7,7 @@ using AutoRest.CSharp.Input;
 using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Autorest
 {
@@ -22,6 +23,11 @@ namespace AutoRest.CSharp.MgmtExplorer.Autorest
                 name += "<" + string.Join(", ", type.Arguments.Select(a => a.GetFullName(includeNamespace, true))) + ">";
             }
             return name;
+        }
+
+        public static string GetSerializerNameOrName(this ObjectTypeProperty prop)
+        {
+            return prop.SchemaProperty?.SerializedName ?? prop.InputModelProperty?.SerializedName ?? prop.InputModelProperty?.Name ?? prop.Declaration.Name;
         }
 
         public static string GetSerializerNameOrName(this Languages lang, string langName = "default")
@@ -48,22 +54,6 @@ namespace AutoRest.CSharp.MgmtExplorer.Autorest
                 default:
                     return getResult(lang.Default);
             }
-        }
-
-        public static string ToYaml(this object obj)
-        {
-            var builder = new YamlDotNet.Serialization.SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
-            var v = builder.Serialize(obj);
-            return v;
-        }
-
-        public static T FromYaml<T>(string yaml)
-        {
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)  // see height_in_inches in sample yml
-                .Build();
-
-            return deserializer.Deserialize<T>(yaml);
         }
     }
 }

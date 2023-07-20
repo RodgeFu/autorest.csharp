@@ -12,9 +12,8 @@ using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SECodeGen.CSharp.Model.Azure;
-using static SECodeGen.CSharp.Model.Code.OperationDesc;
+using static SECodeGen.CSharp.Model.Code.ApiDesc;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {
@@ -51,16 +50,17 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public string OperationNameWithParameters => this.GetOperationNameWithParameters(false /*includeNamespace*/);
         public string OperationNameWithScopeAndParameters => this.GetOperationNameWithScopeAndParameters(false /*includeNamespace*/);
         public AzureResourceType? OperationProviderAzureResourceType { get; set; }
-        public ProviderType OperationProviderType { get; set; }
+        public string OperationProviderType { get; set; }
 
         public string RequestPath { get; set; }
         public string ApiVersion { get; set; }
 
         // RequestParameter (type) contains more metadata we need to reference objects
         private List<RequestParameter> AllRequestParameters { get; set; }
-        // contains all the parameters for lookup purpose
+        // contains all the parameters for lookup purpose including propertyBagParmater
         private List<MgmtExplorerParameter> AllParameters { get; set; }
         public List<MgmtExplorerParameter> MethodParameters { get; set; }
+        public MgmtExplorerParameter? PropertyBagParameter { get; set; }
 
         public MgmtExplorerApiDesc(MgmtExplorerCodeGenInfo info, MgmtTypeProvider provider, MgmtClientOperation operation, ExampleGroup? exampleGroup, int mgmtRestOperationIndex)
         {
@@ -68,7 +68,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             Provider = provider;
             Operation = operation;
             ExampleGroup = exampleGroup;
-            this._mgmtRestOperationIndex= mgmtRestOperationIndex;
+            this._mgmtRestOperationIndex = mgmtRestOperationIndex;
 
             var restOp = this.RestOperation;
 
@@ -90,7 +90,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                         res.ResourceType.Namespace.ConstantValue,
                         string.Join("/", res.ResourceType.Types.Select(t => t.ConstantValue)));
                     break;
-                case MgmtExtensions ex:
+                case MgmtExtension ex:
                     this.OperationProviderType = ProviderType.Extension;
                     this.OperationProviderAzureResourceType = null;
                     break;
@@ -106,7 +106,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public List<MgmtExplorerParameter> GetHostParameters(RequestPath hostRequestPath)
         {
             RequestPath opRequestPath = this.RestOperation.RequestPath;
-            RequestPath opRequestPathForHost = new RequestPath(opRequestPath.Take(hostRequestPath.Count));
+            RequestPath opRequestPathForHost = Mgmt.Models.RequestPath.FromSegments(opRequestPath.Take(hostRequestPath.Count));
 
             // for troubleshooting
             if (hostRequestPath.Where(s => s.IsReference).Count() != opRequestPathForHost.Where(s => s.IsReference).Count())
@@ -125,10 +125,10 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
                     hintPath += $"/{{{s.ReferenceName}}}";
 
                     var p = this.AllParameters.FirstOrDefault(pp => pp.CSharpName == s.ReferenceName);
-                    p.Source = MgmtExplorerParameter.SOURCE_REQUEST_PATH;
-                    p.SourceArg = hintPath;
                     if (p == null)
                         throw new InvalidOperationException("Can't find host parameter in all parameter list: " + s.ReferenceName);
+                    p.Source = MgmtExplorerParameter.SOURCE_REQUEST_PATH;
+                    p.SourceArg = hintPath;
                     r.Add(p);
                 }
                 else
@@ -155,19 +155,30 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             string[] CLIENT_PARAMETER_NAMES = {
                 "cancellationToken",
                 "waitUntil" };
-            var allParameters = this.Operation.Parameters.ToList();
+            var requestPath = this.RestOperation.RequestPath.SerializedPath;
+            var allParameters = this.Operation.Parameters.Select(p =>
+                this.Operation.PropertyBagUnderlyingParameters.FirstOrDefault(pp => pp.Name == p.Name) ?? p).ToList();
+
             var methodParameters = this.Operation.MethodSignature.Modifiers.HasFlag(MethodSignatureModifiers.Extension) ?
                 this.Operation.MethodParameters.Skip(1) : this.Operation.MethodParameters;
             foreach (var p in methodParameters)
             {
-                if (allParameters.FirstOrDefault(pp => pp.Name == p.Name) == null)
+                if (p.IsPropertyBag)
                 {
-                    allParameters.Add(p);
+                    this.PropertyBagParameter = new MgmtExplorerParameter(p, p.Name, p.Name, requestPath);
+                }
+                else
+                {
+                    if (allParameters.FirstOrDefault(pp => pp.Name == p.Name) == null)
+                    {
+                        allParameters.Add(p);
+                    }
                 }
             }
 
-            var requestPath = this.RestOperation.RequestPath.SerializedPath;
             List<MgmtExplorerParameter> r = new List<MgmtExplorerParameter>();
+            if (this.PropertyBagParameter != null)
+                r.Add(this.PropertyBagParameter);
             foreach (var mp in allParameters)
             {
                 if (CLIENT_PARAMETER_NAMES.Contains(mp.Name))
@@ -194,6 +205,15 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
 
             var r = new List<MgmtExplorerParameter>();
             foreach (var mp in methodParameters)
+            {
+                if (mp.IsPropertyBag)
+                    continue;
+                var p = this.AllParameters.FirstOrDefault(pp => pp.CSharpName == mp.Name);
+                if (p == null)
+                    throw new InvalidOperationException("Can't find method parameter in all parameter list: " + mp.Name);
+                r.Add(p);
+            }
+            foreach (var mp in this.Operation.PropertyBagUnderlyingParameters)
             {
                 var p = this.AllParameters.FirstOrDefault(pp => pp.CSharpName == mp.Name);
                 if (p == null)

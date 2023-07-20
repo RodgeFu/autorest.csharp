@@ -10,6 +10,7 @@ using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
+using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.MgmtExplorer.Models;
 using AutoRest.CSharp.Utilities;
 using Azure;
@@ -17,6 +18,7 @@ using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Humanizer;
+using SECodeGen.CSharp.Model.Schema;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
@@ -31,7 +33,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         }
 
         #region Write Get something
-        public static MgmtExplorerVariable WriteGetTenantResource(MgmtExplorerCodeSegmentWriter writer, MgmtExtensions tenantExtension, MgmtExplorerVariable armClientVar)
+        public static MgmtExplorerVariable WriteGetTenantResource(MgmtExplorerCodeSegmentWriter writer, MgmtExtension tenantExtension, MgmtExplorerVariable armClientVar)
         {
             return WriteDefineVariableEqualsExpression(writer, tenantExtension.ArmCoreType, "tenantResource", $"{armClientVar.KeyDeclaration}.GetTenants().GetAllAsync().GetAsyncEnumerator().Current");
         }
@@ -54,7 +56,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         //        typeof(string), $"{type.Name}Id".ToVariableName(), $"{type}.CreateResourceIdentifier", list);
         //}
 
-        public static MgmtExplorerVariable WriteGetExtensionResource(MgmtExplorerCodeSegmentWriter writer, MgmtExtensions extension, List<MgmtExplorerParameter> hostParameters, MgmtExplorerVariable armClientVar)
+        public static MgmtExplorerVariable WriteGetExtensionResource(MgmtExplorerCodeSegmentWriter writer, MgmtExtension extension, List<MgmtExplorerParameter> hostParameters, MgmtExplorerVariable armClientVar)
         {
             writer.UseNamespace(extension.Namespace);
             if (extension.ArmCoreType == typeof(TenantResource))
@@ -73,7 +75,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             string requestPath = collection.RequestPath.SerializedPath ?? "";
             return WriteDefineVariableEqualsFuncWithVarDefined(writer,
                 collection.Type, $"{collection.Type.Name.Camelize()}Var", $"{collectionHost.KeyDeclaration}.Get{collection.ResourceName.ResourceNameToPlural()}",
-                collection.ExtraConstructorParameters.Select(p => new MgmtExplorerParameter(p, p.Name, p.Name, requestPath)));
+                collection.ExtraConstructorParameters.Select(p => new MgmtExplorerParameter(p, p.Name, p.Name, requestPath)), propertyBagParameter: null);
         }
 
         public static MgmtExplorerVariable WriteGetResource(MgmtExplorerCodeSegmentWriter writer, Resource resource, List<MgmtExplorerParameter> hostParameters, MgmtExplorerVariable armClient)
@@ -82,7 +84,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             return WriteDefineVariableEqualsExpression(writer, resource.Type, $"{resource.Type.Name}Var".ToVariableName(), $"{armClient.KeyDeclaration}.Get{resource.Type.Name}({idVar.KeyDeclaration})");
         }
 
-        public static MgmtExplorerVariable WriteGetResourceIdentifier(MgmtExplorerCodeSegmentWriter writer, MgmtExtensions extension, List<MgmtExplorerParameter> hostParameters)
+        public static MgmtExplorerVariable WriteGetResourceIdentifier(MgmtExplorerCodeSegmentWriter writer, MgmtExtension extension, List<MgmtExplorerParameter> hostParameters)
         {
             return WriteGetResourceIdentifier(writer, extension.ArmCoreType, hostParameters);
         }
@@ -97,7 +99,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             List<FormattableString> list = new List<FormattableString>();
             foreach (MgmtExplorerParameter mep in hostParameters)
             {
-                writer.AddCodeSegmentParameter(mep.ToCodeSegmentParameter(true /*includeSchema*/));
+                writer.AddCodeSegmentParameter(mep.ToCodeSegmentParameter());
                 list.Add(FormattableStringFactory.Create(mep.Key));
             }
 
@@ -108,12 +110,12 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         #region Write Invoke some operation
 
-        public static MgmtExplorerVariable WriteInvokeLongRunningOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerVariable providerVar)
+        public static MgmtExplorerVariable WriteInvokeLongRunningOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerParameter? propertyBagParameter, MgmtExplorerVariable providerVar)
         {
             // LongRunningOperation should be returning something like ArmOperation<...> or ArmOperation
             // TODO: use non-async SDK, any problem?
             //var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"await {providerVar.KeyDeclaration}.{operation.Name}Async", parameters);
-            var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters);
+            var lro = WriteDefineVariableEqualsFuncWithVarDefined(writer, operation.ReturnType, "lro", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters, propertyBagParameter);
             if (operation.ReturnType.IsGenericType)
             {
                 return WriteDefineVariableEqualsExpression(writer, operation.ReturnType.Arguments.First(), "result", $"{lro.KeyDeclaration}.Value");
@@ -124,37 +126,80 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             }
         }
 
-        public static MgmtExplorerVariable WriteInvokePagedOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerVariable providerVar)
+        public static MgmtExplorerVariable WriteInvokePagedOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerParameter? propertyBagParameter, MgmtExplorerVariable providerVar)
         {
-            var po = WriteDefineVariableEqualsFuncWithVarDefined(writer, new CSharpType(typeof(Pageable<>), operation.ReturnType), $"{operation.Resource?.Type.Name.ToVariableName() ?? "paged"}List", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters);
+            var po = WriteDefineVariableEqualsFuncWithVarDefined(writer, new CSharpType(typeof(Pageable<>), operation.ReturnType), $"{operation.Resource?.Type.Name.ToVariableName() ?? "paged"}List", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters, propertyBagParameter);
             CSharpType listType = new CSharpType(typeof(List<>), operation.ReturnType);
             // TODO: does tolist work?
             return WriteDefineVariableEqualsExpression(writer, listType, "result", $"{po.KeyDeclaration}.ToList()");
         }
 
-        internal static MgmtExplorerVariable WriteInvokeNormalOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerVariable providerVar)
+        internal static MgmtExplorerVariable WriteInvokeNormalOperation(MgmtExplorerCodeSegmentWriter writer, MgmtClientOperation operation, List<MgmtExplorerParameter> parameters, MgmtExplorerParameter? propertyBagParameter, MgmtExplorerVariable providerVar)
         {
             // Expect to get Azure.Response or Azure.Response<T> ?
             CSharpType returnType = operation.ReturnType.IsGenericType ? operation.ReturnType.Arguments.First() : operation.ReturnType;
             // TODO: use non-async SDK instead, any problem?
             //return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"await {providerVar.KeyDeclaration}.{operation.Name}Async", parameters);
-            return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters);
+            return WriteDefineVariableEqualsFuncWithVarDefined(writer, returnType, "result", $"{providerVar.KeyDeclaration}.{operation.Name}", parameters, propertyBagParameter);
         }
         #endregion
 
-        private static MgmtExplorerVariable WriteDefineVariableEqualsFuncWithVarDefined(MgmtExplorerCodeSegmentWriter writer, CSharpType type, string varSuggestedName, FormattableString methodName, IEnumerable<MgmtExplorerParameter> parameters, bool postNewLine = true, bool postSemiColon = true)
+        private static MgmtExplorerVariable WriteDefineVariableEqualsFuncWithVarDefined(MgmtExplorerCodeSegmentWriter writer, CSharpType type, string varSuggestedName, FormattableString methodName, IEnumerable<MgmtExplorerParameter> parameters, MgmtExplorerParameter? propertyBagParameter, bool postNewLine = true, bool postSemiColon = true)
         {
-            List<FormattableString> list = new List<FormattableString>();
+            List<FormattableString> normalParameterList = new List<FormattableString>();
+            List<FormattableString> pbCtorParameterList = new List<FormattableString>();
+            List<FormattableString> pbPropParameterList = new List<FormattableString>();
+            SchemaObject? pbSchema = (SchemaObject?)propertyBagParameter?.Type.GetSchemaFromStore();
             foreach (var mep in parameters)
             {
                 MgmtExplorerVariable mev = new MgmtExplorerVariable($"{mep.CSharpName}Var".ToVariableName(), mep.Type);
                 WriteDefineVariableEqualsExpression(writer, mev, FormattableStringFactory.Create(mep.Key));
-                writer.AddCodeSegmentParameter(mep.ToCodeSegmentParameter(true /*includeSchema*/));
+                writer.AddCodeSegmentParameter(mep.ToCodeSegmentParameter());
 
                 string named = mep.DefaultValue != null ? $"{mep.CSharpName}: " : $"";
-                list.Add($"{named}{mev.KeyDeclaration}");
+                if (mep.IsInPropertyBag)
+                {
+                    var ctorParam = pbSchema!.DefaultConstructor!.MethodParameters.FirstOrDefault(mp => mp.RelatedPropertySerializerPath == mep.SerializerName);
+                    if (ctorParam != null)
+                    {
+                        pbCtorParameterList.Add($"{ctorParam.Name}: {mev.KeyDeclaration}");
+                    }
+                    else
+                    {
+                        // the serailizedName in propertyBag's schema won't have the prefix $. i.e. $expand => expand
+                        var sName = mep.SerializerName.TrimStart('$');
+                        var propParam = pbSchema.Properties.FirstOrDefault(mp => mp.SerializerPath == sName);
+                        if (propParam == null)
+                            throw new InvalidOperationException($"Can't find parameter in propertyBag's ctor or property: {mep.SerializerName}");
+                        pbPropParameterList.Add($"{propParam.Name} = {mev.KeyDeclaration}");
+                    }
+                }
+                else
+                    normalParameterList.Add($"{named}{mev.KeyDeclaration}");
             }
-            return WriteDefineVariableEqualsFunc(writer, type, varSuggestedName, methodName, list, postNewLine, postSemiColon);
+
+            if (propertyBagParameter != null)
+            {
+                var pbMev = WriteDefineVariableEqualsFunc(writer, propertyBagParameter.Type,
+                    $"{propertyBagParameter.CSharpName}Var",
+                    $"new {propertyBagParameter.Type}",
+                    pbCtorParameterList, postNewLine: true, postSemiColon: pbCtorParameterList.Count == 0);
+                if (pbPropParameterList.Count > 0)
+                {
+                    writer.AppendRaw($"{{");
+                    foreach (var pbp in pbPropParameterList)
+                    {
+                        Line(writer);
+                        Tab(writer);
+                        writer.Append($"{pbp},");
+                    }
+                    writer.RemoveTrailingComma();
+                    writer.Line($"}};");
+                }
+                normalParameterList.Add($"{propertyBagParameter.CSharpName}: {pbMev.KeyDeclaration}");
+            }
+
+            return WriteDefineVariableEqualsFunc(writer, type, varSuggestedName, methodName, normalParameterList, postNewLine, postSemiColon);
         }
 
         private static MgmtExplorerVariable WriteDefineVariableEqualsFunc(MgmtExplorerCodeSegmentWriter writer, CSharpType type, string varSuggestedName, FormattableString methodName, IEnumerable<FormattableString> parameterVariableStrings, bool postNewLine = true, bool postSemiColon = true)
@@ -167,7 +212,9 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 writer.Append($"{str},");
             }
             writer.RemoveTrailingComma();
-            writer.AppendRaw(");");
+            writer.AppendRaw(")");
+            if (postSemiColon)
+                writer.AppendRaw(";");
             if (postNewLine)
                 Line(writer);
             return r;

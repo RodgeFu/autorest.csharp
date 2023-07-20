@@ -50,13 +50,11 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             return project;
         }
 
-        public async Task<Dictionary<string, string>> ExecuteWithoutProjectAsync(Task<CodeModel> codeModelTask)
+        public async Task<Dictionary<string, string>> ExecuteWithoutProjectAsync(CodeModel codeModel)
         {
             ValidateConfiguration();
 
             Directory.CreateDirectory(Configuration.OutputFolder);
-
-            var codeModel = await codeModelTask;
 
             return await MgmtExplorerTarget.ExecuteAsync(codeModel);
         }
@@ -107,7 +105,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 // add configure for explorer here;
                 if (Configuration.MgmtConfiguration.ExplorerGen?.Model == true)
                 {
-                    var output = ExecuteWithoutProjectAsync(codeModelTask).Result;
+                    var output = ExecuteWithoutProjectAsync(codeModel).Result;
 
                     foreach (var (file, content) in output)
                     {

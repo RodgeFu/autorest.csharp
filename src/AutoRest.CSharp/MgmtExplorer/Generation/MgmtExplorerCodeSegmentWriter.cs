@@ -93,7 +93,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 
         public void SetCodeSegmentFunction(CodeSegmentDesc codeSegment)
         {
-            string suggestedName = codeSegment.SuggestName!;
+            string suggestedName = codeSegment.SuggestedName!;
             TypeDesc returnType;
             FunctionDesc sf;
             string returnStatement = "";

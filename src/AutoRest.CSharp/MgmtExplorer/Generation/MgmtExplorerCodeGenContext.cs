@@ -12,7 +12,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
 {
     internal class MgmtExplorerCodeGenContext
     {
-        public OperationDesc ExplorerCode { get; init; }
+        public ApiDesc ExplorerCode { get; init; }
         public MgmtExplorerCodeSegmentWriter CodeSegmentWriter { get; set; }
         private CodeSegmentDesc CurCodeSegment { get; set; }
         public MgmtExplorerApiDesc ApiDesc { get; init; }

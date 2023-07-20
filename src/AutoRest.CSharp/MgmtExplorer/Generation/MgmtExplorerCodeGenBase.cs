@@ -21,7 +21,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             {
                 ResourceCollection rc => new MgmtExplorerCodeGenForResourceCollectionApi(apiDesc),
                 Resource res => new MgmtExplorerCodeGenForResourceApi(apiDesc),
-                MgmtExtensions ex => new MgmtExplorerCodeGenForExtensionsApi(apiDesc),
+                MgmtExtension ex => new MgmtExplorerCodeGenForExtensionsApi(apiDesc),
                 // TODO: throw exception after we add all support
                 _ => throw new InvalidOperationException("Unexpected apiDesc.Provider type: " + apiDesc.Provider.GetType().ToString()),
             };
@@ -36,7 +36,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         }
 
         #region Write Steps
-        public OperationDesc WriteExplorerApi()
+        public ApiDesc WriteExplorerApi()
         {
             SchemaStore.Instance.Reset();
 
@@ -67,7 +67,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 oldSegment.OutputResult = context.ResultVar == null ? new List<VariableDesc>() : new List<VariableDesc>() { context.ResultVar.AsCodeSegmentVariable() };
             });
 
-            context.ExplorerCode.RefreshSchema();
+            context.ExplorerCode.RefreshSchema(SchemaStore.Instance);
             return context.ExplorerCode;
         }
 
@@ -101,15 +101,15 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
             var parameters = this.ApiDesc.MethodParameters.ToList();
             if (op.IsLongRunningOperation)
             {
-                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeLongRunningOperation(context.CodeSegmentWriter, op, parameters, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeLongRunningOperation(context.CodeSegmentWriter, op, parameters, this.ApiDesc.PropertyBagParameter, context.ProviderVar);
             }
             else if (op.IsPagingOperation)
             {
-                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokePagedOperation(context.CodeSegmentWriter, op, parameters, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokePagedOperation(context.CodeSegmentWriter, op, parameters, this.ApiDesc.PropertyBagParameter, context.ProviderVar);
             }
             else
             {
-                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeNormalOperation(context.CodeSegmentWriter, op, parameters, context.ProviderVar);
+                context.ResultVar = MgmtExplorerCodeGenUtility.WriteInvokeNormalOperation(context.CodeSegmentWriter, op, parameters, this.ApiDesc.PropertyBagParameter, context.ProviderVar);
             }
 
         }
