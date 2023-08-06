@@ -16,6 +16,7 @@ using AutoRest.CSharp.Output.Models.Types;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
+using Azure.ResourceManager.ManagementGroups;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Resources.Models;
@@ -71,6 +72,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                     csharpType.FrameworkType == typeof(TenantResource) ||
                     csharpType.FrameworkType == typeof(SubscriptionResource) ||
                     csharpType.FrameworkType == typeof(ResourceGroupResource) ||
+                    csharpType.FrameworkType == typeof(ManagementGroupResource) ||
                     csharpType.FrameworkType == typeof(System.IO.Stream))
                 {
                     schema = csharpType.GetOrCreateSeSchemaNone("Not editable type, so no schema needed for now");
@@ -717,6 +719,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 return null;
                 //throw new InvalidOperationException("Unsupported FrameworkType: " + csharpType.FrameworkType.FullName);
             }
+            SchemaStore.Instance.AddSchema(schema);
             return schema;
         }
 
