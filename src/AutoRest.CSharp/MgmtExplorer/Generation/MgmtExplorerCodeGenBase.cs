@@ -8,8 +8,8 @@ using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Models;
-using SECodeGen.CSharp.Model.Code;
-using SECodeGen.CSharp.Model.Schema;
+using AutoRest.SdkExplorer.Model.Code;
+using AutoRest.SdkExplorer.Model.Schema;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {

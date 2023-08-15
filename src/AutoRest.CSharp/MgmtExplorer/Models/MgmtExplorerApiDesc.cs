@@ -12,8 +12,8 @@ using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Utilities;
-using SECodeGen.CSharp.Model.Azure;
-using static SECodeGen.CSharp.Model.Code.ApiDesc;
+using AutoRest.SdkExplorer.Model.Azure;
+using static AutoRest.SdkExplorer.Model.Code.ApiDesc;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {

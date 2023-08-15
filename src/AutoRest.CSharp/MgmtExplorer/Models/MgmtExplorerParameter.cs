@@ -5,7 +5,7 @@ using AutoRest.CSharp.Input;
 using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.Output.Models.Shared;
-using SECodeGen.CSharp.Model.Code;
+using AutoRest.SdkExplorer.Model.Code;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {

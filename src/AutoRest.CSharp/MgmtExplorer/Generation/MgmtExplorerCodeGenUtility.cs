@@ -18,7 +18,7 @@ using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Humanizer;
-using SECodeGen.CSharp.Model.Schema;
+using AutoRest.SdkExplorer.Model.Schema;
 
 namespace AutoRest.CSharp.MgmtExplorer.Generation
 {

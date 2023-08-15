@@ -7,7 +7,7 @@ using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.MgmtExplorer.Models;
 using AutoRest.CSharp.Output.Models.Types;
-using SECodeGen.CSharp.Model.Code;
+using AutoRest.SdkExplorer.Model.Code;
 
 namespace AutoRest.CSharp.MgmtExplorer.Extensions
 {

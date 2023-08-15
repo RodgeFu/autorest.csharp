@@ -4,9 +4,6 @@
 using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Input;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using AutoRest.CSharp.Output.Models.Types;
 
 namespace AutoRest.CSharp.MgmtExplorer.Autorest
@@ -27,7 +24,11 @@ namespace AutoRest.CSharp.MgmtExplorer.Autorest
 
         public static string GetSerializerNameOrName(this ObjectTypeProperty prop)
         {
-            return prop.SchemaProperty?.SerializedName ?? prop.InputModelProperty?.SerializedName ?? prop.InputModelProperty?.Name ?? prop.Declaration.Name;
+            return prop.SchemaProperty?.Language.Default.SerializedName ??
+                   prop.SchemaProperty?.SerializedName ??
+                   prop.InputModelProperty?.SerializedName ??
+                   prop.InputModelProperty?.Name ??
+                   prop.Declaration.Name;
         }
 
         public static string GetSerializerNameOrName(this Languages lang, string langName = "default")

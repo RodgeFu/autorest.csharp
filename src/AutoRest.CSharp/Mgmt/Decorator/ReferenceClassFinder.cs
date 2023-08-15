@@ -12,6 +12,7 @@ using Azure;
 using Azure.Core.Expressions.DataFactory;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Resources.Models;
 using Operation = Azure.Operation;
 
 namespace AutoRest.CSharp.Mgmt.Decorator
@@ -79,6 +80,11 @@ namespace AutoRest.CSharp.Mgmt.Decorator
                 ["Message"] = new PropertyMetadata("message", true),
                 ["Target"] = new PropertyMetadata("target"),
                 ["Details"] = new PropertyMetadata("details")
+            },
+            [typeof(ExtendedLocation)] = new()
+            {
+                ["Name"] = new PropertyMetadata("name", true),
+                ["ExtendedLocationType"] = new PropertyMetadata("type", true)
             }
         };
 

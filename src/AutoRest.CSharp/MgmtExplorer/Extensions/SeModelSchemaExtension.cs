@@ -20,8 +20,8 @@ using Azure.ResourceManager.ManagementGroups;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Resources.Models;
-using SECodeGen.CSharp.Model.Code;
-using SECodeGen.CSharp.Model.Schema;
+using AutoRest.SdkExplorer.Model.Code;
+using AutoRest.SdkExplorer.Model.Schema;
 
 namespace AutoRest.CSharp.MgmtExplorer.Extensions
 {
@@ -347,7 +347,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
             {
                 var list = fp.BuildHierarchyStack().ToList();
                 list.Reverse();
-                r.SerializerPath = string.Join("/", list.Select(s => s.SchemaProperty?.SerializedName ?? s.Declaration.Name));
+                r.SerializerPath = string.Join("/", list.Select(s => s.GetSerializerNameOrName()));
             }
             else
             {

@@ -6,7 +6,7 @@ using System.Linq;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
 using AutoRest.CSharp.MgmtExplorer.Extensions;
-using SECodeGen.CSharp.Model.Code;
+using AutoRest.SdkExplorer.Model.Code;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
 {

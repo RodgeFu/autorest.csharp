@@ -12,8 +12,8 @@ using AutoRest.CSharp.MgmtExplorer.AutoRest;
 using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.MgmtExplorer.Generation;
 using AutoRest.CSharp.MgmtTest.AutoRest;
-using SECodeGen.CSharp.Model.Code;
-using SECodeGen.CSharp.Model.Example;
+using AutoRest.SdkExplorer.Model.Code;
+using AutoRest.SdkExplorer.Model.Example;
 
 namespace AutoRest.CSharp.AutoRest.Plugins
 {
@@ -57,7 +57,10 @@ namespace AutoRest.CSharp.AutoRest.Plugins
 
                 List<ExampleDesc> examples = new List<ExampleDesc>();
                 if (desc.ExampleGroup != null && desc.ExampleGroup.Examples != null && desc.ExampleGroup.Examples.Count > 0)
+                {
                     examples = desc.ExampleGroup.Examples.Select(e => e.CreateExampleDesc(v)).ToList();
+                    examples.ForEach(ex => v.ProcessExample(ex));
+                }
 
                 List<string> outputFormat = string.IsNullOrEmpty(Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat) ?
                     new List<string>() { "cs", "yaml", "sample_cs" } : Configuration.MgmtConfiguration.ExplorerGen.OutputFormat.ToLower().Split(",").ToList();

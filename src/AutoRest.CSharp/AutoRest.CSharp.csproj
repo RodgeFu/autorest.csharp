@@ -56,9 +56,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="SECodeGen.CSharp">
-      <HintPath>..\..\..\..\emu\AzureAPIExplorerPOC\src\SECodeGen.CSharp\bin\Debug\net6.0\SECodeGen.CSharp.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\AutoRest.SdkExplorer\AutoRest.SdkExplorer.csproj" />
+    <ProjectReference Include="..\AutoRest.SdkExplorer\AutoRest.SdkExplorer.csproj" />
   </ItemGroup>
 
   <Target Name="PreparePropsFile" BeforeTargets="GenerateNuspec;_GetPackageFiles" DependsOnTargets="GenerateSourceLinkFile" Condition="'$(TargetFrameworks)' == '' or '$(IsCrossTargetingBuild)' == 'true'" Outputs="$(_SourcePackagePropsFilePath)">
