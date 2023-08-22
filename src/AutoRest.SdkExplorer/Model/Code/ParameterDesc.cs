@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using AutoRest.SdkExplorer.Model.Example;
 using AutoRest.SdkExplorer.Model.Schema;
+using AutoRest.SdkExplorer.Model.Hint;
 
 namespace AutoRest.SdkExplorer.Model.Code
 {
@@ -23,10 +25,11 @@ namespace AutoRest.SdkExplorer.Model.Code
         {
         }
 
-        public void ProcessExample(ExampleDesc ex, SchemaStore? schemaStore = null)
+        public IEnumerable<FieldHint> GetFieldHints(string apiName, ExampleDesc ex, SchemaStore? schemaStore = null)
         {
             if (ex.ExampleValues.TryGetValue(this.SerializerName!, out ExampleValueDesc? found))
-                this.Type!.ProcessExample(ex.ExampleName!, found!, schemaStore);
+                return this.Type!.GetFieldHints($"{apiName}.{this.SerializerName!}", ex.ExampleName!, found!, schemaStore);
+            return new List<FieldHint>();
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using AutoRest.SdkExplorer.Model.Azure;
 using AutoRest.SdkExplorer.Model.Example;
 using AutoRest.SdkExplorer.Model.Schema;
+using AutoRest.SdkExplorer.Model.Hint;
 using Azure.Core;
 
 namespace AutoRest.SdkExplorer.Model.Code
@@ -30,9 +31,6 @@ namespace AutoRest.SdkExplorer.Model.Code
         public string? SchemaKey { get; set; }
         public string? SchemaType { get; set; }
 
-        public List<LinkedExampleRawValueDesc> LinkedExampleRawValues { get; set; } = new List<LinkedExampleRawValueDesc>();
-        public List<AzureResourceType> AzureResourceTypes { get; set; } = new List<AzureResourceType>();
-
         public TypeDesc()
         {
         }
@@ -43,10 +41,10 @@ namespace AutoRest.SdkExplorer.Model.Code
             SchemaType = schema.SchemaType;
         }
 
-        public string GetFullName(bool includeNamespace)
+        public string GetFullName(bool includeNamespace, bool includeNullable = true)
         {
             string name = includeNamespace ? $"{Namespace ?? "__N/A__"}.{Name ?? "__N/A__"}" : Name ?? "__N/A__";
-            if (IsNullable)
+            if (includeNullable && IsNullable)
                 name += "?";
             if (IsGenericType)
             {
@@ -82,9 +80,17 @@ namespace AutoRest.SdkExplorer.Model.Code
             return this.Arguments[1];
         }
 
-
-        public void ProcessExample(string exampleName, ExampleValueDesc exampleValueDesc, SchemaStore? schemaStore)
+        public IEnumerable<FieldHint> GetFieldHints(string curFieldName, string exampleName, ExampleValueDesc exampleValueDesc, SchemaStore? schemaStore)
         {
+            Dictionary<string, FieldHint> dict = new Dictionary<string, FieldHint>();
+            this.GetFieldHintsInternal(curFieldName, exampleName, exampleValueDesc, schemaStore, ref dict);
+            return dict.Values.ToList();
+        }
+
+        private void GetFieldHintsInternal(string curFieldName, string exampleName, ExampleValueDesc exampleValueDesc, SchemaStore? schemaStore, ref Dictionary<string, FieldHint> result)
+        {
+            if (result == null)
+                throw new ArgumentNullException("result");
             if (this.IsList)
             {
                 if (!exampleValueDesc.HasArrayValues)
@@ -92,7 +98,7 @@ namespace AutoRest.SdkExplorer.Model.Code
                 var eleType = this.GetListElementType();
                 foreach (var arrExample in exampleValueDesc.ArrayValues!)
                 {
-                    eleType.ProcessExample(exampleName, arrExample, schemaStore);
+                    eleType.GetFieldHintsInternal(curFieldName, exampleName, arrExample, schemaStore, ref result);
                 }
             }
             else if (this.IsDictionary)
@@ -103,15 +109,15 @@ namespace AutoRest.SdkExplorer.Model.Code
                 var valueType = this.GetDictValueType();
                 foreach (var kv in exampleValueDesc.PropertyValues!)
                 {
-                    keyType.ProcessExample(exampleName, new ExampleValueDesc()
+                    keyType.GetFieldHintsInternal($"{curFieldName}.Key", exampleName, new ExampleValueDesc()
                     {
                         CSharpName = "Key",
                         ModelName = "Key",
                         SerializerName = "key",
                         SchemaType = $"{exampleValueDesc.SchemaType}.Key",
                         RawValue = kv.Key,
-                    }, schemaStore);
-                    valueType.ProcessExample(exampleName, kv.Value, schemaStore);
+                    }, schemaStore, ref result);
+                    valueType.GetFieldHintsInternal($"{curFieldName}.Value", exampleName, kv.Value, schemaStore, ref result);
                 }
             }
             else if (exampleValueDesc.HasPropertyValues)
@@ -128,7 +134,7 @@ namespace AutoRest.SdkExplorer.Model.Code
                         var matchExample = curProp.FindMatchingExample(propExampleKV.Value);
                         if (matchExample != null)
                         {
-                            curProp.Type!.ProcessExample(exampleName, matchExample, schemaStore);
+                            curProp.Type!.GetFieldHintsInternal($"{this.GetFullName(includeNamespace: true, includeNullable: false)}.{curProp.Name}", exampleName, matchExample, schemaStore, ref result);
                             found = true;
                             break;
                         }
@@ -148,17 +154,22 @@ namespace AutoRest.SdkExplorer.Model.Code
                 var schema = this.GetSchema(schemaStore);
 
                 string raw = exampleValueDesc.RawValue!;
+                if (!result.TryGetValue(curFieldName, out var hint))
+                {
+                    hint = new FieldHint(curFieldName);
+                    result.Add(curFieldName, hint);
+                }
                 if (exampleValueDesc.RawValue!.Length > 0 && schema != null && schema.SchemaKey == typeof(ResourceIdentifier).FullName)
                 {
                     AzureResourceIdentifier ari = AzureResourceIdentifier.Parse(raw);
                     AzureResourceType? art = ari.ResourceType;
                     if (art != null)
                     {
-                        if (!this.AzureResourceTypes.Contains(art))
-                            this.AzureResourceTypes.Add(art);
+                         hint.AzureResourceTypes.Add(art);
                     }
                 }
-                this.LinkedExampleRawValues.Add(new LinkedExampleRawValueDesc(exampleName, raw!));
+
+                hint.RawExampleValues.Add(new ExampleRawValueHint(exampleName, raw!));
             }
             else
             {

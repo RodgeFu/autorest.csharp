@@ -14,6 +14,8 @@ using AutoRest.CSharp.MgmtExplorer.Generation;
 using AutoRest.CSharp.MgmtTest.AutoRest;
 using AutoRest.SdkExplorer.Model.Code;
 using AutoRest.SdkExplorer.Model.Example;
+using AutoRest.SdkExplorer.Model.Hint;
+using AutoRest.SdkExplorer.Utilities;
 
 namespace AutoRest.CSharp.AutoRest.Plugins
 {
@@ -55,15 +57,24 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 MgmtExplorerCodeGenBase writer = MgmtExplorerCodeGenBase.Create(desc);
                 ApiDesc v = writer.WriteExplorerApi();
 
+                ApiHint apiHint = new ApiHint();
                 List<ExampleDesc> examples = new List<ExampleDesc>();
                 if (desc.ExampleGroup != null && desc.ExampleGroup.Examples != null && desc.ExampleGroup.Examples.Count > 0)
                 {
                     examples = desc.ExampleGroup.Examples.Select(e => e.CreateExampleDesc(v)).ToList();
-                    examples.ForEach(ex => v.ProcessExample(ex));
+                    foreach (var ex in examples)
+                    {
+                        var moreHint = v.GetApiHint(ex);
+                        apiHint.Merge(moreHint);
+                    }
                 }
 
                 List<string> outputFormat = string.IsNullOrEmpty(Configuration.MgmtConfiguration.ExplorerGen?.OutputFormat) ?
-                    new List<string>() { "cs", "yaml", "sample_cs" } : Configuration.MgmtConfiguration.ExplorerGen.OutputFormat.ToLower().Split(",").ToList();
+                    new List<string>() { "cs", "yaml", "sample_cs", "hint" } : Configuration.MgmtConfiguration.ExplorerGen.OutputFormat.ToLower().Split(",").ToList();
+                if (outputFormat.Contains("ex_data"))
+                {
+                    output.Add($"Explorer/{desc.FullUniqueName}.hint.yaml", apiHint.SerializeToYaml());
+                }
                 if (outputFormat.Contains("yaml"))
                 {
                     foreach (var ex in examples)

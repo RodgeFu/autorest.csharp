@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using AutoRest.SdkExplorer.Model.Example;
 using AutoRest.SdkExplorer.Model.Schema;
+using AutoRest.SdkExplorer.Model.Hint;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
@@ -50,10 +51,11 @@ namespace AutoRest.SdkExplorer.Model.Code
             }
         }
 
-        public void ProcessExample(ExampleDesc ex, SchemaStore? schemaStore = null)
+        public IEnumerable<FieldHint> GetFieldHints(string apiName, ExampleDesc ex, SchemaStore? schemaStore = null)
         {
             foreach (var param in this.Parameters)
-                param.ProcessExample(ex, schemaStore);
+                foreach (var r in param.GetFieldHints(apiName, ex, schemaStore))
+                    yield return r;
         }
     }
 }

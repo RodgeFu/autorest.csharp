@@ -9,6 +9,7 @@ using System.Linq;
 using AutoRest.SdkExplorer.Model.Azure;
 using AutoRest.SdkExplorer.Model.Example;
 using AutoRest.SdkExplorer.Model.Schema;
+using AutoRest.SdkExplorer.Model.Hint;
 using AutoRest.SdkExplorer.Utilities;
 
 namespace AutoRest.SdkExplorer.Model.Code
@@ -93,10 +94,14 @@ namespace AutoRest.SdkExplorer.Model.Code
             this.SchemaNones = store.NoneSchema.Values.ToList();
         }
 
-        public void ProcessExample(ExampleDesc ex, SchemaStore schemaStore = null)
+        public ApiHint GetApiHint(ExampleDesc ex, SchemaStore schemaStore = null)
         {
-            foreach (var cs in this.CodeSegments)
-                cs.ProcessExample(ex, schemaStore);
+            ApiHint data = new ApiHint();
+            foreach (var item in CodeSegments.SelectMany(cs => cs.GetFieldHints($"{this.ServiceName}.{this.ResourceName}.{this.OperationName}", ex, schemaStore)))
+            {
+                data.AppendFieldHint(item);
+            }
+            return data;
         }
 
         public string ToYaml()
