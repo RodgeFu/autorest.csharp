@@ -7,46 +7,76 @@ using System.Linq;
 
 namespace AutoRest.SdkExplorer.Model.Azure
 {
-    internal class AzureResourceIdentifier
+    public class AzureResourceIdentifier
     {
-        internal struct AzureResourceIdentifierSegment
+        // save the raw id only for readability and troubleshooting purpose
+        public string RawId { get; set; }
+        // segments and action are source of truth
+        public List<AzureResourceIdentifierSegment> ResourceSegments { get; set; }
+        public string Action { get; set; }
+
+        public string GetId()
         {
-            public AzureResourceIdentifierSegment(string segName, string? segValue)
-            {
-                this.SegName = segName;
-                this.SegValue = segValue;
-            }
-            public string SegName { get; set; }
-            public string? SegValue { get; set; }
+            string resourcePart = string.Join("/", this.ResourceSegments.Select(s => s.ToString()));
+            string actionPart = this.Action == null ? "" : this.Action;
 
-            public override string ToString()
-            {
-                return SegName + (string.IsNullOrEmpty(SegValue) ? "" : $"/{SegValue}");
-            }
+            if (string.IsNullOrEmpty(resourcePart))
+                return string.Empty;
+            if (string.IsNullOrEmpty(actionPart))
+                return $"/{resourcePart}";
+            else
+                return $"/{resourcePart}/{actionPart}";
         }
-        public string RawId { get; private set; }
-        public string Id
+        public string? GetSubscriptionId() { return this.GetResourceTypeValue("subscriptions"); }
+        public string? GetResourceGroupName() { return this.GetResourceTypeValue("resourcegroups"); }
+        public AzureResourceType? GetResourceType() {
+            int providerIndex = GetResourceTypeIndex("providers");
+            if (providerIndex >= 0)
+            {
+                string ns = this.ResourceSegments[providerIndex].Value;
+                string type = string.Join("/", this.ResourceSegments.Take(new Range(providerIndex + 1, this.ResourceSegments.Count)).Select(s => s.Type));
+                return new AzureResourceType(ns, type);
+            }
+            return null;
+        }
+        public string? GetLastResourceName() { return this.ResourceSegments.Count > 0? this.ResourceSegments[^1].Value : null; }
+
+        /// <summary>
+        /// just for json/yaml ser/des
+        /// </summary>
+        private AzureResourceIdentifier()
         {
-            get
-            {
-                string resourcePart = "/" + string.Join("/", this.ResourceSegments.Select(s => s.ToString()));
-                string actionPart = this.ActionSegment == null ? "" : $"/{this.ActionSegment}";
-                return $"{resourcePart}{actionPart}";
-            }
+            this.RawId = string.Empty;
+            this.ResourceSegments = new List<AzureResourceIdentifierSegment>();
+            this.Action = string.Empty;
         }
-        public IReadOnlyList<AzureResourceIdentifierSegment> ResourceSegments { get; private set; } = new List<AzureResourceIdentifierSegment>();
-        public AzureResourceIdentifierSegment? ActionSegment { get; private set; }
 
-        public string? SubscriptionId { get; private set; }
-        public string? ResourceGroupName { get; private set; }
-        public AzureResourceType? ResourceType { get; private set; }
-
-        private AzureResourceIdentifier(string rawId)
+        public AzureResourceIdentifier(string id)
         {
-            this.RawId = rawId;
+            this.RawId = id;
+            this.ResourceSegments = new List<AzureResourceIdentifierSegment>();
+            this.Action = string.Empty;
+            this.Parse(id);
         }
 
-        public static List<AzureResourceIdentifierSegment> CreateSegmentsList(string[] arr, out AzureResourceIdentifierSegment? action)
+        public string? GetResourceTypeValue(string resourceTypeName)
+        {
+            return this.ResourceSegments.FirstOrDefault(s => s.Type == resourceTypeName)?.Value;
+        }
+
+        public int GetResourceTypeIndex(string resourceTypeName)
+        {
+            int i = 0;
+            foreach (var seg in this.ResourceSegments)
+            {
+                if (seg.Type == resourceTypeName)
+                    return i;
+                i++;
+            }
+            return -1;
+        }
+
+        private List<AzureResourceIdentifierSegment> CreateSegmentsList(string[] arr, out string action)
         {
             int segLen = arr.Length / 2;
             List<AzureResourceIdentifierSegment> segs = new List<AzureResourceIdentifierSegment>();
@@ -54,11 +84,11 @@ namespace AutoRest.SdkExplorer.Model.Azure
             {
                 segs.Add(new AzureResourceIdentifierSegment(arr[2 * i], arr[2 * i + 1]));
             }
-            action = (arr.Length % 2 != 0) ? new AzureResourceIdentifierSegment(arr[^1], null) : null;
+            action = (arr.Length % 2 != 0) ? arr[^1] : string.Empty;
             return segs;
         }
 
-        public static AzureResourceIdentifier Parse(string id)
+        private void Parse(string id)
         {
             if (string.IsNullOrEmpty(id))
                 throw new ArgumentNullException("id");
@@ -68,29 +98,9 @@ namespace AutoRest.SdkExplorer.Model.Azure
             if (arr.Length == 0)
                 throw new ArgumentException("At least one segment is expected in id. Id=" + id);
 
-            var segList = CreateSegmentsList(arr, out AzureResourceIdentifierSegment? action);
-            AzureResourceIdentifier r = new AzureResourceIdentifier(id);
-            r.ResourceSegments = segList;
-            r.ActionSegment = action;
-
-            const int INDEX_SUBSCRIPTIONS = 0;
-            const int INDEX_RESOURCEGROUP = 1;
-            const int INDEX_PROVIDERS = 2;
-            const int INDEX_TOP_TYPE = 3;
-            if (segList.Count > INDEX_SUBSCRIPTIONS && segList[INDEX_SUBSCRIPTIONS].SegName.Equals("subscriptions", StringComparison.InvariantCultureIgnoreCase))
-                r.SubscriptionId = segList[INDEX_SUBSCRIPTIONS].SegValue;
-            if (segList.Count > INDEX_RESOURCEGROUP && segList[INDEX_RESOURCEGROUP].SegName.Equals("resourcegroups", StringComparison.InvariantCultureIgnoreCase))
-                r.ResourceGroupName = segList[INDEX_RESOURCEGROUP].SegValue;
-            string? ns = null;
-            if (segList.Count > INDEX_PROVIDERS && segList[INDEX_PROVIDERS].SegName.Equals("providers", StringComparison.InvariantCultureIgnoreCase))
-                ns = segList[INDEX_PROVIDERS].SegValue;
-            if (!string.IsNullOrEmpty(ns))
-            {
-                string resourceType = string.Join("/", segList.Take(new Range(INDEX_TOP_TYPE, segList.Count)).Select(s => s.SegName));
-                r.ResourceType = new AzureResourceType(ns, resourceType);
-            }
-
-            return r;
+            var segList = CreateSegmentsList(arr, out string action);
+            this.ResourceSegments = segList;
+            this.Action = action;
         }
     }
 }

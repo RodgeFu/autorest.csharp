@@ -161,8 +161,8 @@ namespace AutoRest.SdkExplorer.Model.Code
                 }
                 if (exampleValueDesc.RawValue!.Length > 0 && schema != null && schema.SchemaKey == typeof(ResourceIdentifier).FullName)
                 {
-                    AzureResourceIdentifier ari = AzureResourceIdentifier.Parse(raw);
-                    AzureResourceType? art = ari.ResourceType;
+                    AzureResourceIdentifier ari = new AzureResourceIdentifier(raw);
+                    AzureResourceType? art = ari.GetResourceType();
                     if (art != null)
                     {
                          hint.AzureResourceTypes.Add(art);

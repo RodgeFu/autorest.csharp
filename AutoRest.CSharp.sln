@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CadlRanchProjects.Tests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoRest.SdkExplorer", "src\AutoRest.SdkExplorer\AutoRest.SdkExplorer.csproj", "{686A0F00-5697-43E3-92CB-E586CFA1C665}"
 EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "AutoRest.SdkExplorer.TypeScript", "src\AutoRest.SdkExplorer.TypeScript\AutoRest.SdkExplorer.TypeScript.esproj", "{E2DFBCC1-4FD8-44C5-ABDD-B4DDDECD550A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,12 @@ Global
 		{686A0F00-5697-43E3-92CB-E586CFA1C665}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{686A0F00-5697-43E3-92CB-E586CFA1C665}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{686A0F00-5697-43E3-92CB-E586CFA1C665}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2DFBCC1-4FD8-44C5-ABDD-B4DDDECD550A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2DFBCC1-4FD8-44C5-ABDD-B4DDDECD550A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2DFBCC1-4FD8-44C5-ABDD-B4DDDECD550A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{E2DFBCC1-4FD8-44C5-ABDD-B4DDDECD550A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2DFBCC1-4FD8-44C5-ABDD-B4DDDECD550A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2DFBCC1-4FD8-44C5-ABDD-B4DDDECD550A}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

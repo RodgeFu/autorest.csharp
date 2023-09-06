@@ -10,4 +10,270 @@
     <PackageReference Include="YamlDotNet" Version="13.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Model\Azure\AzureResource.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AzureResource.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Azure\AzureResourceGroup.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AzureResourceGroup.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Azure\AzureResourceIdentifier.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AzureResourceIdentifier.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Azure\AzureResourceIdentifierSegment.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AzureResourceIdentifierSegment.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Azure\AzureResourceType.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AzureResourceType.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Azure\AzureServicePrincipal.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AzureServicePrincipal.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Azure\AzureSubscription.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AzureSubscription.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Code\ApiDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>ApiDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Code\CodeSegmentDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>CodeSegmentDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Code\FunctionDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>FunctionDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Code\ParameterDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>ParameterDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Code\PlaceHolderDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>PlaceHolderDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Code\TypeDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>TypeDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Code\VariableDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>VariableDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Example\ExampleDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>ExampleDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Example\ExampleValueDesc.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>ExampleValueDesc.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Hint\ApiHint.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>ApiHint.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Hint\ExampleRawValueHint.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>ExampleRawValueHint.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Hint\FieldHint.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>FieldHint.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaBase.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaBase.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaEnum.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaEnum.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaEnumValue.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaEnumValue.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaMethod.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaMethod.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaMethodParameter.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaMethodParameter.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaNone.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaNone.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaObject.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaObject.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaProperty.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaProperty.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\Schema\SchemaStore.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>SchemaStore.cs.d.ts</LastGenOutput>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Model\Azure\AzureResource.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureResource.cs</DependentUpon>
+    </None>
+    <None Update="Model\Azure\AzureResourceGroup.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureResourceGroup.cs</DependentUpon>
+    </None>
+    <None Update="Model\Azure\AzureResourceIdentifier.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureResourceIdentifier.cs</DependentUpon>
+    </None>
+    <None Update="Model\Azure\AzureResourceIdentifierSegment.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureResourceIdentifierSegment.cs</DependentUpon>
+    </None>
+    <None Update="Model\Azure\AzureResourceType.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureResourceType.cs</DependentUpon>
+    </None>
+    <None Update="Model\Azure\AzureServicePrincipal.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureServicePrincipal.cs</DependentUpon>
+    </None>
+    <None Update="Model\Azure\AzureSubscription.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureSubscription.cs</DependentUpon>
+    </None>
+    <None Update="Model\Code\ApiDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ApiDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Code\CodeSegmentDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CodeSegmentDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Code\FunctionDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FunctionDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Code\ParameterDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ParameterDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Code\PlaceHolderDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PlaceHolderDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Code\TypeDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TypeDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Code\VariableDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>VariableDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Example\ExampleDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ExampleDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Example\ExampleValueDesc.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ExampleValueDesc.cs</DependentUpon>
+    </None>
+    <None Update="Model\Hint\ApiHint.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ApiHint.cs</DependentUpon>
+    </None>
+    <None Update="Model\Hint\ExampleRawValueHint.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ExampleRawValueHint.cs</DependentUpon>
+    </None>
+    <None Update="Model\Hint\FieldHint.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldHint.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaBase.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaBase.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaEnum.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaEnum.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaEnumValue.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaEnumValue.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaMethod.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaMethod.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaMethodParameter.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaMethodParameter.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaNone.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaNone.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaObject.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaObject.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaProperty.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaProperty.cs</DependentUpon>
+    </None>
+    <None Update="Model\Schema\SchemaStore.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SchemaStore.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="robocopy .\Model  ..\AutoRest.SdkExplorer.TypeScript\src\Generated\Interfaces  *.d.ts /MIR" IgnoreExitCode="true" />
+  </Target>
+
 </Project>
