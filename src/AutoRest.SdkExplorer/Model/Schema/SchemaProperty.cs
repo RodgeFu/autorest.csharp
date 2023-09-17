@@ -45,7 +45,7 @@ namespace AutoRest.SdkExplorer.Model.Schema
 
                 for (curSeg = curSeg + 1; curSeg < segs.Length; curSeg++)
                 {
-                    if (!curExample.HasPropertyValues)
+                    if (!curExample.HasPropertyValues())
                         return null;
                     curExample = curExample.PropertyValues!.FirstOrDefault(p => p.Value.SerializerName == segs[curSeg]).Value;
                     if (curExample == null)

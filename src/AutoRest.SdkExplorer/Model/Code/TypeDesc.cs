@@ -55,7 +55,7 @@ namespace AutoRest.SdkExplorer.Model.Code
 
         public SchemaBase? GetSchema(SchemaStore? store = null)
         {
-            store ??= SchemaStore.Instance;
+            store ??= SchemaStore.Current;
             return store.GetSchemaFromStore(this);
         }
 
@@ -93,7 +93,7 @@ namespace AutoRest.SdkExplorer.Model.Code
                 throw new ArgumentNullException("result");
             if (this.IsList)
             {
-                if (!exampleValueDesc.HasArrayValues)
+                if (!exampleValueDesc.HasArrayValues())
                     throw new InvalidOperationException("No array example value for list type: " + this.FullNameWithNamespace);
                 var eleType = this.GetListElementType();
                 foreach (var arrExample in exampleValueDesc.ArrayValues!)
@@ -103,7 +103,7 @@ namespace AutoRest.SdkExplorer.Model.Code
             }
             else if (this.IsDictionary)
             {
-                if (!exampleValueDesc.HasPropertyValues)
+                if (!exampleValueDesc.HasPropertyValues())
                     throw new InvalidOperationException("No property value for Dictionary type: " + this.FullNameWithNamespace);
                 var keyType = this.GetDictKeyType();
                 var valueType = this.GetDictValueType();
@@ -120,7 +120,7 @@ namespace AutoRest.SdkExplorer.Model.Code
                     valueType.GetFieldHintsInternal($"{curFieldName}.Value", exampleName, kv.Value, schemaStore, ref result);
                 }
             }
-            else if (exampleValueDesc.HasPropertyValues)
+            else if (exampleValueDesc.HasPropertyValues())
             {
                 var schema = this.GetSchema(schemaStore);
                 if (schema is not SchemaObject sob)
@@ -149,7 +149,7 @@ namespace AutoRest.SdkExplorer.Model.Code
                     }
                 }
             }
-            else if (exampleValueDesc.HasRawValue)
+            else if (exampleValueDesc.HasRawValue())
             {
                 var schema = this.GetSchema(schemaStore);
 

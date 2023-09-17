@@ -159,7 +159,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
                 string named = mep.DefaultValue != null ? $"{mep.CSharpName}: " : $"";
                 if (mep.IsInPropertyBag)
                 {
-                    var ctorParam = pbSchema!.DefaultConstructor!.MethodParameters.FirstOrDefault(mp => mp.RelatedPropertySerializerPath == mep.SerializerName);
+                    var ctorParam = pbSchema!.GetDefaultConstructor()!.MethodParameters.FirstOrDefault(mp => mp.RelatedPropertySerializerPath == mep.SerializerName);
                     if (ctorParam != null)
                     {
                         pbCtorParameterList.Add($"{ctorParam.Name}: {mev.KeyDeclaration}");

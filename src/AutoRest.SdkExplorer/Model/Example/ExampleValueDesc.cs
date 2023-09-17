@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using YamlDotNet.Serialization;
@@ -21,18 +22,10 @@ namespace AutoRest.SdkExplorer.Model.Example
         public List<ExampleValueDesc>? ArrayValues { get; set; }
 
         public ExampleValueDesc()
-        {
+        { }
 
-        }
-
-        [JsonIgnore]
-        [YamlIgnore]
-        public bool HasRawValue => RawValue != null;
-        [JsonIgnore]
-        [YamlIgnore]
-        public bool HasPropertyValues => this.PropertyValues != null;
-        [JsonIgnore]
-        [YamlIgnore]
-        public bool HasArrayValues => this.ArrayValues != null;
+        public bool HasRawValue() => RawValue != null;
+        public bool HasPropertyValues() => this.PropertyValues != null;
+        public bool HasArrayValues() => this.ArrayValues != null;
     }
 }

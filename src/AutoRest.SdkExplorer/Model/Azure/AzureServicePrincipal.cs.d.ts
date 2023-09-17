@@ -1,7 +1,7 @@
 declare module AutoRest.SdkExplorer.Interface {
 	interface AzureServicePrincipal {
-		name: string;
-		appId: string;
-		tenantId: string;
+		name?: string;
+		appId?: string;
+		tenantId?: string;
 	}
 }

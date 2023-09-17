@@ -54,9 +54,7 @@ namespace AutoRest.SdkExplorer.Model.Code
         public string RequestPath { get; set; }
         public string ApiVersion { get; set; }
 
-        public List<SchemaObject> SchemaObjects { get; set; } = new List<SchemaObject>();
-        public List<SchemaEnum> SchemaEnums { get; set; } = new List<SchemaEnum>();
-        public List<SchemaNone> SchemaNones { get; set; } = new List<SchemaNone>();
+        public SchemaStore SchemaStore { get; set; } = SchemaStore.Current;
 
         public ApiDesc()
         {
@@ -87,12 +85,12 @@ namespace AutoRest.SdkExplorer.Model.Code
             return usingsCode + newLine + code;
         }
 
-        public void RefreshSchema(SchemaStore store)
-        {
-            this.SchemaObjects = store.ObjectSchemas.Values.ToList();
-            this.SchemaEnums = store.EnumSchemas.Values.ToList();
-            this.SchemaNones = store.NoneSchema.Values.ToList();
-        }
+        //public void RefreshSchema(SchemaStore store)
+        //{
+        //    this.SchemaObjects = store.ObjectSchemas.Values.ToList();
+        //    this.SchemaEnums = store.EnumSchemas.Values.ToList();
+        //    this.SchemaNones = store.NoneSchemas.Values.ToList();
+        //}
 
         public ApiHint GetApiHint(ExampleDesc ex, SchemaStore schemaStore = null)
         {

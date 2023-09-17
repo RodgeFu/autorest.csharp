@@ -19,6 +19,9 @@ namespace AutoRest.SdkExplorer.Model.Schema
         public List<TypeDesc> InheritBy { get; set; } = new List<TypeDesc>();
         public SchemaMethod? InitializationConstructor { get; set; }
         public SchemaMethod? SerializationConstructor { get; set; }
+        /// <summary>
+        /// StaticCreateMethod is also treated as one kind of constructor
+        /// </summary>
         public SchemaMethod? StaticCreateMethod { get; set; }
         public string Description { get; set; } = string.Empty;
         public bool IsStruct { get; set; }
@@ -28,8 +31,6 @@ namespace AutoRest.SdkExplorer.Model.Schema
         public bool IsDiscriminatorBase { get; set; } = false;
         public SchemaProperty? DiscriminatorProperty { get; set; }
 
-        [YamlIgnore, JsonIgnore]
-        public SchemaMethod? DefaultConstructor => this.SerializationConstructor ?? this.InitializationConstructor ?? this.StaticCreateMethod ?? null;
         /// <summary>
         /// Include properties from inherit
         /// </summary>
@@ -59,12 +60,19 @@ namespace AutoRest.SdkExplorer.Model.Schema
         {
         }
 
+        /// <summary>
+        /// Static Creation method is also treated as one kind of constructor
+        /// </summary>
+        /// <returns></returns>
+        public SchemaMethod? GetDefaultConstructor() => this.SerializationConstructor ?? this.InitializationConstructor ?? this.StaticCreateMethod ?? null;
+
         public bool IsDefaultConstructorParameter(string parameterSerializerName)
         {
-            if (this.DefaultConstructor == null)
+            var ctor = this.GetDefaultConstructor();
+            if (ctor == null)
                 return false;
             else
-                return this.DefaultConstructor.HasParameter(parameterSerializerName);
+                return ctor.HasParameter(parameterSerializerName);
         }
 
     }

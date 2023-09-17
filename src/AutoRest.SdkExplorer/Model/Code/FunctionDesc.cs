@@ -6,12 +6,10 @@ using YamlDotNet.Serialization;
 
 namespace AutoRest.SdkExplorer.Model.Code
 {
-    public class FunctionDesc
+    public class FunctionDesc : PlaceHolderDesc
     {
         public const string FUNC_CODESEGMENT_CODE = "__FUNC_CODESEGMENT_CODE__";
 
-        public string? Key { get; set; }
-        public string? SuggestedName { get; set; }
         public TypeDesc? Type { get; set; }
         [YamlMember(ScalarStyle = ScalarStyle.Literal)]
         public string? FunctionWrap { get; set; }

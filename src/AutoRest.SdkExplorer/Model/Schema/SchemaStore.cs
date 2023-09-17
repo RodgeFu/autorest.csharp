@@ -9,23 +9,48 @@ namespace AutoRest.SdkExplorer.Model.Schema
 {
     public class SchemaStore
     {
-        public static SchemaStore Instance { get; } = new SchemaStore();
+        private static SchemaStore? _current;
+        /// <summary>
+        /// The current SchemaStore to use.
+        /// set this static property to make things easier instead of passing schemaStore everywhere
+        /// </summary>
+        public static SchemaStore Current
+        {
+            get
+            {
+                if (_current == null)
+                    _current = new SchemaStore();
+                return _current;
+            }
+            set { _current = value; }
+        }
 
         // store schemas per type so that they can be handled easily when passing through json/yaml
-        public Dictionary<string, SchemaObject> ObjectSchemas { get; private set; } = new Dictionary<string, SchemaObject>();
-        public Dictionary<string, SchemaEnum> EnumSchemas { get; private set; } = new Dictionary<string, SchemaEnum>();
-        public Dictionary<string, SchemaNone> NoneSchema { get; private set; } = new Dictionary<string, SchemaNone>();
+        public Dictionary<string, SchemaObject> ObjectSchemas { get; set; } = new Dictionary<string, SchemaObject>();
+        public Dictionary<string, SchemaEnum> EnumSchemas { get; set; } = new Dictionary<string, SchemaEnum>();
+        public Dictionary<string, SchemaNone> NoneSchemas { get; set; } = new Dictionary<string, SchemaNone>();
 
         public SchemaStore()
         {
         }
 
-        public void Reset()
-        {
-            this.ObjectSchemas = new Dictionary<string, SchemaObject>();
-            this.EnumSchemas = new Dictionary<string, SchemaEnum>();
-            this.NoneSchema = new Dictionary<string, SchemaNone>();
-        }
+        ///// <summary>
+        ///// Reset the existing store to empty status
+        ///// </summary>
+        ///// <returns>a copy of existing store will be returned</returns>
+        //public SchemaStore ResetStore()
+        //{
+        //    SchemaStore ss = new SchemaStore()
+        //    {
+        //        ObjectSchemas = this.ObjectSchemas,
+        //        EnumSchemas = this.EnumSchemas,
+        //        NoneSchemas = this.NoneSchemas
+        //    };
+        //    this.ObjectSchemas = new Dictionary<string, SchemaObject>();
+        //    this.EnumSchemas = new Dictionary<string, SchemaEnum>();
+        //    this.NoneSchemas = new Dictionary<string, SchemaNone>();
+        //    return ss;
+        //}
 
         public SchemaBase? GetSchemaFromStore(TypeDesc type)
         {
@@ -41,8 +66,8 @@ namespace AutoRest.SdkExplorer.Model.Schema
                 return this.ObjectSchemas[schemaKey];
             else if (this.EnumSchemas.ContainsKey(schemaKey))
                 return this.EnumSchemas[schemaKey];
-            else if (this.NoneSchema.ContainsKey(schemaKey))
-                return this.NoneSchema[schemaKey];
+            else if (this.NoneSchemas.ContainsKey(schemaKey))
+                return this.NoneSchemas[schemaKey];
             else
                 return null;
         }
@@ -58,7 +83,7 @@ namespace AutoRest.SdkExplorer.Model.Schema
                     this.EnumSchemas[schema.SchemaKey] = en;
                     break;
                 case SchemaNone na:
-                    this.NoneSchema[schema.SchemaKey] = na;
+                    this.NoneSchemas[schema.SchemaKey] = na;
                     break;
                 default:
                     throw new InvalidOperationException("Unknown schema: " + schema.GetType().FullName);

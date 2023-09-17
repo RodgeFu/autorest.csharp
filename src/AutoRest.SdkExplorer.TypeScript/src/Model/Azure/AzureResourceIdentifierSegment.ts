@@ -7,8 +7,8 @@ export class AzureResourceIdentifierSegment implements AutoRest.SdkExplorer.Inte
     get isParameterized(): boolean { return this.value.startsWith("{") && this.value.endsWith("}"); }
 
     constructor(data: AutoRest.SdkExplorer.Interface.AzureResourceIdentifierSegment) {
-        this.type = data.type;
-        this.value = data.value;
+        this.type = data.type ?? "UnknownType";
+        this.value = data.value ?? "";
     }
 
     public isParameter(parameterName: string): boolean {

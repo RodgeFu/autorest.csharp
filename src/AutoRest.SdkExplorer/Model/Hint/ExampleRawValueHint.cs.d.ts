@@ -1,6 +1,6 @@
 declare module AutoRest.SdkExplorer.Interface {
 	interface ExampleRawValueHint {
-		value: string;
-		source: string;
+		value?: string;
+		source?: string;
 	}
 }

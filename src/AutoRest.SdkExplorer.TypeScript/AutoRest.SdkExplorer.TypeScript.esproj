@@ -3,7 +3,7 @@
     <None Include=".vscode\launch.json" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="src\Utils\" />
+    <Folder Include="src\Model\Example\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptConfiguration Remove="src\Generated\**" />

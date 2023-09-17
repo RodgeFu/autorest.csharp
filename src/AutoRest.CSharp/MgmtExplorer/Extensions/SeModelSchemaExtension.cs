@@ -29,7 +29,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
     {
         internal static SchemaBase? GetSchemaFromStore(this CSharpType type)
         {
-            return SchemaStore.Instance.GetSchemaFromStore(type.GenerateSeSchemaKey());
+            return SchemaStore.Current.GetSchemaFromStore(type.GenerateSeSchemaKey());
         }
 
         internal static SchemaBase GetOrCreateSeSchema(this CSharpType csharpType)
@@ -122,7 +122,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
             }
 
             SchemaObject r = new SchemaObject(csharpType.GenerateSeSchemaKey());
-            SchemaStore.Instance.AddSchema(r);
+            SchemaStore.Current.AddSchema(r);
             if (csharpType.Implementation is SchemaObjectType || csharpType.Implementation is ModelTypeProvider)
             {
                 var imp = (SerializableObjectType)csharpType.Implementation;
@@ -161,7 +161,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                                 Description = imp.Description ?? "",
                                 Values = keys,
                             };
-                            SchemaStore.Instance.AddSchema(keysEnumSchema);
+                            SchemaStore.Current.AddSchema(keysEnumSchema);
                             r.DiscriminatorProperty = new SchemaProperty()
                             {
                                 Accessibility = "internal",
@@ -222,7 +222,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 r.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.InitializationConstructor.CreateSeSchemaMethod() : null;
                 r.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.SerializationConstructor.CreateSeSchemaMethod() : null;
 
-                r.Properties = imp.Properties.GenerateSchemaProperties(r.DefaultConstructor);
+                r.Properties = imp.Properties.GenerateSchemaProperties(r.GetDefaultConstructor());
             }
             else if (csharpType.Implementation is SystemObjectType)
             {
@@ -234,7 +234,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 r.Description = ""; // not supported in SystemObjectType...
                 r.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.InitializationConstructor.CreateSeSchemaMethod() : null;
                 r.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.SerializationConstructor.CreateSeSchemaMethod() : null;
-                r.Properties = imp.Properties.GenerateSchemaProperties(r.DefaultConstructor);
+                r.Properties = imp.Properties.GenerateSchemaProperties(r.GetDefaultConstructor());
 
                 UpdateSystemObjectType(r, imp);
             }
@@ -324,7 +324,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
             {
                 Reason = reason,
             };
-            SchemaStore.Instance.AddSchema(r);
+            SchemaStore.Current.AddSchema(r);
             return r;
         }
 
@@ -401,7 +401,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
             var imp = (EnumType)csharpType.Implementation;
             r.Values = imp.Values.Select(v => v.CreateSeSchemaEnumValue()).ToList();
 
-            SchemaStore.Instance.AddSchema(r);
+            SchemaStore.Current.AddSchema(r);
             return r;
         }
 
@@ -719,7 +719,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 return null;
                 //throw new InvalidOperationException("Unsupported FrameworkType: " + csharpType.FrameworkType.FullName);
             }
-            SchemaStore.Instance.AddSchema(schema);
+            SchemaStore.Current.AddSchema(schema);
             return schema;
         }
 

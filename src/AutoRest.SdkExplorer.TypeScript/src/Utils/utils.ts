@@ -44,6 +44,22 @@ export function copyMap<T, P>(src: Map<T, P>): Map<T, P> {
     return r;
 }
 
+export function convertStringIndexdArray<P, T>(src: { [index: string]: P } | undefined, convert: (v: P, k: string) => T): { [index: string]: T } {
+    const r: { [index: string]: T } = {};
+    if (!src)
+        return r;
+    Object.keys(src).forEach(key => r[key] = convert(src[key], key));
+    return r;
+}
+
+export function convertStringIndexdArrayToMap<P, T>(src: { [index: string]: P } | undefined, convert: (v: P, k: string) => T): Map<string, T> {
+    if (!src)
+        return new Map<string, T>();
+    const r = new Map<string, T>();
+    Object.keys(src).forEach(key => r.set(key, convert(src[key], key)));
+    return r;
+}
+
 export function htmlDecode(input: string): string {
     var doc = new DOMParser().parseFromString(input, "text/html");
     return doc.documentElement.textContent ?? input;
@@ -54,6 +70,8 @@ export function toReadableTime(date: Date): string {
 }
 export const DATE_FORMAT: string = "YYYY-MM-DDTHH:mm:ss.SSS";
 export const TIME_FORMAT: string = "HH:mm:ss.SSS";
+export const ONE_INDENT: string = "    ";
+
 
 
 

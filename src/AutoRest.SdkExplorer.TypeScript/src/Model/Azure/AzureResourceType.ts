@@ -3,8 +3,8 @@ export class AzureResourceType implements AutoRest.SdkExplorer.Interface.AzureRe
     type: string;
 
     constructor(data: AutoRest.SdkExplorer.Interface.AzureResourceType) {
-        this.namespace = data.namespace;
-        this.type = data.type;
+        this.namespace = data.namespace ?? "UnknownNamespace";
+        this.type = data.type ?? "UnknownType";
     }
 
     public toString(toLower: boolean = false): string {

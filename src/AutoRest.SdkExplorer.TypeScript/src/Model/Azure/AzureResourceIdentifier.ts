@@ -8,7 +8,7 @@ export class AzureResourceIdentifier implements AutoRest.SdkExplorer.Interface.A
     /**
      * only for readability and troubleshooting purpose, may be empty. Use getId() to get the real id
      */
-    public rawId: string;
+    public rawId?: string;
     public resourceSegments: AzureResourceIdentifierSegment[] = [];
     public action: string = "";
 
@@ -59,9 +59,9 @@ export class AzureResourceIdentifier implements AutoRest.SdkExplorer.Interface.A
     }
 
     constructor(data: AutoRest.SdkExplorer.Interface.AzureResourceIdentifier) {
-        this.action = data.action;
+        this.action = data.action ?? "";
         this.rawId = data.rawId;
-        this.resourceSegments = data.resourceSegments.map(s => new AzureResourceIdentifierSegment(s));
+        this.resourceSegments = data.resourceSegments?.map(s => new AzureResourceIdentifierSegment(s)) ?? [];
     }
 
     private GetResourceTypeValue(resourceTypeName: string): string | undefined {
