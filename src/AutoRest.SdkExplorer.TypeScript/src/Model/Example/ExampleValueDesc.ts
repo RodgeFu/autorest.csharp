@@ -1,4 +1,4 @@
-import { convertStringIndexdArray, convertStringIndexdArrayToMap } from "../../Utils/utils";
+import { convertStringIndexArrayFromMap, convertStringIndexdArray, convertStringIndexdArrayToMap, getStringIndexArrayFromMap } from "../../Utils/utils";
 import { ExampleDesc } from "./ExampleDesc";
 
 export class ExampleValueDesc implements AutoRest.SdkExplorer.Interface.ExampleValueDesc {
@@ -6,11 +6,16 @@ export class ExampleValueDesc implements AutoRest.SdkExplorer.Interface.ExampleV
     modelName: string;
     schemaType: string;
     cSharpName: string;
+    description?: string;
     rawValue?: string;
-    propertyValues?: { [index: string]: ExampleValueDesc };
+    //propertyValues?: { [index: string]: ExampleValueDesc };
     arrayValues?: ExampleValueDesc[];
 
-    propertyValuesMap: Map<string, ExampleValueDesc>;
+    get propertyValues(): { [index: string]: ExampleValueDesc } | undefined {
+        return getStringIndexArrayFromMap(this.propertyValuesMap);
+    }
+
+    propertyValuesMap?: Map<string, ExampleValueDesc>;
 
     /**
      * 
@@ -24,9 +29,31 @@ export class ExampleValueDesc implements AutoRest.SdkExplorer.Interface.ExampleV
         this.schemaType = data.schemaType!;
         this.cSharpName = data.cSharpName!;
         this.rawValue = data.rawValue;
-        this.propertyValues = convertStringIndexdArray(data.propertyValues, (d, k) => new ExampleValueDesc(d, ownerExample, fieldName));
+        this.description = data.description;
+        //this.propertyValues = convertStringIndexdArray(data.propertyValues, (d, k) => new ExampleValueDesc(d, ownerExample, fieldName));
         this.arrayValues = data.arrayValues ? data.arrayValues.map(d => new ExampleValueDesc(d, ownerExample, fieldName)) : undefined;
 
         this.propertyValuesMap = convertStringIndexdArrayToMap(data.propertyValues, d => new ExampleValueDesc(d, ownerExample, fieldName));
+    }
+
+    public setPropertyValues(values: Map<string, ExampleValueDesc>) {
+        this.propertyValuesMap = new Map<string, ExampleValueDesc>();
+        values.forEach((v, k) => {
+            this.propertyValuesMap!.set(k, v);
+        })
+    }
+
+    public toPayload(): AutoRest.SdkExplorer.Interface.ExampleValueDesc {
+        const r: AutoRest.SdkExplorer.Interface.ExampleValueDesc = {
+            serializerName: this.serializerName,
+            modelName: this.modelName,
+            schemaType: this.schemaType,
+            cSharpName: this.cSharpName,
+            rawValue: this.rawValue,
+            description: this.description,
+            arrayValues: this.arrayValues?.map(v => v.toPayload()),
+            propertyValues: this.propertyValuesMap === undefined ? undefined : convertStringIndexArrayFromMap(this.propertyValuesMap, (v, k) => v.toPayload())
+        };
+        return r;
     }
 }

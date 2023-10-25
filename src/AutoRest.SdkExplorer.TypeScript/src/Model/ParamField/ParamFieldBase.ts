@@ -2,10 +2,15 @@ import { EventSlim } from "../../Utils/EventSlim";
 import { logError } from "../../Utils/logger";
 import { MessageItem } from "../../Utils/messageItem";
 import { isStringEqualCaseInsensitive, isStringNullOrEmpty } from "../../Utils/utils";
+import { AiDefaultParamDesc } from "../Ai/FunctionParameter/AiDefaultParamDesc";
+import { AiEnumParamDesc } from "../Ai/FunctionParameter/AiEnumParamDesc";
+import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
+import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
 import { ParameterDesc } from "../Code/ParameterDesc";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { NamespaceManager } from "../CodeGen/NamespaceManager";
+import { ExampleDesc } from "../Example/ExampleDesc";
 import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { ParamFieldType } from "./ParamFieldFactory";
 
@@ -95,6 +100,102 @@ export abstract class ParamFieldBase {
         return this.valueInternal;
     }
 
+    protected setValueInGenerateExampleValue(exampleDesc: ExampleDesc, exampleValue: ExampleValueDesc): void {
+        exampleValue.rawValue = this.valueAsString;
+    }
+
+    public generateExampleValue(exampleDesc: ExampleDesc): ExampleValueDesc | undefined {
+        if (this.isIgnore)
+            return undefined;
+        const r = new ExampleValueDesc({
+            arrayValues: undefined,
+            rawValue: undefined,
+            propertyValues: undefined,
+            serializerName: this.serializerPath,
+            cSharpName: this.fieldName,
+            modelName: this.fieldName,
+            schemaType: this.type.schemaType,
+            description: this.description
+        }, exampleDesc, this.fieldName);
+        this.setValueInGenerateExampleValue(exampleDesc, r);
+        return r;
+    }
+
+    public generateAiPayload(): any {
+        if (this.type.schemaType === "OBJECT_SCHEMA") {
+            if (this.type.schemaObject!.isEnum === false) {
+                const dict: { [index: string]: any } = {};
+                this.getChildren().filter(c => !c.isIgnore).forEach(c => {
+                    dict[c.fieldName] = c.generateAiPayload();
+                });
+                return dict;
+            }
+            else {
+                return this.valueAsString;
+            }
+        }
+        else if (this.type.schemaType === "ENUM_SCHEMA") {
+            return this.valueAsString;
+        }
+        else if (this.type.schemaType === "NONE_SCHEMA") {
+            return this.valueAsString;
+        }
+        else {
+            logError("unknown SchemaType when generating ai param desc: " + this.type.fullNameWithNamespace);
+            return this.valueAsString;
+        }
+    }
+
+    public generateAiParamDesc(): AiParamDesc {
+        if (this.type.schemaType === "OBJECT_SCHEMA") {
+
+            if (this.type.schemaObject!.isEnum === false) {
+                const dict: { [index: string]: AiParamDesc } = {};
+                const required: string[] = [];
+                this.getChildren().filter(c => !c.isIgnore).forEach(c => {
+                    dict[c.fieldName] = c.generateAiParamDesc();
+                    if (c.isRequired)
+                        required.push(c.fieldName);
+                });
+                return new AiObjectParamDesc(
+                    this.description,
+                    dict,
+                    required);
+            }
+            else {
+                return new AiEnumParamDesc(
+                    this.description,
+                    this.type.schemaObject?.enumValues.map(v => v.value) ?? []);
+            }
+        }
+        else if (this.type.schemaType === "ENUM_SCHEMA") {
+            return new AiEnumParamDesc(
+                this.description,
+                this.type.schemaEnum?.values.map(v => v.value) ?? []);
+        }
+        else if (this.type.schemaType === "NONE_SCHEMA") {
+            return this.generateKnownAiParamDesc() ?? new AiParamDesc(
+                this.type.schemaKey,
+                this.description);
+        }
+        else {
+            logError("unknown SchemaType when generating ai param desc: " + this.type.fullNameWithNamespace);
+            return new AiParamDesc(
+                this.type.schemaKey,
+                this.description);
+        }
+    }
+
+    public generateKnownAiParamDesc(): AiParamDesc | undefined {
+        switch (this.type.schemaKey) {
+            case "Azure.WaitUntil":
+                return new AiDefaultParamDesc(this.description, "default");
+            case "System.Threading.CancellationToken":
+                return new AiDefaultParamDesc(this.description, "default");
+            default:
+                return undefined;
+        }
+    }
 
     public setExampleValue(value: ExampleValueDesc): void {
         this.valueAsString = value.rawValue;
@@ -110,6 +211,10 @@ export abstract class ParamFieldBase {
     }
 
     public resetToNotNullDefault(): void {
+        this.value = this.getDefaultValueWhenNotNull();
+    }
+
+    public resetToSampleDefault(): void {
         this.value = this.getDefaultValueWhenNotNull();
     }
 

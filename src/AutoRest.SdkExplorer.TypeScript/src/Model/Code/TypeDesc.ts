@@ -1,5 +1,4 @@
 import { logError } from "../../Utils/logger";
-import { SchemaBase } from "../Schema/SchemaBase";
 import { SchemaEnum } from "../Schema/SchemaEnum";
 import { SchemaNone } from "../Schema/SchemaNone";
 import { SchemaObject } from "../Schema/SchemaObject";

@@ -10,7 +10,7 @@ export class ParamFieldObjectOneProperty extends ParamFieldObject {
 
         // some one property object will be given example value directly, like ResourceIdentifier
         // TODO: double check whether generate code is opitimized too
-        if ((value.propertyValues === undefined || value.propertyValuesMap.size === 0) && value.rawValue !== undefined) {
+        if ((value.propertyValues === undefined || value.propertyValuesMap === undefined || value.propertyValuesMap.size === 0) && value.rawValue !== undefined) {
             let list = this.getDefaultValueWhenNotNull() as ParamFieldBase[];
             list[0].setExampleValue(value);
             this.valueAsProperties = list;
@@ -27,7 +27,7 @@ export class ParamFieldObjectOneProperty extends ParamFieldObject {
         if (this.oneProperty) {
             let arr: ExampleValueDesc[] = [];
             examples.forEach(ex => {
-                if ((ex.propertyValues === undefined || ex.propertyValuesMap.size === 0) && ex.rawValue !== undefined) {
+                if ((ex.propertyValues === undefined || ex.propertyValuesMap === undefined || ex.propertyValuesMap.size === 0) && ex.rawValue !== undefined) {
                     arr.push(ex);
                 }
             });

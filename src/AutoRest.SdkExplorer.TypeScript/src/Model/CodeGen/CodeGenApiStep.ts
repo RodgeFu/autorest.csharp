@@ -1,19 +1,20 @@
-import { values } from "underscore";
 import { logError } from "../../Utils/logger";
 import { isStringNullOrEmpty } from "../../Utils/utils";
+import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
+import { AiFunctionDesc } from "../Ai/FunctionParameter/AiFunctionDesc";
 import { ApiDesc } from "../Code/ApiDesc";
 import { VariableDesc } from "../Code/VariableDesc";
 import { ExampleDesc } from "../Example/ExampleDesc";
 import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { ParamFieldBase } from "../ParamField/ParamFieldBase";
+import { CodeFormatter } from "./CodeFormatter";
 import { CodeGenScope } from "./CodeGenScope";
 import { NamespaceManager } from "./NamespaceManager";
-import { CodeFormatter } from "./CodeFormatter";
-import { format } from "node:path/win32";
+import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
 
 export class CodeGenApiStep {
 
-    constructor(public stepName: string, public apiDesc: ApiDesc, public comment: string = "", masterStep?: CodeGenApiStep, defaultFunctionReturnVarName? : string) {
+    constructor(public stepName: string, public apiDesc: ApiDesc, public comment: string = "", masterStep?: CodeGenApiStep, defaultFunctionReturnVarName?: string) {
         this._masterStep = masterStep;
         this.resetFields();
         this.addRelatedExamples();
@@ -96,6 +97,28 @@ export class CodeGenApiStep {
         this.resourceGroupName = this.masterStep?.resourceGroupName;
     }
 
+    public resetFieldsToSampleDefault() {
+        this.resetFields();
+        this.paramFields.forEach(p => p.resetToSampleDefault());
+    }
+
+    public resetFieldsToNotNullDefault() {
+        this.resetFields();
+        let hasFieldSet: boolean = true;
+        while (hasFieldSet) {
+            hasFieldSet = false;
+            this.forEachParamField(field => {
+                // add 10 as depth limitation to avoid stack stack overflow when there are circle reference
+                // add more check if simple depth limitation doesnt work
+                if (field.value === undefined && field.distanceToRoot < 10) {
+                    field.resetToNotNullDefault();
+                    hasFieldSet = true;
+                }
+                return true;
+            })
+        }
+    }
+
     /**
      * Refresh related examples from this.apiDesc.examples if no specific examples given through parameter
      */
@@ -105,7 +128,7 @@ export class CodeGenApiStep {
             if (exampleDescs && exampleDescs.length > 0) {
                 let arr: ExampleValueDesc[] = [];
                 exampleDescs.forEach((exd) => {
-                    exd.exampleValuesMap.forEach((v, k) => {
+                    exd.exampleValuesMap?.forEach((v, k) => {
                         let found = p.findMatchExample(v);
                         if (found)
                             arr.push(found);
@@ -119,7 +142,7 @@ export class CodeGenApiStep {
 
     public applyExample(example: ExampleDesc) {
         let s: Set<string> = new Set<string>();
-        example.exampleValuesMap.forEach((value, key) => {
+        example.exampleValuesMap?.forEach((value, key) => {
             let foundExampleValue: ExampleValueDesc | undefined = undefined;
             let p = this.paramFields.find(pp => {
                 foundExampleValue = pp.findMatchExample(value);
@@ -144,6 +167,67 @@ export class CodeGenApiStep {
                 (!s.has(v.fieldName!)))
                 v.resetToIgnoreOrDefault();
         })
+    }
+
+    public generateAiPayload(): { [index: string]: any } {
+        const dict: { [index: string]: any } = {};
+        this.paramFields.forEach(p => dict[p.fieldName] = p.generateAiPayload());
+        return dict;
+    }
+
+    public generateAiFunctionDesc(): AiFunctionDesc {
+        const dict: { [index: string]: AiParamDesc } = {};
+        const required: string[] = [];
+        this.paramFields.forEach(p => {
+            dict[p.fieldName] = p.generateAiParamDesc();
+            required.push(p.fieldName);
+        });
+        return new AiFunctionDesc(
+            this.stepName,
+            `definition to trigger Azure SDK function ${this.apiDesc.swaggerOperationId}`,
+            new AiObjectParamDesc("", dict, required)
+        );
+    }
+
+    public toAiPayloadAsJson(minify: boolean = false): string {
+        return JSON.stringify(this.generateAiPayload(), undefined, minify ? undefined : "  ");
+    }
+
+    public toAiFunctionDescAsJson(minify: boolean = false): string {
+        return this.generateAiFunctionDesc().toJson(minify);
+    }
+
+    public generateExampleDesc(): ExampleDesc {
+
+        let r: ExampleDesc = new ExampleDesc({
+            exampleName: "LiveExampleDesc",
+            embeddingText: undefined,
+            embeddingVector: undefined,
+            explorerCodeGenVersion: this.masterStep.apiDesc.explorerCodeGenVersion,
+            generatedTimestamp: undefined,
+            language: this.masterStep.apiDesc.language,
+            operationName: this.masterStep.apiDesc.operationName,
+            originalFilePath: "",
+            originalFileNameWithoutExtension: "",
+            resourceName: this.masterStep.apiDesc.resourceName,
+            serviceName: this.masterStep.apiDesc.serviceName,
+            sdkOperationId: this.masterStep.apiDesc.sdkOperationId,
+            sdkPackageName: this.masterStep.apiDesc.sdkPackageName,
+            sdkPackageVersion: this.masterStep.apiDesc.sdkPackageVersion,
+            swaggerOperationId: this.masterStep.apiDesc.swaggerOperationId,
+            exampleValues: undefined
+        });
+        r.exampleValuesMap = new Map<string, ExampleValueDesc>();
+        this.paramFields.forEach(paramField => {
+            const ev = paramField.generateExampleValue(r);
+            if(ev)
+                r.exampleValuesMap?.set(paramField.fieldName, ev);
+        });
+        return r;
+    }
+
+    public toExamplePayloadAsJson(): string {
+        return this.generateExampleDesc().toJson();
     }
 
     public applyExampleByName(exampleName: string) {

@@ -1,6 +1,7 @@
 import { ONE_INDENT, strcmp } from "../../Utils/utils";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
+import { ExampleDesc } from "../Example/ExampleDesc";
 import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
 import { ParamFieldFactory, ParamFieldType } from "./ParamFieldFactory";
@@ -12,7 +13,7 @@ export class ParamFieldObject extends ParamFieldBase {
     public override setExampleValue(value: ExampleValueDesc): void {
         if (value.propertyValues === undefined)
             this.valueAsProperties = undefined;
-        else if (value.propertyValuesMap.size === 0)
+        else if (value.propertyValuesMap === undefined || value.propertyValuesMap.size === 0)
             this.valueAsProperties = this.getDefaultValueWhenNotNull();
         else {
             let list = this.getDefaultValueWhenNotNull() as ParamFieldBase[];
@@ -31,6 +32,20 @@ export class ParamFieldObject extends ParamFieldBase {
                     found.setExampleValue(foundExampleValue);
             })
             this.valueAsProperties = list;
+        }
+    }
+
+    public override setValueInGenerateExampleValue(exampleDesc: ExampleDesc, exampleValue: ExampleValueDesc): void {
+        if (this.valueAsProperties) {
+            exampleValue.propertyValuesMap = new Map<string, ExampleValueDesc>();
+            this.valueAsProperties?.forEach(item => {
+                const ev = item.generateExampleValue(exampleDesc);
+                if (ev)
+                    exampleValue.propertyValuesMap?.set(item.fieldName, ev);
+            });
+        }
+        else {
+            exampleValue.propertyValuesMap = undefined;
         }
     }
 
@@ -151,6 +166,19 @@ export class ParamFieldObject extends ParamFieldBase {
     public override getDefaultValueWhenNotNull(): any {
         let list = this.generatePropertyParamFieldList(this.implType);
         return list;
+    }
+
+    public override resetToSampleDefault() {
+        let parent = this.parent;
+        while (parent !== undefined) {
+            if (parent.type.schemaKey === this.type.schemaKey) {
+                this.value = this.defaultValue;
+                return;
+            }
+            parent = parent.parent;
+        }
+        this.value = this.getDefaultValueWhenNotNull();
+        this.valueAsProperties?.forEach(p => p.resetToSampleDefault());
     }
 
     protected generatePropertyParamFieldList(tdw: TypeDesc) {

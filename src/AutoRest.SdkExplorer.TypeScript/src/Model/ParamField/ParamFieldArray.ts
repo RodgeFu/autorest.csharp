@@ -6,6 +6,9 @@ import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
 import { ParamFieldFactory, ParamFieldType } from "./ParamFieldFactory";
+import { ExampleDesc } from "../Example/ExampleDesc";
+import { AiArrayParamDesc } from "../Ai/FunctionParameter/AiArrayParamDesc";
+import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
 
 export class ParamFieldArray extends ParamFieldBase {
 
@@ -24,6 +27,24 @@ export class ParamFieldArray extends ParamFieldBase {
             })
             this.valueAsArray = arr;
             //this.refreshRelatedExamples();
+        }
+    }
+
+    public override resetToSampleDefault() {
+        this.resetToNotNullDefault();
+        const item = this.appendItem();
+        item.resetToSampleDefault();
+    }
+
+    protected override setValueInGenerateExampleValue(exampleDesc: ExampleDesc, exampleValue: ExampleValueDesc): void {
+        if (this.valueAsArray !== undefined) {
+            const arr : ExampleValueDesc[] = [];
+            this.valueAsArray.forEach(v => {
+                const ev = v.generateExampleValue(exampleDesc);
+                if(ev)
+                    arr.push(ev);
+            })
+            exampleValue.arrayValues = arr;
         }
     }
 
@@ -126,6 +147,26 @@ export class ParamFieldArray extends ParamFieldBase {
 
     private generateItemName(index: number) {
         return `Array${index}`;
+    }
+
+    public override generateAiPayload(): any {
+        if (this.valueAsArray && this.valueAsArray.length > 0)
+            return this.valueAsArray.map(v => v.generateAiPayload());
+        else
+            return [];
+    }
+
+    public override generateAiParamDesc() {
+        if (this.valueAsArray && this.valueAsArray.length > 0)
+            return new AiArrayParamDesc(
+                this.description,
+                this.valueAsArray[0].generateAiParamDesc());
+        else
+            return new AiArrayParamDesc(
+                this.description,
+                new AiParamDesc(
+                    "object",
+                    "Add/Load ParamField to get more detail about this array element"));
     }
 
     constructor(fieldName: string, fieldType: ParamFieldType, type: TypeDesc, parent: ParamFieldBase | undefined, params: ParamFieldExtraConstructorParameters) {

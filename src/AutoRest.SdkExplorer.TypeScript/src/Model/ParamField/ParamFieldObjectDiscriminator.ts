@@ -12,7 +12,7 @@ export class ParamFieldObjectDiscriminator extends ParamFieldObject {
     public override setExampleValue(value: ExampleValueDesc): void {
         if (value.propertyValues === undefined)
             this.valueAsProperties = undefined;
-        else if (value.propertyValuesMap.size === 0)
+        else if (value.propertyValuesMap === undefined || value.propertyValuesMap.size === 0)
             this.valueAsProperties = this.getDefaultValueWhenNotNull();
         else {
             let keyExampleValue = this.findDiscriminatorKeyExampleValue(value);

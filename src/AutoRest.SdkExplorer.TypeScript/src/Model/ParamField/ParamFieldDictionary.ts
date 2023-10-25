@@ -1,6 +1,10 @@
 import { ONE_INDENT } from "../../Utils/utils";
+import { AiDictParamDesc } from "../Ai/FunctionParameter/AiDictParamDesc";
+import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
+import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
+import { ExampleDesc } from "../Example/ExampleDesc";
 import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
 import { ParamFieldDictionaryItem } from "./ParamFieldDictionaryItem";
@@ -14,7 +18,7 @@ export class ParamFieldDictionary extends ParamFieldBase {
     public override setExampleValue(value: ExampleValueDesc): void {
         if (value.propertyValues === undefined)
             this.valueAsDictionaryItemArray = undefined;
-        else if (value.propertyValuesMap.size === 0)
+        else if (value.propertyValuesMap === undefined || value.propertyValuesMap.size === 0)
             this.valueAsDictionaryItemArray = [];
         else {
             let arr: ParamFieldDictionaryItem[] = [];
@@ -29,6 +33,28 @@ export class ParamFieldDictionary extends ParamFieldBase {
             });
             this.valueAsDictionaryItemArray = arr;
             //this.refreshRelatedExamples();
+        }
+    }
+
+    public override resetToSampleDefault() {
+        this.resetToNotNullDefault();
+        const item = this.appendItem();
+        item.resetToSampleDefault();
+    }
+
+    protected override setValueInGenerateExampleValue(exampleDesc: ExampleDesc, exampleValue: ExampleValueDesc): void {
+        if (this.valueAsDictionaryItemArray !== undefined) {
+            exampleValue.propertyValuesMap = new Map<string, ExampleValueDesc>();
+            this.valueAsDictionaryItemArray?.forEach(item => {
+                const ev = item.valueAsDictionaryItem.value.generateExampleValue(exampleDesc);
+                if (ev) {
+                    exampleValue.propertyValuesMap?.set(
+                        item.valueAsDictionaryItem.key.valueAsString ?? "", ev);
+                }
+            });
+        }
+        else {
+            exampleValue.propertyValuesMap = undefined;
         }
     }
 
@@ -115,6 +141,27 @@ export class ParamFieldDictionary extends ParamFieldBase {
             }
         })
         this.valueAsDictionaryItemArray = newArray;
+    }
+
+    public override generateAiPayload(): any {
+        const dict: { [index: string]: any } = {};
+        this.valueAsDictionaryItemArray?.forEach(kv => {
+            dict[kv.valueAsDictionaryItem.key.fieldName] = kv.valueAsDictionaryItem.value.generateAiPayload();
+        })
+        return dict;
+    }
+
+    public override generateAiParamDesc(): AiParamDesc {
+        if (this.valueAsDictionaryItemArray && this.valueAsDictionaryItemArray.length > 0)
+            return new AiDictParamDesc(
+                this.description,
+                this.valueAsDictionaryItemArray[0].valueAsDictionaryItem.key.generateAiParamDesc(),
+                this.valueAsDictionaryItemArray[0].valueAsDictionaryItem.value.generateAiParamDesc()
+            );
+        else
+            return new AiObjectParamDesc(
+                "A Dictionary, add/load an item to get more detail about this dictionary key/value",
+                {});
     }
 
     private generateItemName(index: number) {

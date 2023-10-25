@@ -17,6 +17,7 @@ namespace AutoRest.SdkExplorer.Model.Example
         /// </summary>
         public string? SchemaType { get; set; }
         public string? CSharpName { get; set; }
+        public string? Description { get; set; }
         public string? RawValue { get; set; }
         public Dictionary<string, ExampleValueDesc>? PropertyValues { get; set; }
         public List<ExampleValueDesc>? ArrayValues { get; set; }

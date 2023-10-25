@@ -4,6 +4,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\Model\Example\" />
+    <Folder Include="src\sdk-testgen-wrapper\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptConfiguration Remove="src\Generated\**" />

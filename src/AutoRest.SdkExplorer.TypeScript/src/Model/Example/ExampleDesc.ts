@@ -1,4 +1,4 @@
-import { convertStringIndexdArray, convertStringIndexdArrayToMap } from "../../Utils/utils";
+import { convertStringIndexArrayFromMap, convertStringIndexdArray, convertStringIndexdArrayToMap, getStringIndexArrayFromMap } from "../../Utils/utils";
 import { ExampleValueDesc } from "./ExampleValueDesc";
 
 export class ExampleDesc implements AutoRest.SdkExplorer.Interface.ExampleDesc {
@@ -17,9 +17,12 @@ export class ExampleDesc implements AutoRest.SdkExplorer.Interface.ExampleDesc {
     originalFileNameWithoutExtension: string;
     embeddingText: string;
     embeddingVector: string;
-    exampleValues?: { [index: string]: ExampleValueDesc }
 
-    exampleValuesMap: Map<string, ExampleValueDesc>;
+    get exampleValues(): { [index: string]: ExampleValueDesc } | undefined {
+        return getStringIndexArrayFromMap(this.exampleValuesMap);
+    }
+
+    exampleValuesMap?: Map<string, ExampleValueDesc>;
 
     constructor(data: AutoRest.SdkExplorer.Interface.ExampleDesc) {
         this.language = data.language!;
@@ -37,8 +40,48 @@ export class ExampleDesc implements AutoRest.SdkExplorer.Interface.ExampleDesc {
         this.originalFileNameWithoutExtension = data.originalFileNameWithoutExtension!;
         this.embeddingText = data.embeddingText!;
         this.embeddingVector = data.embeddingVector!;
-        this.exampleValues = convertStringIndexdArray(data.exampleValues, (d, k) => new ExampleValueDesc(d, this, k));
 
         this.exampleValuesMap = convertStringIndexdArrayToMap(data.exampleValues, (d, k) => new ExampleValueDesc(d, this, k));
+    }
+
+    public setExampleValues(values: Map<string, ExampleValueDesc>) {
+        this.exampleValuesMap = new Map<string, ExampleValueDesc>();
+        values.forEach((v, k) => {
+            this.exampleValuesMap!.set(k, v);
+        })
+    }
+
+    public toPayload(): AutoRest.SdkExplorer.Interface.ExampleDesc {
+        const r: AutoRest.SdkExplorer.Interface.ExampleDesc = {
+            language: this.language,
+            sdkPackageName: this.sdkPackageName,
+            sdkPackageVersion: this.sdkPackageVersion,
+            explorerCodeGenVersion: this.explorerCodeGenVersion,
+            generatedTimestamp: this.generatedTimestamp,
+            serviceName: this.serviceName,
+            resourceName: this.resourceName,
+            operationName: this.operationName,
+            swaggerOperationId: this.swaggerOperationId,
+            sdkOperationId: this.sdkOperationId,
+            exampleName: this.exampleName,
+            originalFilePath: this.originalFilePath,
+            originalFileNameWithoutExtension: this.originalFileNameWithoutExtension,
+            embeddingText: this.embeddingText,
+            embeddingVector: this.embeddingVector,
+            exampleValues: this.exampleValuesMap === undefined ? undefined : convertStringIndexArrayFromMap(this.exampleValuesMap, (v, k) => v.toPayload())
+        };
+        return r;
+    }
+
+    public toJson(): string {
+        return JSON.stringify(this.toPayload(), (key: string, value: any) => {
+            const toIgnore = [
+                "serializerName",
+                "modelName",
+            ];
+            if (toIgnore.includes(key))
+                return undefined;
+            return value;
+        }, "  ");
     }
 }

@@ -44,19 +44,39 @@ export function copyMap<T, P>(src: Map<T, P>): Map<T, P> {
     return r;
 }
 
-export function convertStringIndexdArray<P, T>(src: { [index: string]: P } | undefined, convert: (v: P, k: string) => T): { [index: string]: T } {
+export function convertStringIndexdArray<P, T>(src: { [index: string]: P } | undefined, convert: (v: P, k: string) => T): { [index: string]: T } | undefined {
     const r: { [index: string]: T } = {};
     if (!src)
-        return r;
+        return undefined;
     Object.keys(src).forEach(key => r[key] = convert(src[key], key));
     return r;
 }
 
-export function convertStringIndexdArrayToMap<P, T>(src: { [index: string]: P } | undefined, convert: (v: P, k: string) => T): Map<string, T> {
+export function convertStringIndexdArrayToMap<P, T>(src: { [index: string]: P } | undefined, convert: (v: P, k: string) => T): Map<string, T> | undefined{
     if (!src)
-        return new Map<string, T>();
+        return undefined;
     const r = new Map<string, T>();
     Object.keys(src).forEach(key => r.set(key, convert(src[key], key)));
+    return r;
+}
+
+export function convertStringIndexArrayFromMap<P, T>(src: Map<string, P> | undefined, convert: (v: P, k: string) => T): { [index: string]: T } | undefined {
+    if (src === undefined)
+        return undefined;
+    const r: { [index: string]: T } = {};
+    src.forEach((v, k) => {
+        r[k] = convert(v, k);
+    })
+    return r;
+}
+
+export function getStringIndexArrayFromMap<T>(src: Map<string, T> | undefined) {
+    if (src === undefined)
+        return undefined;
+    const r: { [index: string]: T } = {};
+    src.forEach((v, k) => {
+        r[k] = v;
+    })
     return r;
 }
 
@@ -68,6 +88,7 @@ export function htmlDecode(input: string): string {
 export function toReadableTime(date: Date): string {
     return moment.utc(date).fromNow();
 }
+
 export const DATE_FORMAT: string = "YYYY-MM-DDTHH:mm:ss.SSS";
 export const TIME_FORMAT: string = "HH:mm:ss.SSS";
 export const ONE_INDENT: string = "    ";

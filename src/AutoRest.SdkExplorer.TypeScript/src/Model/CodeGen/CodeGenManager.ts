@@ -126,4 +126,16 @@ export class CodeGenManager {
 
         return armClientPart + '\n' + invokePart + '\n' + functionPart;
     }
+
+    public toAiPayloadAsJson(): string {
+        return this.steps.map(s => s.toAiPayloadAsJson()).join("\n\n");
+    }
+
+    public toAiFunctionDescAsJson(): string{
+        return this.steps.map(s => s.toAiFunctionDescAsJson()).join("\n\n");
+    }
+
+    public toExamplePayloadAsJson(): string {
+        return this.steps.map(s => s.toExamplePayloadAsJson()).join("\n\n");
+    }
 }
