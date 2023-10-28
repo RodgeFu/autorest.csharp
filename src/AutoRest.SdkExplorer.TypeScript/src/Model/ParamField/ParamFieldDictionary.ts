@@ -1,4 +1,4 @@
-import { ONE_INDENT } from "../../Utils/utils";
+import { ONE_INDENT, isStringNullOrEmpty } from "../../Utils/utils";
 import { AiDictParamDesc } from "../Ai/FunctionParameter/AiDictParamDesc";
 import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
 import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
@@ -143,10 +143,27 @@ export class ParamFieldDictionary extends ParamFieldBase {
         this.valueAsDictionaryItemArray = newArray;
     }
 
-    public override generateAiPayload(): any {
+    protected override applyAiPayloadInternal(payload: any) {
+        let arr: ParamFieldDictionaryItem[] = [];
+        let index: number = 0;
+        Object.keys(payload).forEach((key) => {
+            const value = payload[key];
+            let itemName = this.generateItemName(index++);
+            let r: ParamFieldBase = ParamFieldFactory.createParamField(itemName, TypeDesc.getDictionaryItemType(this.type), this,
+                { isReadonly: false, isRequired: false, serializerPath: itemName, parameterOwner: this.parameterOwner, idPrefix: this.idPrefix });
+            r.applyAiPayload(value);
+            arr.push(r as ParamFieldDictionaryItem);
+        });
+        this.valueAsDictionaryItemArray = arr;
+    }
+
+    public override generateAiPayloadInternal(): any {
         const dict: { [index: string]: any } = {};
         this.valueAsDictionaryItemArray?.forEach(kv => {
-            dict[kv.valueAsDictionaryItem.key.fieldName] = kv.valueAsDictionaryItem.value.generateAiPayload();
+            const key = kv.valueAsDictionaryItem.key.valueAsString;
+            const value = kv.valueAsDictionaryItem.value.generateAiPayload();
+            if (!isStringNullOrEmpty(key))
+                dict[key!] = value;
         })
         return dict;
     }

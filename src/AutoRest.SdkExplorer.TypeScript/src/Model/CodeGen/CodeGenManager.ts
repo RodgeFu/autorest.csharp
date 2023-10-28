@@ -131,8 +131,8 @@ export class CodeGenManager {
         return this.steps.map(s => s.toAiPayloadAsJson()).join("\n\n");
     }
 
-    public toAiFunctionDescAsJson(): string{
-        return this.steps.map(s => s.toAiFunctionDescAsJson()).join("\n\n");
+    public toAiFunctionDefinitionAsJson(minify: boolean = false): string{
+        return this.steps.map(s => s.toAiFunctionDefinitionAsJson(minify)).join("\n\n");
     }
 
     public toExamplePayloadAsJson(): string {

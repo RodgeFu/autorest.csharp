@@ -18,6 +18,13 @@ export class ParamFieldBool extends ParamFieldBase {
             return this.value === true ? "true" : "false";
     }
 
+    protected override applyAiPayloadInternal(payload: any) {
+        if (payload === true || payload === false)
+            this.value = payload;
+        else
+            super.applyAiPayloadInternal(payload);
+    }
+
     protected getValueForCodeInternal(indent: string, formatter: CodeFormatter): string {
         return this.value === true ? "true" : "false";
     }

@@ -11,8 +11,8 @@ export class ParamFieldEnum extends ParamFieldBase {
 
     public set valueAsString(value: string | undefined) {
         // some example has space in region like West US;
-        let v = value?.replaceAll(" ", "");
-        let found = this.enumValues.find(ev => ev.value?.toLowerCase() === v?.toLowerCase() || ev.internalValue?.toLowerCase() === v?.toLowerCase());
+        let v = this.normalizeEnumValue(value);
+        let found = this.enumValues.find(ev => this.normalizeEnumValue(ev.value) == v || this.normalizeEnumValue(ev.internalValue) == v);       
         if (found === undefined) {
             this.lastMessage = new MessageItem(`Ignore invalid enum value '${v}' for enum type: ${this.type.fullNameWithNamespace}.`, "error");
         }
@@ -33,6 +33,12 @@ export class ParamFieldEnum extends ParamFieldBase {
 
     public get enumValues(): SchemaEnumValue[] {
         return this.type.schemaEnum?.values ?? [];
+    }
+
+    private normalizeEnumValue(v: string | undefined): string | undefined {
+        if (!v)
+            return undefined;
+        return v.replaceAll(/[ _-]/g, "").toLowerCase();
     }
 
     protected getValueForCodeInternal(indent: string, formatter: CodeFormatter): string {

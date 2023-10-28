@@ -87,6 +87,22 @@
       <Generator>DtsGenerator</Generator>
       <LastGenOutput>FieldHint.cs.d.ts</LastGenOutput>
     </Compile>
+    <Compile Update="Model\OpenAi\AiChatMessage.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AiChatMessage.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\OpenAi\AiChatSession.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AiChatSession.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\OpenAi\AiFunctionDefinition.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AiFunctionDefinition.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\OpenAi\AiFunctionCall.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AiFunctionCall.cs.d.ts</LastGenOutput>
+    </Compile>
     <Compile Update="Model\Schema\SchemaBase.cs">
       <Generator>DtsGenerator</Generator>
       <LastGenOutput>SchemaBase.cs.d.ts</LastGenOutput>
@@ -220,6 +236,26 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FieldHint.cs</DependentUpon>
+    </None>
+    <None Update="Model\OpenAi\AiChatMessage.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AiChatMessage.cs</DependentUpon>
+    </None>
+    <None Update="Model\OpenAi\AiChatSession.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AiChatSession.cs</DependentUpon>
+    </None>
+    <None Update="Model\OpenAi\AiFunctionDefinition.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AiFunctionDefinition.cs</DependentUpon>
+    </None>
+    <None Update="Model\OpenAi\AiFunctionCall.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AiFunctionCall.cs</DependentUpon>
     </None>
     <None Update="Model\Schema\SchemaBase.cs.d.ts">
       <DesignTime>True</DesignTime>

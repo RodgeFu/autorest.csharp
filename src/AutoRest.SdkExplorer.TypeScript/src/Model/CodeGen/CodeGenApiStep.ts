@@ -1,7 +1,6 @@
 import { logError } from "../../Utils/logger";
 import { isStringNullOrEmpty } from "../../Utils/utils";
 import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
-import { AiFunctionDesc } from "../Ai/FunctionParameter/AiFunctionDesc";
 import { ApiDesc } from "../Code/ApiDesc";
 import { VariableDesc } from "../Code/VariableDesc";
 import { ExampleDesc } from "../Example/ExampleDesc";
@@ -11,16 +10,27 @@ import { CodeFormatter } from "./CodeFormatter";
 import { CodeGenScope } from "./CodeGenScope";
 import { NamespaceManager } from "./NamespaceManager";
 import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
+import { AiChatMessage } from "../Ai/AiChatMessage";
+import { AiChatSession } from "../Ai/AiChatSession";
+import { AiFunctionCall } from "../Ai/AiFunctionCall";
+import { AiFunctionDefinition } from "../Ai/AiFunctionDefinition";
+import { AzureResourceType } from "../Azure/AzureResourceType";
 
 export class CodeGenApiStep {
 
     constructor(public stepName: string, public apiDesc: ApiDesc, public comment: string = "", masterStep?: CodeGenApiStep, defaultFunctionReturnVarName?: string) {
         this._masterStep = masterStep;
+        this._relatedAzureResourceType = this.apiDesc.operationProviderAzureResourceType ? [this.apiDesc.operationProviderAzureResourceType] : [];
         this.resetFields();
         this.addRelatedExamples();
         this.defaultFunctionReturnVarName = defaultFunctionReturnVarName ? defaultFunctionReturnVarName : `${this.stepName.charAt(0).toLowerCase()}${this.stepName.substring(1)}_Result`;
     }
 
+    public aiFullFunctionDefinition?: AiFunctionDefinition;
+    public aiTrainMessages: AiChatMessage[] = [];
+    public get aiFunctionName(): string {
+        return this.apiDesc.swaggerOperationId;
+    }
     public defaultFunctionReturnVarName: string;
 
     public get functionReturnVarName(): string {
@@ -50,6 +60,16 @@ export class CodeGenApiStep {
     private _paramFields: ParamFieldBase[] = [];
     public get paramFields(): ParamFieldBase[] {
         return this._paramFields;
+    }
+
+    private _relatedAzureResourceType: AzureResourceType[];
+    public get relatedAzureResourceType(): AzureResourceType[] {
+        return this._relatedAzureResourceType;
+    }
+    public addRelatedAzureResourceType(type: AzureResourceType) {
+        const found = this._relatedAzureResourceType.find(t => t.toString() === type.toString());
+        if (!found)
+            this._relatedAzureResourceType.push(type);
     }
 
     public get subscriptionId(): string | undefined {
@@ -91,10 +111,22 @@ export class CodeGenApiStep {
         this.paramFields.forEach(f => f.forEachInTree(func));
     }
 
+    private generateFields() {
+        return this.apiDesc.allParameters.map(p => p.createParamField(this.stepName));
+    }
+
+    public isAllFieldsDefault() {
+        for (const pf of this.paramFields)
+            if (pf.value !== pf.defaultValue && !pf.isSubscriptionIdParamField && !pf.isResourceGroupParamField)
+                return false;
+        return true;
+    }
+
     public resetFields() {
-        this._paramFields = this.apiDesc.allParameters.map(p => p.createParamField(this.stepName));
+        this._paramFields = this.generateFields();
         this.subscriptionId = this.masterStep?.subscriptionId;
         this.resourceGroupName = this.masterStep?.resourceGroupName;
+        this.aiFullFunctionDefinition = this.generateFullAiFunctionDefinition();
     }
 
     public resetFieldsToSampleDefault() {
@@ -123,8 +155,8 @@ export class CodeGenApiStep {
      * Refresh related examples from this.apiDesc.examples if no specific examples given through parameter
      */
     public addRelatedExamples(examples?: ExampleDesc[]) {
+        let exampleDescs = examples ?? this.apiDesc.examples;
         this.paramFields.forEach(p => {
-            let exampleDescs = examples ?? this.apiDesc.examples;
             if (exampleDescs && exampleDescs.length > 0) {
                 let arr: ExampleValueDesc[] = [];
                 exampleDescs.forEach((exd) => {
@@ -137,64 +169,87 @@ export class CodeGenApiStep {
                 if (arr.length > 0)
                     p.linkRelatedExamples(arr);
             }
-        })
+        });
+        exampleDescs.forEach(ex => {
+            const fields = this.generateFields();
+            ParamFieldBase.applyExample(ex, fields);
+            var payload = ParamFieldBase.generateAiPayload(fields);
+
+            this.aiTrainMessages.push(
+                new AiChatMessage({
+                    role: "user",
+                    content: `generate arguments for function '${this.aiFunctionName}' with following requirement: ${ex.exampleName ?? ex.originalFileNameWithoutExtension}`,
+                    function_call: undefined
+                }));
+            this.aiTrainMessages.push(
+                new AiChatMessage({
+                    role: "assistant",
+                    content: undefined,
+                    function_call: {
+                        name: this.aiFunctionName,
+                        // double JSON.stringify to escape the json string into a string
+                        arguments: AiFunctionCall.generateArgumentsString(payload)
+                    }
+                }));
+        });
     }
 
     public applyExample(example: ExampleDesc) {
-        let s: Set<string> = new Set<string>();
-        example.exampleValuesMap?.forEach((value, key) => {
-            let foundExampleValue: ExampleValueDesc | undefined = undefined;
-            let p = this.paramFields.find(pp => {
-                foundExampleValue = pp.findMatchExample(value);
-                return foundExampleValue !== undefined;
-            });
-            if (p !== undefined && foundExampleValue &&
-                // not load example value for subscriptionId and resourceGroup because
-                // 1. it can't be right, 2. user has to reset them again if they have been set
-                (!p.isSubscriptionIdParamField) &&
-                (!p.isResourceGroupParamField)) {
-                s.add(p.fieldName!);
-                p.setExampleValue(foundExampleValue);
-            }
-            else {
-                console.warn("can't find field for example: " + key);
-            }
-        })
+        ParamFieldBase.applyExample(example, this.paramFields);
+    }
 
-        this.paramFields.forEach(v => {
-            if ((!v.isSubscriptionIdParamField) &&
-                (!v.isResourceGroupParamField) &&
-                (!s.has(v.fieldName!)))
-                v.resetToIgnoreOrDefault();
-        })
+    public generateAiChatSession(systemMessage: string): AiChatSession | undefined {
+
+        if (!this.aiFullFunctionDefinition)
+            return undefined;
+        const messages: AiChatMessage[] = [new AiChatMessage({
+            role: "system",
+            content: systemMessage
+        })];
+        messages.push(...this.aiTrainMessages);
+
+        const session: AiChatSession = new AiChatSession({
+            sessionId: undefined,
+            chatMessages: messages,
+            functions: [this.aiFullFunctionDefinition]
+        });
+        return session;
+    }
+
+    public generateAiPayloadForExample(example: ExampleDesc): { [index: string]: any } {
+        const fields = this.generateFields();
+        ParamFieldBase.applyExample(example, fields);
+        return ParamFieldBase.generateAiPayload(fields);
+    }
+
+    public applyAiPayload(payload: any) {
+        return ParamFieldBase.applyAiPayload(this.paramFields, payload);
+    }
+
+    public generateAiFunctionCall() {
+        return AiFunctionCall.createAiFunctionCall(this.aiFunctionName, this.generateAiPayload());
     }
 
     public generateAiPayload(): { [index: string]: any } {
-        const dict: { [index: string]: any } = {};
-        this.paramFields.forEach(p => dict[p.fieldName] = p.generateAiPayload());
-        return dict;
+        return ParamFieldBase.generateAiPayload(this.paramFields);
     }
 
-    public generateAiFunctionDesc(): AiFunctionDesc {
-        const dict: { [index: string]: AiParamDesc } = {};
-        const required: string[] = [];
-        this.paramFields.forEach(p => {
-            dict[p.fieldName] = p.generateAiParamDesc();
-            required.push(p.fieldName);
-        });
-        return new AiFunctionDesc(
-            this.stepName,
-            `definition to trigger Azure SDK function ${this.apiDesc.swaggerOperationId}`,
-            new AiObjectParamDesc("", dict, required)
-        );
+    private generateFullAiFunctionDefinition(): AiFunctionDefinition {
+        const fields = this.generateFields();
+        fields.forEach(p => p.resetToSampleDefault());
+        return ParamFieldBase.generateAiFunctionDefinition(this.aiFunctionName, `definition to trigger Azure SDK function ${this.aiFunctionName}`, fields);
+    }
+
+    public generateAiFunctionDefinition(): AiFunctionDefinition {
+        return ParamFieldBase.generateAiFunctionDefinition(this.aiFunctionName, `definition to trigger Azure SDK function ${this.aiFunctionName}`, this.paramFields);
     }
 
     public toAiPayloadAsJson(minify: boolean = false): string {
         return JSON.stringify(this.generateAiPayload(), undefined, minify ? undefined : "  ");
     }
 
-    public toAiFunctionDescAsJson(minify: boolean = false): string {
-        return this.generateAiFunctionDesc().toJson(minify);
+    public toAiFunctionDefinitionAsJson(minify: boolean = false): string {
+        return this.generateAiFunctionDefinition().toJsonForOpenAi(minify);
     }
 
     public generateExampleDesc(): ExampleDesc {

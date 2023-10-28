@@ -10,6 +10,27 @@ type paramPos = { pos: "ctor" | "extraProperty", index: number };
 
 export class ParamFieldObject extends ParamFieldBase {
 
+    protected override applyAiPayloadInternal(payload: any) {
+
+        let list = this.getDefaultValueWhenNotNull() as ParamFieldBase[];
+        list.forEach(v => { if (v.isIgnorable) v.isIgnore = true; });
+        Object.keys(payload).forEach(key => {
+            let foundValue = payload[key];
+            let foundField = list.find(v => v.fieldName === key);
+            if (foundValue && foundField)
+                foundField.applyAiPayload(foundValue);
+        })
+        this.valueAsProperties = list;
+    }
+
+    public override generateAiPayloadInternal(): any {
+        const dict: { [index: string]: any } = {};
+        this.getChildren().filter(c => !c.isIgnore).forEach(c => {
+            dict[c.fieldName] = c.generateAiPayload();
+        });
+        return dict;
+    }
+
     public override setExampleValue(value: ExampleValueDesc): void {
         if (value.propertyValues === undefined)
             this.valueAsProperties = undefined;

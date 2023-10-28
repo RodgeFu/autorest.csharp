@@ -149,7 +149,28 @@ export class ParamFieldArray extends ParamFieldBase {
         return `Array${index}`;
     }
 
-    public override generateAiPayload(): any {
+    protected override applyAiPayloadInternal(payload: any) {
+        if (!Array.isArray(payload)) {
+            console.error("Unexpected payload for array, ignore it. :\n" + payload);
+            this.valueAsArray = [];
+        }
+        else {
+            if (payload.length === 0)
+                this.valueAsArray = [];
+            else {
+                let arr = payload.map((v, i) => {
+                    let itemName = this.generateItemName(i);
+                    let r = ParamFieldFactory.createParamField(itemName, this.arrayType, this,
+                        { isReadonly: false, isRequired: false, serializerPath: itemName, parameterOwner: this.parameterOwner, idPrefix: this.idPrefix });
+                    r.applyAiPayload(v);
+                    return r;
+                })
+                this.valueAsArray = arr;
+            }
+        }
+    }
+
+    public override generateAiPayloadInternal(): any {
         if (this.valueAsArray && this.valueAsArray.length > 0)
             return this.valueAsArray.map(v => v.generateAiPayload());
         else

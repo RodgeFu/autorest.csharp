@@ -21,7 +21,7 @@ export function isStringEqualCaseInsensitive(a: string | undefined, b: string | 
 }
 
 export function isStringNullOrEmpty(str: string | undefined) {
-    return str === undefined || str.length === 0;
+    return str === undefined || str === null || str.length === 0;
 }
 
 export function containsString(str: string, strToFind: string, ignoreCase: boolean = true) {

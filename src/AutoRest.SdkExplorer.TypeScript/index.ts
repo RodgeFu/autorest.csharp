@@ -23,6 +23,10 @@
 /// <reference path="../AutoRest.SdkExplorer/Model/Code/PlaceHolderDesc.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/Code/VariableDesc.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/Code/ApiDesc.cs.d.ts" />
+/// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiChatMessage.cs.d.ts" />
+/// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiFunctionDefinition.cs.d.ts" />
+/// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiFunctionCall.cs.d.ts" />
+/// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiChatSession.cs.d.ts" />
 
 export * from "./src/Model/Azure/AzureResource"
 export * from "./src/Model/Azure/AzureResourceGroup"
@@ -74,11 +78,12 @@ export * from "./src/Model/Ai/FunctionParameter/AiArrayParamDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiDefaultParamDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiDictParamDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiEnumParamDesc"
-export * from "./src/Model/Ai/FunctionParameter/AiFunctionDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiObjectParamDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiParamDesc"
-export * from "./src/Model/Ai/Interface/AiMessage"
-export * from "./src/Model/Ai/Interface/AiResponse"
+export * from "./src/Model/Ai/AiChatMessage";
+export * from "./src/Model/Ai/AiFunctionDefinition";
+export * from "./src/Model/Ai/AiFunctionCall";
+export * from "./src/Model/Ai/AiChatSession";
 export * from "./src/Utils/utils"
 export * from "./src/Utils/logger"
 export * from "./src/Utils/EventSlim"

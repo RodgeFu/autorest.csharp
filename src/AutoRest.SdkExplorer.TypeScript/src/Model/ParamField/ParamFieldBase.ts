@@ -2,6 +2,7 @@ import { EventSlim } from "../../Utils/EventSlim";
 import { logError } from "../../Utils/logger";
 import { MessageItem } from "../../Utils/messageItem";
 import { isStringEqualCaseInsensitive, isStringNullOrEmpty } from "../../Utils/utils";
+import { AiFunctionDefinition } from "../Ai/AiFunctionDefinition";
 import { AiDefaultParamDesc } from "../Ai/FunctionParameter/AiDefaultParamDesc";
 import { AiEnumParamDesc } from "../Ai/FunctionParameter/AiEnumParamDesc";
 import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
@@ -121,29 +122,32 @@ export abstract class ParamFieldBase {
         return r;
     }
 
+    public applyAiPayload(payload: any) {
+        if (payload === undefined)
+            this.isIgnore = true;
+        else if (payload === null)
+            this.isNull = true;
+        else
+            this.applyAiPayloadInternal(payload);
+    }
+
+    protected applyAiPayloadInternal(payload: any) {
+        if (typeof payload === "string")
+            this.valueAsString = payload;
+        else
+            this.lastMessage = new MessageItem(`Unexpected value to set '${payload}'. string is expected but got '${typeof payload}'`, "error");
+    }
+
     public generateAiPayload(): any {
-        if (this.type.schemaType === "OBJECT_SCHEMA") {
-            if (this.type.schemaObject!.isEnum === false) {
-                const dict: { [index: string]: any } = {};
-                this.getChildren().filter(c => !c.isIgnore).forEach(c => {
-                    dict[c.fieldName] = c.generateAiPayload();
-                });
-                return dict;
-            }
-            else {
-                return this.valueAsString;
-            }
-        }
-        else if (this.type.schemaType === "ENUM_SCHEMA") {
-            return this.valueAsString;
-        }
-        else if (this.type.schemaType === "NONE_SCHEMA") {
-            return this.valueAsString;
-        }
-        else {
-            logError("unknown SchemaType when generating ai param desc: " + this.type.fullNameWithNamespace);
-            return this.valueAsString;
-        }
+        if (this.isIgnore)
+            return undefined;
+        if (this.isNull)
+            return null;
+        return this.generateAiPayloadInternal();
+    }
+
+    public generateAiPayloadInternal(): any {
+        return this.valueAsString;
     }
 
     public generateAiParamDesc(): AiParamDesc {
@@ -480,5 +484,72 @@ export abstract class ParamFieldBase {
 
     public static toRef(str: string): string {
         return `${ParamFieldBase.REF_PREFIX}${str}`;
+    }
+
+    public static applyAiPayload(fields: ParamFieldBase[], payload: any) {
+
+        fields.forEach(f => {
+            const foundKey = Object.keys(payload).find(key => key === f.fieldName);
+            if (foundKey) {
+                f.applyAiPayload(payload[foundKey]);
+            }
+            else {
+                f.applyAiPayload(undefined);
+                f.isIgnore = true;
+            }
+        })
+
+        const dict: { [index: string]: any } = {};
+        fields.forEach(p => dict[p.fieldName] = p.generateAiPayload());
+        return dict;
+    }
+
+    public static generateAiPayload(fields: ParamFieldBase[]): { [index: string]: any } {
+        const dict: { [index: string]: any } = {};
+        fields.forEach(p => dict[p.fieldName] = p.generateAiPayload());
+        return dict;
+    }
+
+    public static generateAiFunctionDefinition(functionName: string, functionDescription: string, fields: ParamFieldBase[]) {
+        const dict: { [index: string]: AiParamDesc } = {};
+        const required: string[] = [];
+        fields.forEach(p => {
+            dict[p.fieldName] = p.generateAiParamDesc();
+            required.push(p.fieldName);
+        });
+        return AiFunctionDefinition.create(
+            functionName,
+            functionDescription,
+            new AiObjectParamDesc("", dict, required)
+        );
+    }
+
+    public static applyExample(example: ExampleDesc, fields: ParamFieldBase[]) {
+        let s: Set<string> = new Set<string>();
+        example.exampleValuesMap?.forEach((value, key) => {
+            let foundExampleValue: ExampleValueDesc | undefined = undefined;
+            let p = fields.find(pp => {
+                foundExampleValue = pp.findMatchExample(value);
+                return foundExampleValue !== undefined;
+            });
+            if (p !== undefined && foundExampleValue) {
+                if ((!p.isSubscriptionIdParamField) && (!p.isResourceGroupParamField)) {
+                    // not load example value for subscriptionId and resourceGroup because
+                    // 1. it can't be right, 2. user has to reset them again if they have been set
+                    s.add(p.fieldName!);
+                    p.setExampleValue(foundExampleValue);
+                }
+            }
+            else {
+                console.warn("can't find field for example: " + key);
+            }
+        })
+
+        fields.forEach(v => {
+            if ((!v.isSubscriptionIdParamField) &&
+                (!v.isResourceGroupParamField) &&
+                (!s.has(v.fieldName!)))
+                v.resetToIgnoreOrDefault();
+        })
     }
 }
