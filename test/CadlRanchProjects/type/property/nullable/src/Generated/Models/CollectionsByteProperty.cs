@@ -18,14 +18,13 @@ namespace _Type.Property.Nullable.Models
         /// <summary> Initializes a new instance of CollectionsByteProperty. </summary>
         /// <param name="requiredProperty"> Required property. </param>
         /// <param name="nullableProperty"> Property. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="requiredProperty"/> or <paramref name="nullableProperty"/> is null. </exception>
+        /// <exception cref="ArgumentNullException"> <paramref name="requiredProperty"/> is null. </exception>
         internal CollectionsByteProperty(string requiredProperty, IEnumerable<BinaryData> nullableProperty)
         {
             Argument.AssertNotNull(requiredProperty, nameof(requiredProperty));
-            Argument.AssertNotNull(nullableProperty, nameof(nullableProperty));
 
             RequiredProperty = requiredProperty;
-            NullableProperty = nullableProperty.ToList();
+            NullableProperty = nullableProperty?.ToList();
         }
 
         /// <summary> Initializes a new instance of CollectionsByteProperty. </summary>
@@ -42,29 +41,15 @@ namespace _Type.Property.Nullable.Models
         /// <summary>
         /// Property
         /// <para>
-        /// To assign an object to the element of this property use <see cref="BinaryData.FromObjectAsJson{T}(T, System.Text.Json.JsonSerializerOptions?)"/>.
-        /// </para>
-        /// <para>
-        /// To assign an already formated json string to this property use <see cref="BinaryData.FromString(string)"/>.
+        /// To assign a byte[] to the element of this property use <see cref="BinaryData.FromBytes(byte[])"/>.
+        /// The byte[] will be serialized to a Base64 encoded string.
         /// </para>
         /// <para>
         /// Examples:
         /// <list type="bullet">
         /// <item>
-        /// <term>BinaryData.FromObjectAsJson("foo")</term>
-        /// <description>Creates a payload of "foo".</description>
-        /// </item>
-        /// <item>
-        /// <term>BinaryData.FromString("\"foo\"")</term>
-        /// <description>Creates a payload of "foo".</description>
-        /// </item>
-        /// <item>
-        /// <term>BinaryData.FromObjectAsJson(new { key = "value" })</term>
-        /// <description>Creates a payload of { "key": "value" }.</description>
-        /// </item>
-        /// <item>
-        /// <term>BinaryData.FromString("{\"key\": \"value\"}")</term>
-        /// <description>Creates a payload of { "key": "value" }.</description>
+        /// <term>BinaryData.FromBytes(new byte[] { 1, 2, 3 })</term>
+        /// <description>Creates a payload of "AQID".</description>
         /// </item>
         /// </list>
         /// </para>

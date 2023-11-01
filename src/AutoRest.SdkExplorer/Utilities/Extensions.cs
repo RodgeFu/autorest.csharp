@@ -20,7 +20,7 @@ namespace AutoRest.SdkExplorer.Utilities
         public static T DeserializeYaml<T>(this string yaml)
         {
             var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)  // see height_in_inches in sample yml
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)  // see height_in_inches in sample ymal
                 .EnablePrivateConstructors()
                 .Build();
 

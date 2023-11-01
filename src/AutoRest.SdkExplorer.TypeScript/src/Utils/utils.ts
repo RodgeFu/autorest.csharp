@@ -1,5 +1,5 @@
 import moment from "moment";
-import _ from "underscore";
+import _, { isEqual, isObject } from "underscore";
 
 /**
  * 
@@ -88,6 +88,50 @@ export function htmlDecode(input: string): string {
 export function toReadableTime(date: Date): string {
     return moment.utc(date).fromNow();
 }
+
+
+export function anyToString(item: any, minify: boolean = false) {
+    if (item === undefined)
+        return "<undefined>";
+    else if (item === null)
+        return "<null>";
+    else if (isObject(item))
+        return JSON.stringify(item, undefined, minify ? undefined : "  ");
+    else
+        return item.toString();
+}
+
+export function diffObjects(baseObject: any, newObject: any, path: string, log: string[]) {
+
+    if (!isObject(baseObject) || !isObject(newObject)) {
+        if (!isEqual(baseObject, newObject)) {
+            log.push(`${path}[*] => '${anyToString(newObject, true)}'`);
+        }
+        return;
+    }
+    else {
+        const newKeys = Object.keys(newObject);
+        const oldKeys = Object.keys(baseObject);
+
+        for (let key of newKeys) {
+            const newPath = `${path}.${key}`;
+            const index = oldKeys.indexOf(key);
+            if (index >= 0) {
+                oldKeys.splice(index, 1);
+                diffObjects(baseObject[key], newObject[key], newPath, log);
+            }
+            else {
+                log.push(`${newPath}[+] => '${anyToString(newObject[key], true)}'`);
+            }
+        }
+        oldKeys.forEach(k => log.push(`${path}.${k}[-]`));
+    }
+}
+
+export function distinctArray(arr: any[]) {
+    return arr.filter((value, index, array) => array.indexOf(value) === index);
+}
+
 
 export const DATE_FORMAT: string = "YYYY-MM-DDTHH:mm:ss.SSS";
 export const TIME_FORMAT: string = "HH:mm:ss.SSS";

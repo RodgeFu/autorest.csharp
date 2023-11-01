@@ -131,7 +131,7 @@ namespace AutoRest.CSharp.Common.Input
             IsRequired: input.IsRequired,
             GroupedBy: input.GroupedBy != null ? _parametersCache[input.GroupedBy]() : null,
             Kind: GetOperationParameterKind(input),
-            IsApiVersion: input.Origin == "modelerfour:synthesized/api-version",
+            IsApiVersion: input.IsApiVersion,
             IsResourceParameter: Convert.ToBoolean(input.Extensions.GetValue<string>("x-ms-resource-identifier")),
             IsContentType: input.Origin == "modelerfour:synthesized/content-type",
             IsEndpoint: input.Origin == "modelerfour:synthesized/host",
@@ -139,8 +139,8 @@ namespace AutoRest.CSharp.Common.Input
             Explode: input.Protocol.Http is HttpParameter { Explode: true },
             SkipUrlEncoding: input.Extensions?.SkipEncoding ?? false,
             HeaderCollectionPrefix: input.Extensions?.HeaderCollectionPrefix,
-            VirtualParameter: input is VirtualParameter { Schema: not ConstantSchema } vp ? vp : null,
-            SerializationFormat: BuilderHelpers.GetSerializationFormat(input.Schema)
+            VirtualParameter: input is VirtualParameter vp &&
+                (vp is { Schema: not ConstantSchema } or { Required: not true }) ? vp : null // optional constant parameter can be virtual parameter
         );
 
         public OperationResponse CreateOperationResponse(ServiceResponse response) => new(
@@ -167,7 +167,8 @@ namespace AutoRest.CSharp.Common.Input
 
             return new OperationLongRunning(
                 FinalStateVia: operation.LongRunningFinalStateVia,
-                FinalResponse: CreateOperationResponse(operation.LongRunningFinalResponse)
+                FinalResponse: CreateOperationResponse(operation.LongRunningFinalResponse),
+                ResultPath: null
             );
         }
 
@@ -246,7 +247,8 @@ namespace AutoRest.CSharp.Common.Input
                     : null,
                 DerivedModels: derived,
                 DiscriminatorValue: schema.DiscriminatorValue,
-                DiscriminatorPropertyName: schema.Discriminator?.Property.SerializedName);
+                DiscriminatorPropertyName: schema.Discriminator?.Property.SerializedName,
+                IsNullable: false);
 
             _modelsCache[schema] = model;
             _modelPropertiesCache[schema] = properties;
@@ -268,7 +270,8 @@ namespace AutoRest.CSharp.Common.Input
         public static InputOperationParameterKind GetOperationParameterKind(RequestParameter input) => input switch
         {
             { Implementation: ImplementationLocation.Client } => InputOperationParameterKind.Client,
-            { Schema: ConstantSchema } => InputOperationParameterKind.Constant,
+            { Schema: ConstantSchema, IsRequired: true } => InputOperationParameterKind.Constant, // only required constant parameter can be Constant kind
+                                                                                                  // which will be optimized to disappear from method signature
 
             // Grouped and flattened parameters shouldn't be added to methods
             { IsFlattened: true } => InputOperationParameterKind.Flattened,
@@ -380,14 +383,14 @@ namespace AutoRest.CSharp.Common.Input
             ChoiceSchema choiceSchema => CreateEnumType(choiceSchema, choiceSchema.ChoiceType, choiceSchema.Choices, true),
             SealedChoiceSchema choiceSchema => CreateEnumType(choiceSchema, choiceSchema.ChoiceType, choiceSchema.Choices, false),
 
-            ArraySchema array when IsDPG => new InputListType(array.Name, CreateType(array.ElementType, modelsCache, array.NullableItems ?? false)),
-            DictionarySchema dictionary when IsDPG => new InputDictionaryType(dictionary.Name, InputPrimitiveType.String, CreateType(dictionary.ElementType, modelsCache, dictionary.NullableItems ?? false)),
+            ArraySchema array when IsDPG => new InputListType(array.Name, CreateType(array.ElementType, modelsCache, array.NullableItems ?? false), false),
+            DictionarySchema dictionary when IsDPG => new InputDictionaryType(dictionary.Name, InputPrimitiveType.String, CreateType(dictionary.ElementType, modelsCache, dictionary.NullableItems ?? false), false),
             ObjectSchema objectSchema when IsDPG && modelsCache != null => modelsCache[objectSchema],
 
             AnySchema when IsDPG => InputIntrinsicType.Unknown,
             AnyObjectSchema when IsDPG => InputIntrinsicType.Unknown,
 
-            _ => new CodeModelType(schema)
+            _ => new CodeModelType(schema, false)
         };
 
         private static InputLiteralType CreateLiteralType(ConstantSchema constantSchema, string? format, IReadOnlyDictionary<ObjectSchema, InputModelType>? modelsCache)
@@ -411,7 +414,7 @@ namespace AutoRest.CSharp.Common.Input
                 _ => rawValue
             };
 
-            return new InputLiteralType("Literal", valueType, normalizedValue);
+            return new InputLiteralType("Literal", valueType, normalizedValue, false);
         }
 
         public static InputEnumType CreateEnumType(Schema schema, PrimitiveSchema choiceType, IEnumerable<ChoiceValue> choices, bool isExtensible) => new(
@@ -423,7 +426,8 @@ namespace AutoRest.CSharp.Common.Input
             Usage: InputModelTypeUsage.None,
             EnumValueType: (InputPrimitiveType)CreateType(choiceType, schema.Extensions?.Format, null),
             AllowedValues: choices.Select(CreateEnumValue).ToList(),
-            IsExtensible: isExtensible
+            IsExtensible: isExtensible,
+            IsNullable: false
         );
 
         private static InputEnumTypeValue CreateEnumValue(ChoiceValue choiceValue) => new(

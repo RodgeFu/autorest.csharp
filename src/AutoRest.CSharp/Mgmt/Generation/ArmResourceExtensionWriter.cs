@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.Generation.Writers;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Mgmt.Decorator;
@@ -256,7 +257,7 @@ namespace AutoRest.CSharp.Mgmt.Generation
 
             return _scopeParameter with
             {
-                Description = _scopeParameter.Description + $" Expected resource type includes the following: {types.Join(", ", " or ")}"
+                Description = $"{_scopeParameter.Description} Expected resource type includes the following: {types.Join(", ", " or ")}"
             };
         }
     }

@@ -33,7 +33,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
 ";
         private string _coreCsProjContent = @"
   <ItemGroup>
-    <PackageReference Include=""Azure.Core"" Version=""1.34.0"" />
+    <PackageReference Include=""Azure.Core"" />
   </ItemGroup>";
 
         private string _armCsProjContent = @"
@@ -42,7 +42,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include=""Azure.ResourceManager"" Version=""1.6.0"" />
+    <PackageReference Include=""Azure.ResourceManager"" />
   </ItemGroup>
 ";
 
@@ -63,7 +63,7 @@ namespace AutoRest.CSharp.AutoRest.Plugins
     <DefineConstants>$(DefineConstants);EXPERIMENTAL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include=""Azure.Core.Experimental"" Version=""0.1.0-preview.18"" />
+    <PackageReference Include=""Azure.Core.Experimental"" />
   </ItemGroup>
 ";
 
@@ -96,18 +96,18 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             var codeModelYaml = await autoRest.ReadFile(codeModelFileName);
             var codeModel = CodeModelSerialization.DeserializeCodeModel(codeModelYaml);
 
-            Configuration.Initialize(autoRest, codeModel.Language.Default.Name, codeModel.Language.Default.Name);
+            var config = CSharpProjConfiguration.Initialize(autoRest, codeModel.Language.Default.Name, codeModel.Language.Default.Name);
 
-            var context = new BuildContext(codeModel, null);
+            var context = new BuildContext(codeModel, null, config.LibraryName, config.Namespace);
             Execute(context.DefaultNamespace, async (filename, text) =>
             {
-                await autoRest.WriteFile(Path.Combine(Configuration.RelativeProjectFolder, filename), text, "source-file-csharp");
+                await autoRest.WriteFile(Path.Combine(config.RelativeProjectFolder, filename), text, "source-file-csharp");
             },
-                codeModelYaml.Contains("x-ms-format: dfe-"));
+                codeModelYaml.Contains("x-ms-format: dfe-"), config);
             return true;
         }
 
-        public void Execute(string defaultNamespace, string generatedDir, bool includeDfe)
+        public void Execute(string defaultNamespace, string generatedDir, bool includeDfe, CSharpProjConfiguration config)
         {
             Execute(defaultNamespace, async (filename, text) =>
             {
@@ -115,21 +115,22 @@ namespace AutoRest.CSharp.AutoRest.Plugins
                 //somewhere it tries to parse it as a syntax tree and when it converts back to text
                 //its no longer valid xml.  We should consider a "raw files" concept in the work space
                 //so the file writing can still remain in one place
-                await File.WriteAllTextAsync(Path.Combine(Configuration.AbsoluteProjectFolder, filename), text);
+                await File.WriteAllTextAsync(Path.Combine(config.AbsoluteProjectFolder, filename), text);
             },
-                includeDfe);
+                includeDfe, config);
         }
 
-        private void Execute(string defaultNamespace, Action<string, string> writeFile, bool includeDfe)
+        private void Execute(string defaultNamespace, Action<string, string> writeFile, bool includeDfe, CSharpProjConfiguration config)
         {
             if (includeDfe)
             {
                 _coreCsProjContent += @"
   <ItemGroup>
-    <PackageReference Include=""Azure.Core.Expressions.DataFactory"" Version=""1.0.0-beta.4"" />
+    <PackageReference Include=""Azure.Core.Expressions.DataFactory"" />
   </ItemGroup>";
             }
-            var isTestProject = Configuration.MgmtTestConfiguration is not null;
+
+            var isTestProject = config.IsMgmtTestProject;
             if (isTestProject)
             {
                 _coreCsProjContent += string.Format(@"
@@ -139,8 +140,8 @@ namespace AutoRest.CSharp.AutoRest.Plugins
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include=""NUnit"" Version=""3.12.0"" />
-    <PackageReference Include=""Azure.Identity"" Version=""1.6.0"" />
+    <PackageReference Include=""NUnit"" />
+    <PackageReference Include=""Azure.Identity"" />
   </ItemGroup>
 
   <ItemGroup>
@@ -149,16 +150,16 @@ namespace AutoRest.CSharp.AutoRest.Plugins
             }
 
             string csProjContent;
-            if (Configuration.SkipCSProjPackageReference)
+            if (config.SkipCSProjPackageReference)
             {
                 string additionalContent = string.Empty;
-                if (Configuration.AzureArm)
+                if (config.AzureArm)
                 {
-                  additionalContent += _armCsProjContent;
+                    additionalContent += _armCsProjContent;
                 }
-                else if (!Configuration.Generation1ConvenienceClient)
+                else if (!config.Generation1ConvenienceClient)
                 {
-                  additionalContent += _llcProjectContent;
+                    additionalContent += _llcProjectContent;
                 }
 
                 csProjContent = string.Format(_csProjContent, additionalContent, _coreCsProjContent);

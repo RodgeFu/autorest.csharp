@@ -1,4 +1,5 @@
 import { passOnSuccess, ScenarioMockApi, mockapi, json } from "@azure-tools/cadl-ranch-api";
+import { ValidationError } from "@azure-tools/cadl-ranch-api";
 
 /**
  * Test mock server for `FirstTest-TypeSpec` test project.
@@ -19,6 +20,7 @@ Scenarios.FirstTest_CreateLiteral = passOnSuccess([
         optionalLiteralInt: 456,
         optionalLiteralFloat: 4.56,
         optionalLiteralBool: true,
+        requiredNullableList: []
     });
     return {
       status: 200,
@@ -35,7 +37,64 @@ Scenarios.FirstTest_CreateLiteral = passOnSuccess([
         optionalLiteralInt: 12345,
         optionalLiteralFloat: 123.45,
         optionalLiteralBool: false,
+        requiredNullableList: []
       })
     };
   }),
+]);
+
+Scenarios.FirstTest_StringBody = passOnSuccess([
+    mockapi.put("/stringBody", (req) => {
+        req.expect.bodyEquals("test");
+        return {
+            status: 204
+        };
+    }),
+]);
+
+Scenarios.FirstTest_BoolBody = passOnSuccess([
+    mockapi.put("/boolBody", (req) => {
+        req.expect.bodyEquals(true);
+        return {
+            status: 204
+        };
+    }),
+]);
+
+Scenarios.FirstTest_DateTimeBody = passOnSuccess([
+    mockapi.put("/dateTimeBody", (req) => {
+        if (Date.parse(req.body as string) !== Date.parse("2022-08-26T18:38:00.000Z")) {
+            throw new ValidationError("Body provided doesn't match expected body", "2022-08-26T18:38:00.000Z", req.body);
+        }
+        return {
+            status: 204
+        };
+    }),
+]);
+
+Scenarios.FirstTest_ReturnString = passOnSuccess([
+    mockapi.put("/returnString", (req) => {
+        req.expect.bodyEmpty();
+        return {
+            status: 200,
+            body: {
+                contentType: "application/json",
+                rawContent: `"ok"`,
+            },
+        };
+    }),
+]);
+
+
+Scenarios.FirstTest_ReturnUnknown = passOnSuccess([
+    mockapi.put("/returnUnknown", (req) => {
+        req.expect.bodyEmpty();
+        return {
+            status: 200,
+            body: {
+                contentType: "application/json",
+                rawContent: `"completed"`,
+            },
+        };
+    }),
 ]);

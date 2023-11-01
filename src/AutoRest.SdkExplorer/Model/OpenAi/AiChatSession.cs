@@ -11,6 +11,11 @@ namespace AutoRest.SdkExplorer.Model.OpenAi
         public List<AiChatMessage> ChatMessages { get; set; } = new List<AiChatMessage>();
         public List<AiFunctionDefinition> Functions { get; set; } = new List<AiFunctionDefinition>();
 
+        public float? NucleusSamplingFactor { get; set; }
+        public float? PresencePenalty { get; set; }
+        public float? FrequencyPenalty { get; set; }
+        public float? Temperature { get; set; }
+
         public AiChatSession()
         {
         }

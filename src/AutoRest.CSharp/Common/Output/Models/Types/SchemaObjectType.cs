@@ -7,20 +7,18 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using AutoRest.CSharp.Common.Decorator;
+using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.Common.Output.Models.Types;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
-using AutoRest.CSharp.Mgmt.Output;
 using AutoRest.CSharp.Output.Builders;
 using AutoRest.CSharp.Output.Models.Requests;
-using AutoRest.CSharp.Output.Models.Serialization;
 using AutoRest.CSharp.Output.Models.Serialization.Json;
 using AutoRest.CSharp.Output.Models.Serialization.Xml;
 using AutoRest.CSharp.Output.Models.Shared;
 using AutoRest.CSharp.Utilities;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static AutoRest.CSharp.Output.Models.MethodSignatureModifiers;
 
 namespace AutoRest.CSharp.Output.Models.Types
@@ -81,9 +79,9 @@ namespace AutoRest.CSharp.Output.Models.Types
         protected override string DefaultAccessibility { get; } = "public";
         protected override TypeKind TypeKind => IsStruct ? TypeKind.Struct : TypeKind.Class;
 
-        private ObjectType? _defaultDerivedType;
+        private SerializableObjectType? _defaultDerivedType;
         private bool _hasCalculatedDefaultDerivedType;
-        public ObjectType? DefaultDerivedType => _defaultDerivedType ??= BuildDefaultDerviedType();
+        public SerializableObjectType? DefaultDerivedType => _defaultDerivedType ??= BuildDefaultDerviedType();
 
         protected override bool IsAbstract => !Configuration.SuppressAbstractBaseClasses.Contains(DefaultName) && ObjectSchema.Discriminator?.All != null && ObjectSchema.Parents?.All.Count == 0;
 
@@ -179,7 +177,7 @@ namespace AutoRest.CSharp.Output.Models.Types
             }
 
             return new ObjectTypeConstructor(
-                Type.Name,
+                Type,
                 IsInheritableCommonType ? Protected : Internal,
                 serializationConstructorParameters.ToArray(),
                 serializationInitializers.ToArray(),
@@ -285,7 +283,7 @@ namespace AutoRest.CSharp.Output.Models.Types
             }
 
             return new ObjectTypeConstructor(
-                Type.Name,
+                Type,
                 IsAbstract ? Protected : _usage.HasFlag(SchemaTypeUsage.Input) ? Public : Internal,
                 defaultCtorParameters.ToArray(),
                 defaultCtorInitializers.ToArray(),
@@ -334,13 +332,13 @@ namespace AutoRest.CSharp.Output.Models.Types
                 implementations = CreateDiscriminatorImplementations(schemaDiscriminator);
             }
 
-            ObjectType defaultDerivedType = DefaultDerivedType!;
+            SerializableObjectType defaultDerivedType = DefaultDerivedType!;
 
             var property = GetPropertyForSchemaProperty(schemaDiscriminator.Property, includeParents: true);
 
             if (ObjectSchema.DiscriminatorValue != null)
             {
-                value = BuilderHelpers.ParseConstant(ObjectSchema.DiscriminatorValue, property.Declaration.Type.GetNonNullable());
+                value = BuilderHelpers.ParseConstant(ObjectSchema.DiscriminatorValue, property.Declaration.Type.WithNullable(false));
             }
 
             return new ObjectTypeDiscriminator(
@@ -457,19 +455,19 @@ namespace AutoRest.CSharp.Output.Models.Types
 
             bool isCollection = TypeFactory.IsCollectionType(type);
 
-            bool isReadOnly = IsStruct ||
+            bool propertyShouldOmitSetter = IsStruct ||
                               !_usage.HasFlag(SchemaTypeUsage.Input) ||
                               property.IsReadOnly;
 
 
             if (isCollection)
             {
-                isReadOnly |= !property.IsNullable;
+                propertyShouldOmitSetter |= !property.IsNullable;
             }
             else
             {
                 // In mixed models required properties are not readonly
-                isReadOnly |= property.IsRequired &&
+                propertyShouldOmitSetter |= property.IsRequired &&
                               _usage.HasFlag(SchemaTypeUsage.Input) &&
                               !_usage.HasFlag(SchemaTypeUsage.Output);
             }
@@ -477,19 +475,19 @@ namespace AutoRest.CSharp.Output.Models.Types
             // we should remove the setter of required constant
             if (property.Schema is ConstantSchema && property.IsRequired)
             {
-                isReadOnly = true;
+                propertyShouldOmitSetter = true;
             }
 
             if (property.IsDiscriminator == true)
             {
                 // Discriminator properties should be writeable
-                isReadOnly = false;
+                propertyShouldOmitSetter = false;
             }
 
             var objectTypeProperty = new ObjectTypeProperty(
                 memberDeclaration,
                 BuilderHelpers.EscapeXmlDocDescription(property.Language.Default.Description),
-                isReadOnly,
+                propertyShouldOmitSetter,
                 property,
                 valueType,
                 optionalViaNullability,
@@ -624,9 +622,9 @@ namespace AutoRest.CSharp.Output.Models.Types
             return objectProperty != null;
         }
 
-        protected override string CreateDescription()
+        protected override FormattableString CreateDescription()
         {
-            return ObjectSchema.CreateDescription();
+            return $"{ObjectSchema.CreateDescription()}";
         }
 
         protected override bool EnsureHasJsonSerialization()
@@ -659,7 +657,7 @@ namespace AutoRest.CSharp.Output.Models.Types
             return _serializationBuilder.BuildXmlObjectSerialization(ObjectSchema, this);
         }
 
-        private ObjectType? BuildDefaultDerviedType()
+        private SerializableObjectType? BuildDefaultDerviedType()
         {
             if (_hasCalculatedDefaultDerivedType)
                 return _defaultDerivedType;
@@ -672,7 +670,7 @@ namespace AutoRest.CSharp.Output.Models.Types
             if (defaultDerivedSchema is null)
                 return null;
 
-            return _context.BaseLibrary.FindTypeProviderForSchema(defaultDerivedSchema) as ObjectType;
+            return _context.BaseLibrary.FindTypeProviderForSchema(defaultDerivedSchema) as SerializableObjectType;
         }
     }
 }

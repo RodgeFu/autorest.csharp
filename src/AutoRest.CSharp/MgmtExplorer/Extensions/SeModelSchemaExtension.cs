@@ -148,7 +148,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                                 keys.Add(new SchemaEnumValue()
                                 {
                                     Value = key,
-                                    Description = childImp.Description ?? "",
+                                    Description = childImp.Description != null ? childImp.Description.ToString() : "",
                                     InternalValue = key,
                                 });
                                 return m.Type.CreateSeTypeDesc();
@@ -158,7 +158,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                             string keySchemaKey = $"{keyNamespace}.{keyTypeName}";
                             var keysEnumSchema = new SchemaEnum(keySchemaKey)
                             {
-                                Description = imp.Description ?? "",
+                                Description = imp.Description != null ? imp.Description.ToString() : "",
                                 Values = keys,
                             };
                             SchemaStore.Current.AddSchema(keysEnumSchema);
@@ -218,7 +218,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                             $"Unexpected type as discriminator type={csharpType.Name}, discriminator property type = {imp.Discriminator.Property.ValueType.Name}");
                     }
                 }
-                r.Description = imp.Description ?? "";
+                r.Description = imp.Description?.ToString() ?? "";
                 r.InitializationConstructor = imp.InitializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.InitializationConstructor.CreateSeSchemaMethod() : null;
                 r.SerializationConstructor = imp.SerializationConstructor.Signature.Modifiers == Output.Models.MethodSignatureModifiers.Public ? imp.SerializationConstructor.CreateSeSchemaMethod() : null;
 
@@ -365,7 +365,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 Type = param.Type.CreateSeTypeDesc(),
                 IsOptional = param.IsOptionalInSignature,
                 DefaultValue = param.DefaultValue.ToString(),
-                Description = param.Description ?? ""
+                Description = param.Description?.ToString() ?? ""
             };
             return r;
         }

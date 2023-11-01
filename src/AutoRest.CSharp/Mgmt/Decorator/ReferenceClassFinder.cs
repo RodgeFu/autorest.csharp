@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using AutoRest.CSharp.Input;
+using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.Utilities;
 using Azure;
 using Azure.Core.Expressions.DataFactory;
@@ -85,6 +85,12 @@ namespace AutoRest.CSharp.Mgmt.Decorator
             {
                 ["Name"] = new PropertyMetadata("name", true),
                 ["ExtendedLocationType"] = new PropertyMetadata("type", true)
+            },
+            [typeof(DataFactoryLinkedServiceReference)] = new()
+            {
+                ["ReferenceType"] = new PropertyMetadata("type", true),
+                ["ReferenceName"] = new PropertyMetadata("referenceName", true),
+                ["Parameters"] = new PropertyMetadata("parameters")
             }
         };
 

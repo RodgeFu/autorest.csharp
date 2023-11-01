@@ -1,3 +1,4 @@
+import { isObject } from "underscore";
 import { EventSlim } from "../../Utils/EventSlim";
 import { logError } from "../../Utils/logger";
 import { MessageItem } from "../../Utils/messageItem";
@@ -7,6 +8,7 @@ import { AiDefaultParamDesc } from "../Ai/FunctionParameter/AiDefaultParamDesc";
 import { AiEnumParamDesc } from "../Ai/FunctionParameter/AiEnumParamDesc";
 import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
 import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 import { ParameterDesc } from "../Code/ParameterDesc";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
@@ -122,20 +124,32 @@ export abstract class ParamFieldBase {
         return r;
     }
 
-    public applyAiPayload(payload: any) {
+    public applyAiPayload(payload: any, output: AiPayloadApplyOutput) {
         if (payload === undefined)
             this.isIgnore = true;
         else if (payload === null)
             this.isNull = true;
-        else
-            this.applyAiPayloadInternal(payload);
+        else {
+            this.isIgnore = false;
+            this.applyAiPayloadInternal(payload, output);
+        }
     }
 
-    protected applyAiPayloadInternal(payload: any) {
-        if (typeof payload === "string")
-            this.valueAsString = payload;
-        else
-            this.lastMessage = new MessageItem(`Unexpected value to set '${payload}'. string is expected but got '${typeof payload}'`, "error");
+    public get isResourceIdentifierField(): boolean {
+        return this.type.name.toLowerCase() === "resourceidentifier";
+    }
+
+    protected applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
+        output.needMoreInput.push(...this.getPendingUserInputs(payload));
+        if (!isObject(payload)) {
+            this.valueAsString = payload.toString();
+            if (this.lastMessage && (this.lastMessage.level === "error" || this.lastMessage.level === "warning"))
+                output.needDoubleCheck.push(`${this.fieldName}=${payload}`)
+        }
+        else {
+            output.needDoubleCheck.push(`${this.fieldName}=${payload}`)
+            this.lastMessage = new MessageItem(`Unexpected value to set '${payload}'. non-object is expected but got '${typeof payload}'`, "error");
+        }
     }
 
     public generateAiPayload(): any {
@@ -147,7 +161,7 @@ export abstract class ParamFieldBase {
     }
 
     public generateAiPayloadInternal(): any {
-        return this.valueAsString;
+        return this.value;
     }
 
     public generateAiParamDesc(): AiParamDesc {
@@ -486,15 +500,29 @@ export abstract class ParamFieldBase {
         return `${ParamFieldBase.REF_PREFIX}${str}`;
     }
 
-    public static applyAiPayload(fields: ParamFieldBase[], payload: any) {
+    protected getPendingUserInputs(fieldValue: any): string[] {
+        let strValue: string = fieldValue.toString() ?? "";
+        let m = strValue.match(/{[^{}\n]+?}/g);
+        if (m && m.length > 0) {
+            if (this.parent?.isResourceIdentifierField) {
+                return [strValue];
+            }
+            return m.map(value => value);
+        }
+        else
+            return [];
+    }
+
+    public static applyAiPayload(fields: ParamFieldBase[], payload: any, output: AiPayloadApplyOutput) {
 
         fields.forEach(f => {
             const foundKey = Object.keys(payload).find(key => key === f.fieldName);
             if (foundKey) {
-                f.applyAiPayload(payload[foundKey]);
+                f.applyAiPayload(payload[foundKey], output);
+                output.needMoreInput.push(...f.getPendingUserInputs(payload[foundKey]));
             }
             else {
-                f.applyAiPayload(undefined);
+                f.applyAiPayload(undefined, output);
                 f.isIgnore = true;
             }
         })
@@ -524,16 +552,25 @@ export abstract class ParamFieldBase {
         );
     }
 
-    public static applyExample(example: ExampleDesc, fields: ParamFieldBase[]) {
+    public static applyExample(example: ExampleDesc, fields: ParamFieldBase[], subscriptionId?: string, resourceGroupName?: string) {
         let s: Set<string> = new Set<string>();
         example.exampleValuesMap?.forEach((value, key) => {
             let foundExampleValue: ExampleValueDesc | undefined = undefined;
             let p = fields.find(pp => {
                 foundExampleValue = pp.findMatchExample(value);
+                // ignore subid and resource group name unless they are provided specificly, because
+                // 1. the value in example can't be right and user has to reset them if they are changed
+                if (foundExampleValue && pp.isSubscriptionIdParamField && subscriptionId)
+                    foundExampleValue.rawValue = subscriptionId;
+                if (foundExampleValue && pp.isResourceGroupParamField && resourceGroupName)
+                    foundExampleValue.rawValue = resourceGroupName;
+                    
                 return foundExampleValue !== undefined;
             });
             if (p !== undefined && foundExampleValue) {
-                if ((!p.isSubscriptionIdParamField) && (!p.isResourceGroupParamField)) {
+                if ((p.isSubscriptionIdParamField && subscriptionId) ||
+                    (p.isResourceGroupParamField && resourceGroupName) ||
+                    (!p.isSubscriptionIdParamField && !p.isResourceGroupParamField)) {
                     // not load example value for subscriptionId and resourceGroup because
                     // 1. it can't be right, 2. user has to reset them again if they have been set
                     s.add(p.fieldName!);

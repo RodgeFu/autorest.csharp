@@ -41,7 +41,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
             this.CSharpName = definition.Name;
             this.ModelName = modelName;
             this.SerializerName = serializerName;
-            Description = definition.Description ?? string.Empty;
+            Description = definition.Description?.ToString() ?? string.Empty;
             this.RequestLocation = definition.RequestLocation.ToString();
             this.RequestPath = requestPath;
             this.IsInPropertyBag = definition.IsPropertyBag;

@@ -1,4 +1,6 @@
+import { MessageItem } from "../../Utils/messageItem";
 import { ONE_INDENT, strcmp } from "../../Utils/utils";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { ExampleDesc } from "../Example/ExampleDesc";
@@ -10,17 +12,113 @@ type paramPos = { pos: "ctor" | "extraProperty", index: number };
 
 export class ParamFieldObject extends ParamFieldBase {
 
-    protected override applyAiPayloadInternal(payload: any) {
+    private normalizeNameForAiCompare(name: string | undefined): string | undefined {
+        if (name === undefined)
+            return undefined;
+        let arr = [...name.matchAll(/^disable(.+)$/gi)];
+        if (arr.length === 1) {
+            name = `is${arr[0][1]}disabled`;
+        }
+        arr = [...name.matchAll(/^enable(.+)$/gi)];
+        if (arr.length === 1) {
+            name = `is${arr[0][1]}enabled`;
+        }
+        return name.toLowerCase();
+    }
+
+    private comparePropertyNameConsiderAI(propA: string, propB: string): boolean {
+
+        let aName = this.normalizeNameForAiCompare(propA);
+        let bName = this.normalizeNameForAiCompare(propB);
+        return aName === bName;
+    }
+
+    protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
 
         let list = this.getDefaultValueWhenNotNull() as ParamFieldBase[];
         list.forEach(v => { if (v.isIgnorable) v.isIgnore = true; });
-        Object.keys(payload).forEach(key => {
-            let foundValue = payload[key];
-            let foundField = list.find(v => v.fieldName === key);
-            if (foundValue && foundField)
-                foundField.applyAiPayload(foundValue);
+        let payloadKeys = Object.keys(payload);
+        let allFieldIgnored = true;
+        let listToDoubleCheck: ParamFieldBase[] = [];
+
+        list.forEach(field => {
+            // case insensitive considering AI...
+            let foundKeyIndex = payloadKeys.findIndex(k => this.comparePropertyNameConsiderAI(k, field.fieldName));
+            if (foundKeyIndex >= 0) {
+                let foundKey = payloadKeys[foundKeyIndex];
+                let foundValue = payload[foundKey];
+
+                if (foundValue !== undefined) {
+                    field.applyAiPayload(foundValue, output);
+                    allFieldIgnored = false;
+                }
+
+                payloadKeys.splice(foundKeyIndex, 1);
+            }
+            else {
+                listToDoubleCheck.push(field);
+            }
         })
+
+        listToDoubleCheck.forEach(field => {
+            // consider flatten
+            let path = field.serializerPath;
+            if (path && path.length > 0) {
+                let arr = path.split("/");
+                if (arr.length > 1) {
+                    let foundKeyIndex = payloadKeys.findIndex(k => this.comparePropertyNameConsiderAI(k, arr[0]));
+                    if (foundKeyIndex >= 0) {
+                        let curPayload = payload;
+                        for (let seg of arr) {
+                            let curKey = Object.keys(curPayload).find(k => this.comparePropertyNameConsiderAI(k, seg));
+                            if (curKey !== undefined)
+                                curPayload = curPayload[seg];
+                            else
+                                return;
+                        }
+                        field.applyAiPayload(curPayload, output);
+                        allFieldIgnored = false;
+                        payloadKeys.splice(foundKeyIndex, 1);
+                    }
+                }
+            }
+        })
+
+        //var keysNotFound: string[] = [];
+        //var allFieldIgnored = true;
+        //Object.keys(payload).forEach(key => {
+        //    let foundValue = payload[key];
+        //    let foundField = list.find(v => v.fieldName === key);
+        //    if (foundValue !== undefined && foundField !== undefined) {
+        //        foundField.applyAiPayload(foundValue, output);
+        //        allFieldIgnored = false;
+        //    }
+        //    else {
+        //        // sometimes flattened payload will be returned in unflattend format
+        //        list.find(v => {
+        //            let arr = v.serializerPath.split("/");
+        //            if (arr.length > 1) {
+
+        //                for (let seg of arr) {
+        //                    if (seg !== key)
+        //                        return false;
+        //                    else
+
+        //                }
+        //            }
+        //        })
+
+
+        //        keysNotFound.push(key);
+        //        output.needDoubleCheck.push(`${this.fieldName}.${key}=${anyToString(payload[key])}`)
+        //    }
+        //})
+
         this.valueAsProperties = list;
+        if (payloadKeys.length > 0)
+            this.lastMessage = new MessageItem("Unabled to apply following properties in payload: " + payloadKeys.join(","), "warning");
+        else if (allFieldIgnored)
+            this.lastMessage = new MessageItem("All properties are marked as Ignored", "warning");
     }
 
     public override generateAiPayloadInternal(): any {

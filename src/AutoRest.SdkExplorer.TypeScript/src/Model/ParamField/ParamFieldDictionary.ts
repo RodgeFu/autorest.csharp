@@ -2,6 +2,7 @@ import { ONE_INDENT, isStringNullOrEmpty } from "../../Utils/utils";
 import { AiDictParamDesc } from "../Ai/FunctionParameter/AiDictParamDesc";
 import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
 import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { ExampleDesc } from "../Example/ExampleDesc";
@@ -143,7 +144,7 @@ export class ParamFieldDictionary extends ParamFieldBase {
         this.valueAsDictionaryItemArray = newArray;
     }
 
-    protected override applyAiPayloadInternal(payload: any) {
+    protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
         let arr: ParamFieldDictionaryItem[] = [];
         let index: number = 0;
         Object.keys(payload).forEach((key) => {
@@ -151,7 +152,7 @@ export class ParamFieldDictionary extends ParamFieldBase {
             let itemName = this.generateItemName(index++);
             let r: ParamFieldBase = ParamFieldFactory.createParamField(itemName, TypeDesc.getDictionaryItemType(this.type), this,
                 { isReadonly: false, isRequired: false, serializerPath: itemName, parameterOwner: this.parameterOwner, idPrefix: this.idPrefix });
-            r.applyAiPayload(value);
+            r.applyAiPayload(value, output);
             arr.push(r as ParamFieldDictionaryItem);
         });
         this.valueAsDictionaryItemArray = arr;

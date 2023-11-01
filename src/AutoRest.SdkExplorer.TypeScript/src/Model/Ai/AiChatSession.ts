@@ -6,6 +6,11 @@ export class AiChatSession implements AutoRest.SdkExplorer.Interface.AiChatSessi
     chatMessages?: AiChatMessage[];
     functions?: AiFunctionDefinition[];
 
+    nucleusSamplingFactor? : number;
+    presencePenalty? : number;
+    frequencyPenalty?: number;
+    temperature?: number;
+
     constructor(data: AutoRest.SdkExplorer.Interface.AiChatSession) {
         this.sessionId = data.sessionId;
         this.chatMessages = data.chatMessages?.map(m => new AiChatMessage(m));

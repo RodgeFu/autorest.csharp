@@ -43,10 +43,8 @@ namespace AutoRest.CSharp.Mgmt.Output.Models
             foreach (var parameter in _paramsToKeep)
             {
                 var inputParameter = _operation.Parameters.FirstOrDefault(p => string.Equals(p.Name, parameter.Name, StringComparison.OrdinalIgnoreCase));
-                string? description = parameter.Description;
-                if (description == null)
-                    description = $"The {parameter.Name}";
-                var property = new InputModelProperty(parameter.Name, null, description, inputParameter!.Type, parameter.DefaultValue == null, false, false)
+                var description = parameter.Description ?? $"The {parameter.Name}";
+                var property = new InputModelProperty(parameter.Name, parameter.Name, description.ToString(), inputParameter!.Type, parameter.DefaultValue == null, false, false)
                 {
                     DefaultValue = GetDefaultValue(parameter)
                 };
@@ -64,7 +62,8 @@ namespace AutoRest.CSharp.Mgmt.Output.Models
                 null,
                 Array.Empty<InputModelType>(),
                 null,
-                null)
+                null,
+                false)
             {
                 IsPropertyBag = true
             };

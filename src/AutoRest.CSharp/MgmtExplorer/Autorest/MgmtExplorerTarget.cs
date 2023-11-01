@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
+using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.MgmtExplorer.AutoRest;
 using AutoRest.CSharp.MgmtExplorer.Extensions;
 using AutoRest.CSharp.MgmtExplorer.Generation;

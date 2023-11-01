@@ -1,9 +1,11 @@
+import { isNumber } from "underscore";
 import { logError } from "../../Utils/logger";
 import { MessageItem } from "../../Utils/messageItem";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters, ValidationResult } from "./ParamFieldBase";
 import { ParamFieldType } from "./ParamFieldFactory";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 
 export class ParamFieldInteger extends ParamFieldBase {
     public set valueAsString(str: string | undefined) {
@@ -30,6 +32,13 @@ export class ParamFieldInteger extends ParamFieldBase {
             return "0";
         else
             return this.value.toString();
+    }
+
+    protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
+        if (isNumber(payload))
+            this.valueAsString = payload.toString();
+        else
+            super.applyAiPayloadInternal(payload, output);
     }
 
     protected getValueForCodeInternal(indent: string, formatter: CodeFormatter): string {

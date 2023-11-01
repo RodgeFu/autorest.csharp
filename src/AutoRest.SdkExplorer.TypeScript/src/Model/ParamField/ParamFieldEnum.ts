@@ -1,5 +1,6 @@
 import { logError } from "../../Utils/logger";
 import { MessageItem } from "../../Utils/messageItem";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { SchemaEnumValue } from "../Schema/SchemaEnumValue";
@@ -12,11 +13,12 @@ export class ParamFieldEnum extends ParamFieldBase {
     public set valueAsString(value: string | undefined) {
         // some example has space in region like West US;
         let v = this.normalizeEnumValue(value);
-        let found = this.enumValues.find(ev => this.normalizeEnumValue(ev.value) == v || this.normalizeEnumValue(ev.internalValue) == v);       
+        let found = this.enumValues.find(ev => this.normalizeEnumValue(ev.value) == v || this.normalizeEnumValue(ev.internalValue) == v);
         if (found === undefined) {
             this.lastMessage = new MessageItem(`Ignore invalid enum value '${v}' for enum type: ${this.type.fullNameWithNamespace}.`, "error");
         }
         else {
+            this.lastMessage = undefined;
             this.value = found;
         }
     }
@@ -29,6 +31,18 @@ export class ParamFieldEnum extends ParamFieldBase {
             return "null";
         else
             return this.value.value;
+    }
+
+    public override generateAiPayloadInternal(): any {
+        return this.valueAsString;
+    }
+
+    protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
+        let arr = this.getPendingUserInputs(payload);
+        output.needMoreInput.push(...arr);
+        this.valueAsString = payload;
+        if (arr.length === 0 && this.lastMessage && (this.lastMessage.level === "error" || this.lastMessage.level === "warning"))
+            output.needDoubleCheck.push(`${this.fieldName}=${payload}`)
     }
 
     public get enumValues(): SchemaEnumValue[] {

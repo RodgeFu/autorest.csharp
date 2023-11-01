@@ -322,7 +322,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(thing, nameof(thing));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = await AnonymousBodyAsync(thing.ToRequestContent(), context).ConfigureAwait(false);
+            using RequestContent content = thing.ToRequestContent();
+            Response response = await AnonymousBodyAsync(content, context).ConfigureAwait(false);
             return Response.FromValue(Thing.FromResponse(response), response);
         }
 
@@ -336,7 +337,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(thing, nameof(thing));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = AnonymousBody(thing.ToRequestContent(), context);
+            using RequestContent content = thing.ToRequestContent();
+            Response response = AnonymousBody(content, context);
             return Response.FromValue(Thing.FromResponse(response), response);
         }
 
@@ -419,30 +421,32 @@ namespace Azure.NewProject.TypeSpec
         }
 
         /// <summary> Model can have its friendly name. </summary>
-        /// <param name="notFriend"> this is not a friendly model but with a friendly name. </param>
+        /// <param name="friend"> this is not a friendly model but with a friendly name. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="notFriend"/> is null. </exception>
+        /// <exception cref="ArgumentNullException"> <paramref name="friend"/> is null. </exception>
         /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='FriendlyModelAsync(Friend,CancellationToken)']/*" />
-        public virtual async Task<Response<Friend>> FriendlyModelAsync(Friend notFriend, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<Friend>> FriendlyModelAsync(Friend friend, CancellationToken cancellationToken = default)
         {
-            Argument.AssertNotNull(notFriend, nameof(notFriend));
+            Argument.AssertNotNull(friend, nameof(friend));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = await FriendlyModelAsync(notFriend.ToRequestContent(), context).ConfigureAwait(false);
+            using RequestContent content = friend.ToRequestContent();
+            Response response = await FriendlyModelAsync(content, context).ConfigureAwait(false);
             return Response.FromValue(Friend.FromResponse(response), response);
         }
 
         /// <summary> Model can have its friendly name. </summary>
-        /// <param name="notFriend"> this is not a friendly model but with a friendly name. </param>
+        /// <param name="friend"> this is not a friendly model but with a friendly name. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="notFriend"/> is null. </exception>
+        /// <exception cref="ArgumentNullException"> <paramref name="friend"/> is null. </exception>
         /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='FriendlyModel(Friend,CancellationToken)']/*" />
-        public virtual Response<Friend> FriendlyModel(Friend notFriend, CancellationToken cancellationToken = default)
+        public virtual Response<Friend> FriendlyModel(Friend friend, CancellationToken cancellationToken = default)
         {
-            Argument.AssertNotNull(notFriend, nameof(notFriend));
+            Argument.AssertNotNull(friend, nameof(friend));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = FriendlyModel(notFriend.ToRequestContent(), context);
+            using RequestContent content = friend.ToRequestContent();
+            Response response = FriendlyModel(content, context);
             return Response.FromValue(Friend.FromResponse(response), response);
         }
 
@@ -534,18 +538,17 @@ namespace Azure.NewProject.TypeSpec
         /// </item>
         /// </list>
         /// </summary>
-        /// <param name="repeatabilityFirstSent"> The DateTime to use. </param>
         /// <param name="context"> The request context, which can override default behaviors of the client pipeline on a per-call basis. </param>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='AddTimeHeaderAsync(DateTimeOffset?,RequestContext)']/*" />
-        public virtual async Task<Response> AddTimeHeaderAsync(DateTimeOffset? repeatabilityFirstSent = null, RequestContext context = null)
+        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='AddTimeHeaderAsync(RequestContext)']/*" />
+        public virtual async Task<Response> AddTimeHeaderAsync(RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("NewProjectTypeSpecClient.AddTimeHeader");
             scope.Start();
             try
             {
-                using HttpMessage message = CreateAddTimeHeaderRequest(repeatabilityFirstSent, context);
+                using HttpMessage message = CreateAddTimeHeaderRequest(context);
                 return await _pipeline.ProcessMessageAsync(message, context).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -565,18 +568,17 @@ namespace Azure.NewProject.TypeSpec
         /// </item>
         /// </list>
         /// </summary>
-        /// <param name="repeatabilityFirstSent"> The DateTime to use. </param>
         /// <param name="context"> The request context, which can override default behaviors of the client pipeline on a per-call basis. </param>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='AddTimeHeader(DateTimeOffset?,RequestContext)']/*" />
-        public virtual Response AddTimeHeader(DateTimeOffset? repeatabilityFirstSent = null, RequestContext context = null)
+        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='AddTimeHeader(RequestContext)']/*" />
+        public virtual Response AddTimeHeader(RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("NewProjectTypeSpecClient.AddTimeHeader");
             scope.Start();
             try
             {
-                using HttpMessage message = CreateAddTimeHeaderRequest(repeatabilityFirstSent, context);
+                using HttpMessage message = CreateAddTimeHeaderRequest(context);
                 return _pipeline.ProcessMessage(message, context);
             }
             catch (Exception e)
@@ -597,7 +599,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(body, nameof(body));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = await StringFormatAsync(subscriptionId, body.ToRequestContent(), context).ConfigureAwait(false);
+            using RequestContent content = body.ToRequestContent();
+            Response response = await StringFormatAsync(subscriptionId, content, context).ConfigureAwait(false);
             return response;
         }
 
@@ -612,7 +615,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(body, nameof(body));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = StringFormat(subscriptionId, body.ToRequestContent(), context);
+            using RequestContent content = body.ToRequestContent();
+            Response response = StringFormat(subscriptionId, content, context);
             return response;
         }
 
@@ -785,7 +789,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(action, nameof(action));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = await HelloAgainAsync(p2, p1, action.ToRequestContent(), context).ConfigureAwait(false);
+            using RequestContent content = action.ToRequestContent();
+            Response response = await HelloAgainAsync(p2, p1, content, context).ConfigureAwait(false);
             return Response.FromValue(RoundTripModel.FromResponse(response), response);
         }
 
@@ -804,7 +809,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(action, nameof(action));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = HelloAgain(p2, p1, action.ToRequestContent(), context);
+            using RequestContent content = action.ToRequestContent();
+            Response response = HelloAgain(p2, p1, content, context);
             return Response.FromValue(RoundTripModel.FromResponse(response), response);
         }
 
@@ -1074,7 +1080,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(body, nameof(body));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = await CreateLiteralAsync(body.ToRequestContent(), context).ConfigureAwait(false);
+            using RequestContent content = body.ToRequestContent();
+            Response response = await CreateLiteralAsync(content, context).ConfigureAwait(false);
             return Response.FromValue(Thing.FromResponse(response), response);
         }
 
@@ -1088,7 +1095,8 @@ namespace Azure.NewProject.TypeSpec
             Argument.AssertNotNull(body, nameof(body));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = CreateLiteral(body.ToRequestContent(), context);
+            using RequestContent content = body.ToRequestContent();
+            Response response = CreateLiteral(content, context);
             return Response.FromValue(Thing.FromResponse(response), response);
         }
 
@@ -1324,13 +1332,13 @@ namespace Azure.NewProject.TypeSpec
         /// <param name="body"> The Thing to use. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="body"/> is null. </exception>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='InternalProtocolAsync(Thing,CancellationToken)']/*" />
         public virtual async Task<Response<Thing>> InternalProtocolAsync(Thing body, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNull(body, nameof(body));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = await InternalProtocolAsync(body.ToRequestContent(), context).ConfigureAwait(false);
+            using RequestContent content = body.ToRequestContent();
+            Response response = await InternalProtocolAsync(content, context).ConfigureAwait(false);
             return Response.FromValue(Thing.FromResponse(response), response);
         }
 
@@ -1338,13 +1346,13 @@ namespace Azure.NewProject.TypeSpec
         /// <param name="body"> The Thing to use. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="body"/> is null. </exception>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='InternalProtocol(Thing,CancellationToken)']/*" />
         public virtual Response<Thing> InternalProtocol(Thing body, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNull(body, nameof(body));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = InternalProtocol(body.ToRequestContent(), context);
+            using RequestContent content = body.ToRequestContent();
+            Response response = InternalProtocol(content, context);
             return Response.FromValue(Thing.FromResponse(response), response);
         }
 
@@ -1356,11 +1364,6 @@ namespace Azure.NewProject.TypeSpec
         /// This <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/ProtocolMethods.md">protocol method</see> allows explicit creation of the request and processing of the response for advanced scenarios.
         /// </description>
         /// </item>
-        /// <item>
-        /// <description>
-        /// Please try the simpler <see cref="InternalProtocolAsync(Thing,CancellationToken)"/> convenience overload with strongly typed models first.
-        /// </description>
-        /// </item>
         /// </list>
         /// </summary>
         /// <param name="content"> The content to send as the body of the request. </param>
@@ -1368,7 +1371,6 @@ namespace Azure.NewProject.TypeSpec
         /// <exception cref="ArgumentNullException"> <paramref name="content"/> is null. </exception>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='InternalProtocolAsync(RequestContent,RequestContext)']/*" />
         internal virtual async Task<Response> InternalProtocolAsync(RequestContent content, RequestContext context = null)
         {
             Argument.AssertNotNull(content, nameof(content));
@@ -1395,11 +1397,6 @@ namespace Azure.NewProject.TypeSpec
         /// This <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/ProtocolMethods.md">protocol method</see> allows explicit creation of the request and processing of the response for advanced scenarios.
         /// </description>
         /// </item>
-        /// <item>
-        /// <description>
-        /// Please try the simpler <see cref="InternalProtocol(Thing,CancellationToken)"/> convenience overload with strongly typed models first.
-        /// </description>
-        /// </item>
         /// </list>
         /// </summary>
         /// <param name="content"> The content to send as the body of the request. </param>
@@ -1407,7 +1404,6 @@ namespace Azure.NewProject.TypeSpec
         /// <exception cref="ArgumentNullException"> <paramref name="content"/> is null. </exception>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='InternalProtocol(RequestContent,RequestContext)']/*" />
         internal virtual Response InternalProtocol(RequestContent content, RequestContext context = null)
         {
             Argument.AssertNotNull(content, nameof(content));
@@ -1428,7 +1424,6 @@ namespace Azure.NewProject.TypeSpec
 
         /// <summary> When set protocol false and convenient true, the convenient method should be generated even it has the same signature as protocol one. </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='StillConvenientValueAsync(CancellationToken)']/*" />
         public virtual async Task<Response> StillConvenientValueAsync(CancellationToken cancellationToken = default)
         {
             using var scope = ClientDiagnostics.CreateScope("NewProjectTypeSpecClient.StillConvenientValue");
@@ -1448,7 +1443,6 @@ namespace Azure.NewProject.TypeSpec
 
         /// <summary> When set protocol false and convenient true, the convenient method should be generated even it has the same signature as protocol one. </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='StillConvenientValue(CancellationToken)']/*" />
         public virtual Response StillConvenientValue(CancellationToken cancellationToken = default)
         {
             using var scope = ClientDiagnostics.CreateScope("NewProjectTypeSpecClient.StillConvenientValue");
@@ -1474,17 +1468,11 @@ namespace Azure.NewProject.TypeSpec
         /// This <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/ProtocolMethods.md">protocol method</see> allows explicit creation of the request and processing of the response for advanced scenarios.
         /// </description>
         /// </item>
-        /// <item>
-        /// <description>
-        /// Please try the simpler <see cref="StillConvenientValueAsync(CancellationToken)"/> convenience overload with strongly typed models first.
-        /// </description>
-        /// </item>
         /// </list>
         /// </summary>
         /// <param name="context"> The request context, which can override default behaviors of the client pipeline on a per-call basis. </param>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='StillConvenientAsync(RequestContext)']/*" />
         internal virtual async Task<Response> StillConvenientAsync(RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("NewProjectTypeSpecClient.StillConvenient");
@@ -1509,17 +1497,11 @@ namespace Azure.NewProject.TypeSpec
         /// This <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/ProtocolMethods.md">protocol method</see> allows explicit creation of the request and processing of the response for advanced scenarios.
         /// </description>
         /// </item>
-        /// <item>
-        /// <description>
-        /// Please try the simpler <see cref="StillConvenientValue(CancellationToken)"/> convenience overload with strongly typed models first.
-        /// </description>
-        /// </item>
         /// </list>
         /// </summary>
         /// <param name="context"> The request context, which can override default behaviors of the client pipeline on a per-call basis. </param>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/NewProjectTypeSpecClient.xml" path="doc/members/member[@name='StillConvenient(RequestContext)']/*" />
         internal virtual Response StillConvenient(RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("NewProjectTypeSpecClient.StillConvenient");
@@ -1613,7 +1595,7 @@ namespace Azure.NewProject.TypeSpec
             return message;
         }
 
-        internal HttpMessage CreateAddTimeHeaderRequest(DateTimeOffset? repeatabilityFirstSent, RequestContext context)
+        internal HttpMessage CreateAddTimeHeaderRequest(RequestContext context)
         {
             var message = _pipeline.CreateMessage(context, ResponseClassifier204);
             var request = message.Request;
@@ -1624,10 +1606,7 @@ namespace Azure.NewProject.TypeSpec
             uri.AppendQuery("api-version", _apiVersion, true);
             request.Uri = uri;
             request.Headers.Add("Accept", "application/json");
-            if (repeatabilityFirstSent != null)
-            {
-                request.Headers.Add("Repeatability-First-Sent", repeatabilityFirstSent.Value, "R");
-            }
+            request.Headers.Add("Repeatability-First-Sent", DateTimeOffset.Now, "R");
             return message;
         }
 

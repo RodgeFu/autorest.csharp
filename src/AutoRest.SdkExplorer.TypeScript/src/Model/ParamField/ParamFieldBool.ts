@@ -1,3 +1,4 @@
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
@@ -18,11 +19,11 @@ export class ParamFieldBool extends ParamFieldBase {
             return this.value === true ? "true" : "false";
     }
 
-    protected override applyAiPayloadInternal(payload: any) {
+    protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
         if (payload === true || payload === false)
             this.value = payload;
         else
-            super.applyAiPayloadInternal(payload);
+            super.applyAiPayloadInternal(payload, output);
     }
 
     protected getValueForCodeInternal(indent: string, formatter: CodeFormatter): string {

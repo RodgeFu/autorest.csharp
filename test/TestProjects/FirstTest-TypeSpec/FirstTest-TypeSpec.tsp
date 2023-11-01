@@ -111,12 +111,37 @@ model Thing {
 
     @doc("description with xml <|endoftext|>")
     requiredBadDescription: string;
+
+    @doc("optional nullable collection")
+    optionalNullableList?: int32[] | null;
+
+    @doc("required nullable collection")
+    requiredNullableList: int32[] | null;
+}
+
+@doc("A model with a few required nullable properties")
+model ModelWithRequiredNullableProperties {
+    @doc("required nullable primitive type")
+    requiredNullablePrimitive: int32 | null;
+
+    @doc("required nullable extensible enum type")
+    requiredExtensibleEnum: StringExtensibleEnum | null;
+
+    @doc("required nullable fixed enum type")
+    requiredFixedEnum: StringFixedEnum | null;
 }
 
 @doc("this is not a friendly model but with a friendly name")
 @friendlyName("Friend")
 model NotFriend {
     @doc("name of the NotFriend")
+    name: string;
+}
+
+@doc("this is a model with a projected name")
+@projectedName("client", "ProjectedModel")
+model ModelWithProjectedName {
+    @doc("name of the ModelWithProjectedName")
     name: string;
 }
 
@@ -183,6 +208,9 @@ model RoundTripModel {
     @doc("optional readonly record of unknown")
     @visibility("read")
     readOnlyOptionalRecordUnknown?: Record<unknown>;
+
+    @doc("this is a model with required nullable properties")
+    modelWithRequiredNullable: ModelWithRequiredNullableProperties;
 }
 
 enum DaysOfWeekExtensibleEnum {
@@ -298,6 +326,19 @@ op addTimeHeader(
 @convenientAPI(true)
 op stringFormat(@path @format("uuid") subscriptionId: string, @body body: ModelWithFormat): void;
 
+
+@route("/projectedName")
+@doc("Model can have its projected name")
+@post
+@convenientAPI(true)
+op projectedNameModel(...ModelWithProjectedName): ModelWithProjectedName;
+
+@route("/retunsAnonymousModel")
+@doc("return anonymous model")
+@post
+@convenientAPI(true)
+op returnsAnonymousModel(): {};
+
 namespace EnumTest {
     @get
     @route("/unknown-value")
@@ -320,3 +361,48 @@ namespace ProtocolAndConvenient {
     @protocolAPI(false)
     op stillConvenient(): void;
 }
+
+@route("/headAsBoolean")
+@doc("head as boolean.")
+@head
+@convenientAPI(true)
+op headAsBoolean(@path id: string): void;
+
+
+@route("/stringBody")
+@doc("The body parameter type is string.")
+@put
+@convenientAPI(true)
+op stringBody(@body body: string): void;
+
+
+@route("/boolBody")
+@doc("The body parameter type is bool.")
+@put
+@convenientAPI(true)
+op boolBody(@body body: boolean): void;
+
+
+@route("/dateTimeBody")
+@doc("The body parameter type is datetime.")
+@put
+@convenientAPI(true)
+op dateTimeBody(@body body: utcDateTime): void;
+
+
+@route("/returnString")
+@doc("The return type is datetime.")
+@put
+@convenientAPI(true)
+op returnString(): string;
+
+@route("/returnUnknown")
+@put
+@convenientAPI(true)
+op returnUnknown(
+): {
+  @statusCode statusCode: 200;
+  @body
+  body: unknown;
+};
+

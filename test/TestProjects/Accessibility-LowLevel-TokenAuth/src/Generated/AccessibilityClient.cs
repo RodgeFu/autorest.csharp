@@ -36,19 +36,19 @@ namespace Accessibility_LowLevel_TokenAuth
         /// <summary> Initializes a new instance of AccessibilityClient. </summary>
         /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="credential"/> is null. </exception>
-        public AccessibilityClient(TokenCredential credential) : this(credential, new Uri("http://localhost:3000"), new AccessibilityClientOptions())
+        public AccessibilityClient(TokenCredential credential) : this(new Uri("http://localhost:3000"), credential, new AccessibilityClientOptions())
         {
         }
 
         /// <summary> Initializes a new instance of AccessibilityClient. </summary>
-        /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="endpoint"> server parameter. </param>
+        /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="options"> The options for configuring the client. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="credential"/> or <paramref name="endpoint"/> is null. </exception>
-        public AccessibilityClient(TokenCredential credential, Uri endpoint, AccessibilityClientOptions options)
+        /// <exception cref="ArgumentNullException"> <paramref name="endpoint"/> or <paramref name="credential"/> is null. </exception>
+        public AccessibilityClient(Uri endpoint, TokenCredential credential, AccessibilityClientOptions options)
         {
-            Argument.AssertNotNull(credential, nameof(credential));
             Argument.AssertNotNull(endpoint, nameof(endpoint));
+            Argument.AssertNotNull(credential, nameof(credential));
             options ??= new AccessibilityClientOptions();
 
             ClientDiagnostics = new ClientDiagnostics(options, true);
@@ -72,7 +72,7 @@ namespace Accessibility_LowLevel_TokenAuth
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
         /// <include file="Docs/AccessibilityClient.xml" path="doc/members/member[@name='OperationAsync(RequestContent,RequestContext)']/*" />
-        public virtual async Task<Response> OperationAsync(RequestContent content, RequestContext context)
+        public virtual async Task<Response> OperationAsync(RequestContent content, RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("AccessibilityClient.Operation");
             scope.Start();
@@ -103,7 +103,7 @@ namespace Accessibility_LowLevel_TokenAuth
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
         /// <include file="Docs/AccessibilityClient.xml" path="doc/members/member[@name='Operation(RequestContent,RequestContext)']/*" />
-        public virtual Response Operation(RequestContent content, RequestContext context)
+        public virtual Response Operation(RequestContent content, RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("AccessibilityClient.Operation");
             scope.Start();
@@ -133,8 +133,7 @@ namespace Accessibility_LowLevel_TokenAuth
         /// <param name="context"> The request context, which can override default behaviors of the client pipeline on a per-call basis. </param>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/AccessibilityClient.xml" path="doc/members/member[@name='OperationInternalAsync(RequestContent,RequestContext)']/*" />
-        internal virtual async Task<Response> OperationInternalAsync(RequestContent content, RequestContext context)
+        internal virtual async Task<Response> OperationInternalAsync(RequestContent content, RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("AccessibilityClient.OperationInternal");
             scope.Start();
@@ -164,8 +163,7 @@ namespace Accessibility_LowLevel_TokenAuth
         /// <param name="context"> The request context, which can override default behaviors of the client pipeline on a per-call basis. </param>
         /// <exception cref="RequestFailedException"> Service returned a non-success status code. </exception>
         /// <returns> The response returned from the service. </returns>
-        /// <include file="Docs/AccessibilityClient.xml" path="doc/members/member[@name='OperationInternal(RequestContent,RequestContext)']/*" />
-        internal virtual Response OperationInternal(RequestContent content, RequestContext context)
+        internal virtual Response OperationInternal(RequestContent content, RequestContext context = null)
         {
             using var scope = ClientDiagnostics.CreateScope("AccessibilityClient.OperationInternal");
             scope.Start();

@@ -9,7 +9,6 @@ using System.Linq;
 using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
-using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Input.Source;
 using AutoRest.CSharp.Output.Builders;
 using AutoRest.CSharp.Output.Models.Shared;
@@ -30,7 +29,7 @@ namespace AutoRest.CSharp.Output.Models.Types
         public IReadOnlyList<Parameter> SerializationParameters { get; }
         public int Count => _fields.Count;
 
-        public ModelTypeProviderFields(InputModelType inputModel, TypeFactory typeFactory, ModelTypeMapping? sourceTypeMapping)
+        public ModelTypeProviderFields(InputModelType inputModel, CSharpType modelType, TypeFactory typeFactory, ModelTypeMapping? sourceTypeMapping)
         {
             var fields = new List<FieldDeclaration>();
             var fieldsToInputs = new Dictionary<FieldDeclaration, InputModelProperty>();
@@ -42,7 +41,7 @@ namespace AutoRest.CSharp.Output.Models.Types
 
             foreach (var inputModelProperty in inputModel.Properties)
             {
-                var originalFieldName = inputModelProperty.Name.ToCleanName();
+                var originalFieldName = BuilderHelpers.DisambiguateName(modelType, inputModelProperty.Name.ToCleanName(), "Property");
                 var propertyType = GetPropertyDefaultType(inputModel.Usage, inputModelProperty, typeFactory);
 
                 // We represent property being optional by making it nullable (when it is a value type)
@@ -89,7 +88,7 @@ namespace AutoRest.CSharp.Output.Models.Types
                         continue;
                     }
                     var isReadOnly = IsReadOnly(serializationMapping.ExistingMember);
-                    var inputModelProperty = new InputModelProperty(serializationMapping.ExistingMember.Name, serializationMapping.SerializationPath?.Last(), "to be removed by post process", InputPrimitiveType.Object, false, isReadOnly, false);
+                    var inputModelProperty = new InputModelProperty(serializationMapping.ExistingMember.Name, serializationMapping.SerializationPath?.Last() ?? serializationMapping.ExistingMember.Name, "to be removed by post process", InputPrimitiveType.Object, false, isReadOnly, false);
                     // we put the original type typeof(object) here as fallback. We do not really care about what type we get here, just to ensure there is a type generated
                     // therefore the top type here is reasonable
                     // the serialization will be generated for this type and it might has issues if the type is not recognized properly.
@@ -116,21 +115,41 @@ namespace AutoRest.CSharp.Output.Models.Types
         public IEnumerator<FieldDeclaration> GetEnumerator() => _fields.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        private static bool ShouldPropertyOmitSetter(InputModelType inputModel, InputModelProperty property, CSharpType type)
+        {
+            if (property.IsDiscriminator)
+            {
+                // discriminator properties should be writeable because we need to set values to the discriminators in the public ctor of derived classes.
+                return false;
+            }
+            if (property.Type is InputLiteralType && property.IsRequired)
+            {
+                // we should remove the setter of required constant
+                return true;
+            }
+
+            var propertyShouldOmitSetter = !inputModel.Usage.HasFlag(InputModelTypeUsage.Input) || property.IsReadOnly;
+
+            if (TypeFactory.IsCollectionType(type))
+            {
+                // nullable collection should be settable
+                // one exception is in the property bag, we never let them to be settable.
+                propertyShouldOmitSetter |= !property.Type.IsNullable || inputModel.IsPropertyBag;
+            }
+            else
+            {
+                // In mixed models required properties are not readonly
+                propertyShouldOmitSetter |= property.IsRequired &&
+                                inputModel.Usage.HasFlag(InputModelTypeUsage.Input) &&
+                                !inputModel.Usage.HasFlag(InputModelTypeUsage.Output);
+            }
+
+            return propertyShouldOmitSetter;
+        }
+
         private static FieldDeclaration CreateField(string fieldName, CSharpType originalType, InputModelType inputModel, InputModelProperty inputModelProperty, bool optionalViaNullability)
         {
-            var propertyIsCollection = inputModelProperty.Type is InputDictionaryType or InputListType ||
-                // This is a temporary work around as we don't convert collection type to InputListType or InputDictionaryType in MPG for now
-                inputModelProperty.Type is CodeModelType type && (type.Schema is ArraySchema or DictionarySchema);
-            var propertyIsRequiredInNonRoundTripModel = inputModel.Usage is InputModelTypeUsage.Input or InputModelTypeUsage.Output && inputModelProperty.IsRequired;
-            var propertyIsOptionalInOutputModel = inputModel.Usage is InputModelTypeUsage.Output && !inputModelProperty.IsRequired;
-            var propertyIsLiteralType = inputModelProperty.Type is InputLiteralType;
-            var propertyIsDiscriminator = inputModelProperty.IsDiscriminator;
-            var propertyShouldOmitSetter = !propertyIsDiscriminator && // if a property is a discriminator, it should always has its setter
-                (inputModelProperty.IsReadOnly || // a property will not have setter when it is readonly
-                (propertyIsLiteralType && inputModelProperty.IsRequired) || // a property will not have setter when it is required literal type
-                propertyIsCollection || // a property will not have setter when it is a collection
-                propertyIsRequiredInNonRoundTripModel || // a property will explicitly omit its setter when it is useless
-                propertyIsOptionalInOutputModel); // a property will explicitly omit its setter when it is useless
+            var propertyShouldOmitSetter = ShouldPropertyOmitSetter(inputModel, inputModelProperty, originalType);
 
             var valueType = originalType;
             if (optionalViaNullability)
@@ -140,7 +159,7 @@ namespace AutoRest.CSharp.Output.Models.Types
 
             FieldModifiers fieldModifiers;
             FieldModifiers? setterModifiers = null;
-            if (propertyIsDiscriminator)
+            if (inputModelProperty.IsDiscriminator)
             {
                 fieldModifiers = Configuration.PublicDiscriminatorProperty ? Public : Internal;
                 setterModifiers = Configuration.PublicDiscriminatorProperty ? Internal | Protected : null;
@@ -162,7 +181,7 @@ namespace AutoRest.CSharp.Output.Models.Types
                 declaration,
                 GetPropertyDefaultValue(originalType, inputModelProperty),
                 inputModelProperty.IsRequired,
-                inputModelProperty.SerializationFormat,
+                SerializationBuilder.GetSerializationFormat(inputModelProperty.Type, valueType),
                 OptionalViaNullability: optionalViaNullability,
                 IsField: false,
                 WriteAsProperty: true,
@@ -202,7 +221,7 @@ namespace AutoRest.CSharp.Output.Models.Types
                 Declaration: declaration,
                 DefaultValue: GetPropertyDefaultValue(originalType, inputModelProperty),
                 IsRequired: inputModelProperty.IsRequired,
-                SerializationFormat: inputModelProperty.SerializationFormat,
+                SerializationBuilder.GetSerializationFormat(inputModelProperty.Type, valueType),
                 IsField: existingMember is IFieldSymbol,
                 WriteAsProperty: writeAsProperty,
                 OptionalViaNullability: optionalViaNullability,

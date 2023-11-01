@@ -9,6 +9,7 @@ import { ParamFieldFactory, ParamFieldType } from "./ParamFieldFactory";
 import { ExampleDesc } from "../Example/ExampleDesc";
 import { AiArrayParamDesc } from "../Ai/FunctionParameter/AiArrayParamDesc";
 import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 
 export class ParamFieldArray extends ParamFieldBase {
 
@@ -149,7 +150,7 @@ export class ParamFieldArray extends ParamFieldBase {
         return `Array${index}`;
     }
 
-    protected override applyAiPayloadInternal(payload: any) {
+    protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
         if (!Array.isArray(payload)) {
             console.error("Unexpected payload for array, ignore it. :\n" + payload);
             this.valueAsArray = [];
@@ -162,7 +163,7 @@ export class ParamFieldArray extends ParamFieldBase {
                     let itemName = this.generateItemName(i);
                     let r = ParamFieldFactory.createParamField(itemName, this.arrayType, this,
                         { isReadonly: false, isRequired: false, serializerPath: itemName, parameterOwner: this.parameterOwner, idPrefix: this.idPrefix });
-                    r.applyAiPayload(v);
+                    r.applyAiPayload(v, output);
                     return r;
                 })
                 this.valueAsArray = arr;

@@ -15,6 +15,7 @@ import { AiChatSession } from "../Ai/AiChatSession";
 import { AiFunctionCall } from "../Ai/AiFunctionCall";
 import { AiFunctionDefinition } from "../Ai/AiFunctionDefinition";
 import { AzureResourceType } from "../Azure/AzureResourceType";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 
 export class CodeGenApiStep {
 
@@ -172,7 +173,7 @@ export class CodeGenApiStep {
         });
         exampleDescs.forEach(ex => {
             const fields = this.generateFields();
-            ParamFieldBase.applyExample(ex, fields);
+            ParamFieldBase.applyExample(ex, fields, "{subscription-id}", "{resource-group-name}");
             var payload = ParamFieldBase.generateAiPayload(fields);
 
             this.aiTrainMessages.push(
@@ -222,8 +223,8 @@ export class CodeGenApiStep {
         return ParamFieldBase.generateAiPayload(fields);
     }
 
-    public applyAiPayload(payload: any) {
-        return ParamFieldBase.applyAiPayload(this.paramFields, payload);
+    public applyAiPayload(payload: any, output : AiPayloadApplyOutput) {
+        return ParamFieldBase.applyAiPayload(this.paramFields, payload, output);
     }
 
     public generateAiFunctionCall() {

@@ -56,6 +56,7 @@ namespace PetStore
             _apiVersion = options.Version;
         }
 
+        // The convenience method is omitted here because it has exactly the same parameter list as the corresponding protocol method
         /// <summary>
         /// [Protocol Method] delete.
         /// <list type="bullet">
@@ -87,6 +88,7 @@ namespace PetStore
             }
         }
 
+        // The convenience method is omitted here because it has exactly the same parameter list as the corresponding protocol method
         /// <summary>
         /// [Protocol Method] delete.
         /// <list type="bullet">
@@ -221,7 +223,8 @@ namespace PetStore
             Argument.AssertNotNull(pet, nameof(pet));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = await CreateAsync(pet.ToRequestContent(), context).ConfigureAwait(false);
+            using RequestContent content = pet.ToRequestContent();
+            Response response = await CreateAsync(content, context).ConfigureAwait(false);
             return Response.FromValue(Pet.FromResponse(response), response);
         }
 
@@ -234,7 +237,8 @@ namespace PetStore
             Argument.AssertNotNull(pet, nameof(pet));
 
             RequestContext context = FromCancellationToken(cancellationToken);
-            Response response = Create(pet.ToRequestContent(), context);
+            using RequestContent content = pet.ToRequestContent();
+            Response response = Create(content, context);
             return Response.FromValue(Pet.FromResponse(response), response);
         }
 

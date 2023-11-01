@@ -80,6 +80,7 @@ export * from "./src/Model/Ai/FunctionParameter/AiDictParamDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiEnumParamDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiObjectParamDesc"
 export * from "./src/Model/Ai/FunctionParameter/AiParamDesc"
+export * from "./src/Model/Ai/FunctionParameter/AiPayloadApplyOutput"
 export * from "./src/Model/Ai/AiChatMessage";
 export * from "./src/Model/Ai/AiFunctionDefinition";
 export * from "./src/Model/Ai/AiFunctionCall";

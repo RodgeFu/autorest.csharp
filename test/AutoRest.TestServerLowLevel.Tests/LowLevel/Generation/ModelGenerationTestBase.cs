@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.Generation.Types;
-using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Output.Models.Types;
 using NUnit.Framework;
 
@@ -20,19 +19,19 @@ namespace AutoRest.CSharp.Generation.Writers.Tests
 
         internal static readonly InputModelProperty RequiredIntProperty = new InputModelProperty("requiredInt", "requiredInt", "Required int, illustrating a value type property.", InputPrimitiveType.Int32, true, false, false);
 
-        internal static readonly InputModelProperty RequiredStringListProperty = new InputModelProperty("requiredStringList", "requiredStringList", "Required collection of strings, illustrating a collection of reference types.", new InputListType("requiredStringList", InputPrimitiveType.String), true, false, false);
+        internal static readonly InputModelProperty RequiredStringListProperty = new InputModelProperty("requiredStringList", "requiredStringList", "Required collection of strings, illustrating a collection of reference types.", new InputListType("requiredStringList", InputPrimitiveType.String, false), true, false, false);
 
-        internal static readonly InputModelProperty RequiredIntListProperty = new InputModelProperty("requiredIntList", "requiredIntList", "Required collection of ints, illustrating a collection of value types.", new InputListType("requiredIntList", InputPrimitiveType.Int32), true, false, false);
+        internal static readonly InputModelProperty RequiredIntListProperty = new InputModelProperty("requiredIntList", "requiredIntList", "Required collection of ints, illustrating a collection of value types.", new InputListType("requiredIntList", InputPrimitiveType.Int32, false), true, false, false);
 
         internal static TypeFactory CadlTypeFactory => new TypeFactory(null);
 
         internal static readonly InputModelType ElementModelType = new InputModelType("SimpleModel", "Cadl.TestServer.ModelCollectionProperties.Models", null, "public",
             "Simple model that will appear in a collection.", InputModelTypeUsage.RoundTrip,
             new List<InputModelProperty> { RequiredStringProperty, RequiredIntProperty },
-            null, new List<InputModelType>(), null, null);
+            null, new List<InputModelType>(), null, null, false);
 
         [OneTimeSetUp]
-        public void init()
+        public void Initialize()
         {
             Configuration.Initialize(
                 outputFolder: "Generated",
@@ -51,6 +50,7 @@ namespace AutoRest.CSharp.Generation.Writers.Tests
                 disablePaginationTopRenaming: false,
                 generateModelFactory: true,
                 publicDiscriminatorProperty: false,
+                deserializeNullCollectionAsNullValue: false,
                 useCoreDataFactoryReplacements: true,
                 modelFactoryForHlc: Array.Empty<string>(),
                 unreferencedTypesHandling: Configuration.UnreferencedTypesHandlingOption.RemoveOrInternalize,
@@ -65,7 +65,9 @@ namespace AutoRest.CSharp.Generation.Writers.Tests
                 shouldTreatBase64AsBinaryData: true,
                 methodsToKeepClientDefaultValue: Array.Empty<string>(),
                 mgmtConfiguration: null,
-                mgmtTestConfiguration: null);
+                mgmtTestConfiguration: null,
+                branded: true,
+                generateTestProject: true);
         }
 
 

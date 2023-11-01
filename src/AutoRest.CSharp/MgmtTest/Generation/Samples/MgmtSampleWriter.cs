@@ -4,10 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
+using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
-using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Models;
 using AutoRest.CSharp.Mgmt.Output;
@@ -15,6 +14,7 @@ using AutoRest.CSharp.MgmtTest.Extensions;
 using AutoRest.CSharp.MgmtTest.Models;
 using AutoRest.CSharp.MgmtTest.Output.Samples;
 using AutoRest.CSharp.Output.Models.Shared;
+using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
@@ -109,7 +109,29 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
             {
                 _writer.Line($"{typeof(Console)}.WriteLine($\"Succeeded\");");
             }
-            else if (result.Type.TryCastResource(out var resource))
+            else
+            {
+                if (result.Type.IsNullable)
+                {
+                    using (_writer.Scope($"if({result.Declaration} == null)"))
+                    {
+                        _writer.Line($"{typeof(Console)}.WriteLine($\"Succeeded with null as result\");");
+                    }
+                    using (_writer.Scope($"else"))
+                    {
+                        WriteNotNullResultHandling(result);
+                    }
+                }
+                else
+                {
+                    WriteNotNullResultHandling(result);
+                }
+            }
+        }
+
+        private void WriteNotNullResultHandling(CodeWriterVariableDeclaration result)
+        {
+            if (result.Type.TryCastResource(out var resource))
             {
                 WriteResourceResultHandling(result, resource);
             }
@@ -204,8 +226,12 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
             _writer.Line();
 
             var resourceName = GetResourceName(extension);
-            _writer.Line($"// this example assumes you already have this {resourceName} created on azure");
-            _writer.Line($"// for more information of creating {resourceName}, please refer to the document of {resourceName}");
+            if (extension is not ArmResourceExtension)
+            {
+                // the method will be available on client directly for ArmResourceExtension's operations, so dont need these comment in that case
+                _writer.Line($"// this example assumes you already have this {resourceName} created on azure");
+                _writer.Line($"// for more information of creating {resourceName}, please refer to the document of {resourceName}");
+            }
             var resourceResult = WriteGetExtension(extension, sample, $"{clientVar.Declaration}");
             var result = WriteSampleOperation(new CodeWriterVariableDeclaration(resourceResult, extension.ArmCoreType), sample);
 
@@ -358,27 +384,46 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
             var returnType = sample.Operation.ReturnType;
             if (returnType.IsGenericType)
             {
-                // an operation with a response
-                var unwrappedReturnType = returnType.Arguments.First();
-                if (unwrappedReturnType.IsGenericType) // if the type inside Response<T> is a generic type, somehow the implicit convert Response<T> => T does not work, we have to explicitly unwrap it
+                // if the type is NullableResponse, there is no implicit convert, so have to explicitly unwrap it
+                if (returnType.IsFrameworkType && returnType.FrameworkType == typeof(NullableResponse<>))
                 {
-                    var valueResponse = new CodeWriterVariableDeclaration("response", returnType);
+                    var unwrappedReturnType = returnType.Arguments.First().WithNullable(true);
+                    var valueResponse = new CodeWriterVariableDeclaration(Configuration.ApiTypes.ResponseParameterName, returnType);
                     _writer.AppendDeclaration(valueResponse).AppendRaw(" = ");
                     // write the method invocation
                     WriteOperationInvocation(instanceVar, parameters, sample);
                     // unwrap the response
                     var valueResult = new CodeWriterVariableDeclaration("result", unwrappedReturnType);
                     _writer.AppendDeclaration(valueResult).AppendRaw(" = ")
-                        .Line($"{valueResponse.Declaration}.Value;");
+                        .Line($"{valueResponse.Declaration}.HasValue ? {valueResponse.Declaration}.Value : null;");
                     return valueResult;
+
                 }
-                else // if it is a type provider type, we could rely on the implicit convert Response<T> => T
+                else
                 {
-                    var valueResult = new CodeWriterVariableDeclaration("result", unwrappedReturnType);
-                    _writer.AppendDeclaration(valueResult).AppendRaw(" = ");
-                    // write the method invocation
-                    WriteOperationInvocation(instanceVar, parameters, sample);
-                    return valueResult;
+                    // an operation with a response
+                    var unwrappedReturnType = returnType.Arguments.First();
+                    // if the type inside Response<T> is a generic type, somehow the implicit convert Response<T> => T does not work, we have to explicitly unwrap it
+                    if (unwrappedReturnType.IsGenericType)
+                    {
+                        var valueResponse = new CodeWriterVariableDeclaration(Configuration.ApiTypes.ResponseParameterName, returnType);
+                        _writer.AppendDeclaration(valueResponse).AppendRaw(" = ");
+                        // write the method invocation
+                        WriteOperationInvocation(instanceVar, parameters, sample);
+                        // unwrap the response
+                        var valueResult = new CodeWriterVariableDeclaration("result", unwrappedReturnType);
+                        _writer.AppendDeclaration(valueResult).AppendRaw(" = ")
+                            .Line($"{valueResponse.Declaration}.Value;");
+                        return valueResult;
+                    }
+                    else // if it is a type provider type, we could rely on the implicit convert Response<T> => T
+                    {
+                        var valueResult = new CodeWriterVariableDeclaration("result", unwrappedReturnType);
+                        _writer.AppendDeclaration(valueResult).AppendRaw(" = ");
+                        // write the method invocation
+                        WriteOperationInvocation(instanceVar, parameters, sample);
+                        return valueResult;
+                    }
                 }
             }
             else
@@ -418,6 +463,16 @@ namespace AutoRest.CSharp.MgmtTest.Generation.Samples
                 // some parameters are always inline
                 if (IsInlineParameter(parameter))
                     continue;
+
+                if (sample.Carrier is ArmResourceExtension && parameter.Type.Equals(typeof(ArmResource)))
+                {
+                    // this is an extension operation against ArmResource
+                    // For Extension against ArmResource the operation will be re-formatted to Operation(this ArmClient, ResourceIdentifier scope, ...)
+                    // so insert a scope parameter instead of ArmResource here
+                    var scope = new CodeWriterVariableDeclaration("scope", new CSharpType(typeof(ResourceIdentifier)));
+                    WriteCreateScopeResourceIdentifier(sample, scope.Declaration, sample.RequestPath.GetScopePath());
+                    result.Add(parameter.Name, scope);
+                }
 
                 if (sample.ParameterValueMapping.TryGetValue(parameter.Name, out var parameterValue))
                 {

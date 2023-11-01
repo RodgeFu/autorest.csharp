@@ -184,6 +184,10 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\CollapseRequestCondition-LowLevel\\src\\Generated"
     },
+    "ConfidentLevels-TypeSpec": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\ConfidentLevels-TypeSpec\\src\\Generated -n"
+    },
     "constants": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestServerProjects\\constants\\Generated"
@@ -256,6 +260,10 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestServerProjectsLowLevel\\head\\src\\Generated"
     },
+    "headAsBoolean-typespec-server/path/single": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\server\\path\\single-headAsBoolean\\src\\Generated -n"
+    },
     "HeadAsBooleanTrue": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\HeadAsBooleanTrue\\Generated"
@@ -300,10 +308,6 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestServerProjects\\lro\\Generated"
     },
-    "Lro-Basic-TypeSpec": {
-      "commandName": "Project",
-      "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\Lro-Basic-TypeSpec\\src\\Generated -n"
-    },
     "lro-LowLevel": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestServerProjectsLowLevel\\lro\\src\\Generated"
@@ -323,6 +327,10 @@
     "MediaTypes-TypeSpec": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\MediaTypes-TypeSpec\\src\\Generated -n"
+    },
+    "MgmtAcronymMapping": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\MgmtAcronymMapping\\Generated"
     },
     "MgmtCollectionParent": {
       "commandName": "Project",
@@ -428,10 +436,6 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\MgmtReferenceTypes\\Generated"
     },
-    "MgmtRenameRules": {
-      "commandName": "Project",
-      "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\MgmtRenameRules\\Generated"
-    },
     "MgmtResourceName": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\MgmtResourceName\\Generated"
@@ -504,6 +508,10 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestServerProjects\\non-string-enum\\Generated"
     },
+    "NoTest-TypeSpec": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\UnbrandedProjects\\NoTest-TypeSpec\\src\\Generated -n"
+    },
     "object-type": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestServerProjects\\object-type\\Generated"
@@ -540,6 +548,10 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\PetStore-TypeSpec\\src\\Generated -n"
     },
+    "Platform-OpenAI-TypeSpec": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\UnbrandedProjects\\Platform-OpenAI-TypeSpec\\src\\Generated -n"
+    },
     "ProtocolMethodsInRestClient": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\ProtocolMethodsInRestClient\\Generated"
@@ -572,9 +584,9 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\SecurityDefinition-LowLevel\\src\\Generated"
     },
-    "ServiceVersionOverride": {
+    "ServiceVersionOverride-LowLevel": {
       "commandName": "Project",
-      "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\ServiceVersionOverride\\src\\Generated"
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\TestProjects\\ServiceVersionOverride-LowLevel\\src\\Generated"
     },
     "SingleTopLevelClientWithOperations-LowLevel": {
       "commandName": "Project",
@@ -616,17 +628,45 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\authentication\\union\\src\\Generated -n"
     },
-    "typespec-azure/client-generator-core/internal": {
+    "typespec-azure/client-generator-core/access": {
       "commandName": "Project",
-      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\azure\\client-generator-core\\internal\\src\\Generated -n"
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\azure\\client-generator-core\\access\\src\\Generated -n"
+    },
+    "typespec-azure/client-generator-core/usage": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\azure\\client-generator-core\\usage\\src\\Generated -n"
     },
     "typespec-azure/core/basic": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\azure\\core\\basic\\src\\Generated -n"
     },
+    "typespec-azure/core/lro/rpc-legacy": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\azure\\core\\lro\\rpc-legacy\\src\\Generated -n"
+    },
+    "typespec-azure/core/lro/standard": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\azure\\core\\lro\\standard\\src\\Generated -n"
+    },
     "typespec-azure/core/traits": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\azure\\core\\traits\\src\\Generated -n"
+    },
+    "typespec-client/structure/default": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\client\\structure\\default\\src\\Generated -n"
+    },
+    "typespec-client/structure/multi-client": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\client\\structure\\multi-client\\src\\Generated -n"
+    },
+    "typespec-client/structure/renamed-operation": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\client\\structure\\renamed-operation\\src\\Generated -n"
+    },
+    "typespec-client/structure/two-operation-group": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\client\\structure\\two-operation-group\\src\\Generated -n"
     },
     "typespec-encode/bytes": {
       "commandName": "Project",
@@ -640,6 +680,10 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\encode\\duration\\src\\Generated -n"
     },
+    "typespec-parameters/body-optionality": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\parameters\\body-optionality\\src\\Generated -n"
+    },
     "typespec-parameters/collection-format": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\parameters\\collection-format\\src\\Generated -n"
@@ -647,6 +691,14 @@
     "typespec-parameters/spread": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\parameters\\spread\\src\\Generated -n"
+    },
+    "typespec-payload/content-negotiation": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\payload\\content-negotiation\\src\\Generated -n"
+    },
+    "typespec-payload/pageable": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\payload\\pageable\\src\\Generated -n"
     },
     "typespec-projection/projected-name": {
       "commandName": "Project",
@@ -659,6 +711,18 @@
     "typespec-server/path/single": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\server\\path\\single\\src\\Generated -n"
+    },
+    "typespec-special-headers/client-request-id": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\special-headers\\client-request-id\\src\\Generated -n"
+    },
+    "typespec-special-headers/conditional-request": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\special-headers\\conditional-request\\src\\Generated -n"
+    },
+    "typespec-special-headers/repeatability": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\special-headers\\repeatability\\src\\Generated -n"
     },
     "typespec-special-words": {
       "commandName": "Project",
@@ -680,6 +744,22 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\enum\\fixed\\src\\Generated -n"
     },
+    "typespec-type/model/empty": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\model\\empty\\src\\Generated -n"
+    },
+    "typespec-type/model/inheritance/enum-discriminator": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\model\\inheritance\\enum-discriminator\\src\\Generated -n"
+    },
+    "typespec-type/model/inheritance/not-discriminated": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\model\\inheritance\\not-discriminated\\src\\Generated -n"
+    },
+    "typespec-type/model/inheritance/single-discriminator": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\model\\inheritance\\single-discriminator\\src\\Generated -n"
+    },
     "typespec-type/model/usage": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\model\\usage\\src\\Generated -n"
@@ -688,13 +768,25 @@
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\property\\nullable\\src\\Generated -n"
     },
-    "typespec-type/property/optional": {
+    "typespec-type/property/optionality": {
       "commandName": "Project",
-      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\property\\optional\\src\\Generated -n"
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\property\\optionality\\src\\Generated -n"
     },
     "typespec-type/property/value-types": {
       "commandName": "Project",
       "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\property\\value-types\\src\\Generated -n"
+    },
+    "typespec-type/scalar": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\scalar\\src\\Generated -n"
+    },
+    "typespec-type/union": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\CadlRanchProjects\\type\\union\\src\\Generated -n"
+    },
+    "Unbranded-TypeSpec": {
+      "commandName": "Project",
+      "commandLineArgs": "--standalone $(SolutionDir)\\test\\UnbrandedProjects\\Unbranded-TypeSpec\\src\\Generated -n"
     },
     "url": {
       "commandName": "Project",

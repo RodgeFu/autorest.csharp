@@ -4,16 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoRest.CSharp.Common.Input;
 using AutoRest.CSharp.Generation.Types;
 using AutoRest.CSharp.Generation.Writers;
 using AutoRest.CSharp.Input;
 using AutoRest.CSharp.Mgmt.AutoRest;
 using AutoRest.CSharp.Mgmt.Decorator;
 using AutoRest.CSharp.Mgmt.Models;
+using AutoRest.CSharp.Mgmt.Report;
 using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Output.Models.Shared;
 using AutoRest.CSharp.Output.Models.Types;
-using AutoRest.CSharp.Utilities;
 using Azure.Core;
 using Azure.ResourceManager;
 using static AutoRest.CSharp.Mgmt.Decorator.ParameterMappingBuilder;
@@ -32,7 +33,7 @@ namespace AutoRest.CSharp.Mgmt.Output
 
         private static readonly Parameter TagKeyParameter = new Parameter(
             "key",
-            "The key for the tag.",
+            $"The key for the tag.",
             typeof(string),
             null,
             ValidationType.AssertNotNull,
@@ -40,7 +41,7 @@ namespace AutoRest.CSharp.Mgmt.Output
 
         private static readonly Parameter TagValueParameter = new Parameter(
             "value",
-            "The value for the tag.",
+            $"The value for the tag.",
             typeof(string),
             null,
             ValidationType.AssertNotNull,
@@ -48,7 +49,7 @@ namespace AutoRest.CSharp.Mgmt.Output
 
         private static readonly Parameter TagSetParameter = new Parameter(
             "tags",
-            "The set of tags to use as replacement.",
+            $"The set of tags to use as replacement.",
             typeof(IDictionary<string, string>),
             null,
             ValidationType.AssertNotNull,
@@ -95,7 +96,7 @@ namespace AutoRest.CSharp.Mgmt.Output
         protected override ConstructorSignature? EnsureArmClientCtor()
         {
             return new ConstructorSignature(
-              Name: Type.Name,
+              Type,
               null,
               Description: $"Initializes a new instance of the <see cref=\"{Type.Name}\"/> class.",
               Modifiers: Internal,
@@ -108,7 +109,7 @@ namespace AutoRest.CSharp.Mgmt.Output
         protected override ConstructorSignature? EnsureResourceDataCtor()
         {
             return new ConstructorSignature(
-                Name: Type.Name,
+                Type,
                 null,
                 Description: $"Initializes a new instance of the <see cref = \"{Type.Name}\"/> class.",
                 Modifiers: Internal,
@@ -162,8 +163,25 @@ namespace AutoRest.CSharp.Mgmt.Output
 
         public virtual Resource GetResource() => this;
 
+        private bool loggedForDefaultName = false;
         // name after `{ResourceName}Resource`, unless the `ResourceName` already ends with `Resource`
-        protected override string DefaultName => Configuration.MgmtConfiguration.NoResourceSuffix.Contains(ResourceName) ? ResourceName : ResourceName.AddResourceSuffixToResourceName();
+        protected override string DefaultName
+        {
+            get
+            {
+                if (Configuration.MgmtConfiguration.NoResourceSuffix.Contains(ResourceName))
+                {
+                    if (!loggedForDefaultName)
+                    {
+                        MgmtReport.Instance.TransformSection.AddTransformLog(new TransformItem(TransformTypeName.NoResourceSuffix, ResourceName), ResourceName, $"NoResourceSuffix for {ResourceName}");
+                        loggedForDefaultName = true;
+                    }
+                    return ResourceName;
+                }
+                else
+                    return ResourceName.AddResourceSuffixToResourceName();
+            }
+        }
 
         public override FormattableString Description => CreateDescription();
 

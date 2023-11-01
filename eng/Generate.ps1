@@ -65,15 +65,20 @@ function Add-TestServer-Swagger ([string]$testName, [string]$projectSuffix, [str
     Add-Swagger "$testName$projectSuffix" $projectDirectory "--require=$configurationPath --try-require=$inputReadme --input-file=$inputFile $additionalArgs --clear-output-folder=true"
 }
 
-function Add-CadlRanch-TypeSpec([string]$testName, [string]$projectPrefix, [string]$cadlRanchProjectsDirectory) {
+function Add-CadlRanch-TypeSpec([string]$testName, [string]$projectPrefix, [string]$cadlRanchProjectsDirectory, [string]$outputProjectDir="") {
     $projectDirectory = Join-Path $cadlRanchProjectsDirectory $testName
+    if ($outputProjectDir -ne "") {
+        $projectDirectory = $outputProjectDir
+    }
     $configFile = Join-Path $projectDirectory "tspconfig.yaml"
     if (Test-Path $configFile) {
         $configString = "--config=$configFile "
     }
     $projectDirectory = Join-Path $projectDirectory "src"
     $tspMain = Join-Path $cadlRanchFilePath $testName "main.tsp"
-    Add-TypeSpec "$projectPrefix$testName" $projectDirectory $tspMain "$configString--option @azure-tools/typespec-csharp.new-project=true" "-n"
+    $clientTsp = Join-Path $cadlRanchFilePath $testName "client.tsp"
+    $mainTypeSpecFile = If (Test-Path $clientTsp) { Resolve-Path $clientTsp } Else { Resolve-Path $tspMain}
+    Add-TypeSpec "$projectPrefix$testName" $projectDirectory $mainTypeSpecFile "$configString--option @azure-tools/typespec-csharp.new-project=true" "-n"
 }
 
 function Get-TypeSpec-Entry([System.IO.DirectoryInfo]$directory) {
@@ -97,7 +102,7 @@ function Get-TypeSpec-Entry([System.IO.DirectoryInfo]$directory) {
         return $projectNamePath
     }
     
-    throw "There is no client.tsp or main.tsp or other tsp file named after project name" 
+    throw "There is no client.tsp or main.tsp or other tsp file named after project name in project $($tspDirectory.Name)" 
 }
 
 $testData = Get-Content $testProjectDataFile -Encoding utf8 -Raw | ConvertFrom-Json
@@ -186,13 +191,21 @@ function Add-TestProjects-Directory($directory) {
     if (Test-Path $tspConfigConfigurationPath) {
         $directoryToUse = $directory
         $launchSettingsArgs = ""
+        $options = ""
         if ($directory.FullName.Contains("\sdk\")) {
             $directoryToUse = $srcFolder
         }
         if ($directory.FullName.Contains(".NewProject.")) {
             $launchSettingsArgs = "-n"
         }
-        Add-TypeSpec $testName $directoryToUse "" "" $launchSettingsArgs
+        if ($directory.FullName.Contains("\UnbrandedProjects\")) {
+            if ($directoryToUse.Name -ne "src") {
+                $directoryToUse = Join-Path $directoryToUse "src"
+            }
+            $launchSettingsArgs = "-n"
+            $options = "--option @azure-tools/typespec-csharp.new-project=true"
+        }
+        Add-TypeSpec $testName $directoryToUse "" $options $launchSettingsArgs
     }
     elseif (Test-Path $readmeConfigurationPath) {
         $testArguments = "--require=$readmeConfigurationPath --clear-output-folder=true"
@@ -216,6 +229,14 @@ if (!($Exclude -contains "TestProjects")) {
     }
 }
 
+if (!($Exclude -contains "UnbrandedProjects")) {
+    # Local test projects
+    $testProjectRoot = Join-Path $repoRoot 'test' 'UnbrandedProjects'
+
+    foreach ($directory in Get-ChildItem $testProjectRoot -Directory) {
+        Add-TestProjects-Directory $directory
+    }
+}
 
 if (!($Exclude -contains "Samples")) {
     $sampleProjectsRoot = Join-Path $repoRoot 'samples'
@@ -257,9 +278,8 @@ if (!($Exclude -contains "CadlRanchProjects")) {
     }
 }
 
-# TODO: remove later after cadl-ranch fixes the discriminator tests
-Add-TypeSpec "inheritance-typespec" (Join-Path $cadlRanchProjectDirectory "inheritance")
-
+# add Head-As-Boolen project
+Add-CadlRanch-TypeSpec "server/path/single" "headAsBoolean-typespec-" $cadlRanchProjectDirectory "$cadlRanchProjectDirectory/server/path/single-headAsBoolean"
 # Smoke tests
 if (!($Exclude -contains "SmokeTests")) {
     foreach ($input in Get-Content (Join-Path $PSScriptRoot "SmokeTestInputs.txt")) {
@@ -308,10 +328,6 @@ foreach ($key in Sort-FileSafe ($testProjectEntries.Keys)) {
         continue;
     }
 
-    # TODO: remove later after candl ranch fixes the discriminator test
-    if ($definition.output.Contains("\CadlRanchProjects\inheritance")) {
-        continue;
-    }
 
     $outputPath = Join-Path $definition.output "Generated"
     if ($key -eq "TypeSchemaMapping") {

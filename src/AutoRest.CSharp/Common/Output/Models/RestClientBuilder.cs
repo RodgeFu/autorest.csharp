@@ -128,11 +128,14 @@ namespace AutoRest.CSharp.Output.Models
         }
 
         private Dictionary<InputParameter, Parameter> GetOperationAllParameters(InputOperation operation)
-        {
-            return operation.Parameters
-                .Where(rp => !IsIgnoredHeaderParameter(rp))
+            => FilterOperationAllParameters(operation.Parameters)
                 .ToDictionary(p => p, parameter => BuildParameter(parameter));
-        }
+
+        public static IEnumerable<InputParameter> FilterOperationAllParameters(IReadOnlyList<InputParameter> parameters)
+            => parameters
+                .Where(rp => !IsIgnoredHeaderParameter(rp))
+                // change the type to constant so that it won't show up in the method signature
+                .Select(p => RequestHeader.IsRepeatabilityRequestHeader(p.NameInRequest) || RequestHeader.IsClientRequestIdHeader(p.NameInRequest) ? p with { Kind = InputOperationParameterKind.Constant } : p);
 
         public static Response[] BuildResponses(InputOperation operation, TypeFactory typeFactory, out CSharpType? responseType)
         {
@@ -193,7 +196,7 @@ namespace AutoRest.CSharp.Output.Models
                         pathParametersMap.Add(parameterName, new PathSegment(reference, escape, serializationFormat, isRaw: false));
                         break;
                     case RequestLocation.Query:
-                        queryParameters.Add(new QueryParameter(parameterName, reference, operationParameter.ArraySerializationDelimiter, escape, serializationFormat, operationParameter.Explode));
+                        queryParameters.Add(new QueryParameter(parameterName, reference, operationParameter.ArraySerializationDelimiter, escape, serializationFormat, operationParameter.Explode, operationParameter.IsApiVersion));
                         break;
                     case RequestLocation.Header:
                         var headerName = operationParameter.HeaderCollectionPrefix ?? parameterName;
@@ -485,7 +488,7 @@ namespace AutoRest.CSharp.Output.Models
         {
             var nextPageUrlParameter = new Parameter(
                 "nextLink",
-                "The URL to the next page of results.",
+                $"The URL to the next page of results.",
                 typeof(string),
                 DefaultValue: null,
                 ValidationType.AssertNotNull,
@@ -548,7 +551,7 @@ namespace AutoRest.CSharp.Output.Models
             {
                 var credentialParam = new Parameter(
                     "credential",
-                    "A credential used to authenticate to an Azure Service.",
+                    $"A credential used to authenticate to an Azure Service.",
                     credentialType,
                     null,
                     ValidationType.AssertNotNull,
