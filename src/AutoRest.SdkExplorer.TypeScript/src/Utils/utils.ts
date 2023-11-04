@@ -38,6 +38,11 @@ export function escapeHtml(string: string) {
     return _.escape(string);
 }
 
+export function escapeForJsonParse(string: string) {
+    // just handle 3 cases for now, keep adding when needed
+    return string.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t");
+}
+
 export function copyMap<T, P>(src: Map<T, P>): Map<T, P> {
     let r = new Map<T, P>();
     src.forEach((v, k) => r.set(k, v));

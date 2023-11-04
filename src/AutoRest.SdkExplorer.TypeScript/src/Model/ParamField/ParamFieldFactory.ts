@@ -5,6 +5,7 @@ import { ParamFieldArray } from "./ParamFieldArray";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
 import { ParamFieldBinary } from "./ParamFieldBinary";
 import { ParamFieldBool } from "./ParamFieldBool";
+import { ParamFieldConst } from "./ParamFieldConst";
 import { ParamFieldDate } from "./ParamFieldDate";
 import { ParamFieldDictionary } from "./ParamFieldDictionary";
 import { ParamFieldDictionaryItem } from "./ParamFieldDictionaryItem";
@@ -30,13 +31,11 @@ export class ParamFieldFactory {
 
             // handle cancellationtoken and waituntil specially which won't show in portal anyway
             if (["cancellationtoken"].includes(typeName)) {
-                let r = new ParamFieldAny(fieldName, "cancellationtoken", type, parent, params);
-                r.value = "default";
+                let r = new ParamFieldConst(fieldName, "cancellationtoken", type, "default", parent, params);
                 return r;
             }
             else if (["waituntil"].includes(typeName)) {
-                let r = new ParamFieldAny(fieldName, "waituntil", type, parent, params);
-                r.value = "global::Azure.WaitUntil.Completed";
+                let r = new ParamFieldConst(fieldName, "waituntil", type, "global::Azure.WaitUntil.Completed", parent, params);
                 return r;
             }
             else if (typeName === "guid" || typeName === "resourceidentifier" || typeName === "uri" || typeName == "ipaddress") {

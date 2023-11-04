@@ -70,9 +70,11 @@ export class ParamFieldObject extends ParamFieldBase {
                     if (foundKeyIndex >= 0) {
                         let curPayload = payload;
                         for (let seg of arr) {
+                            if (curPayload === undefined)
+                                return;
                             let curKey = Object.keys(curPayload).find(k => this.comparePropertyNameConsiderAI(k, seg));
                             if (curKey !== undefined)
-                                curPayload = curPayload[seg];
+                                curPayload = curPayload[curKey];
                             else
                                 return;
                         }

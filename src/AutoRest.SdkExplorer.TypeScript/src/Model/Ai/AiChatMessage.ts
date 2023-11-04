@@ -1,3 +1,4 @@
+import { escapeForJsonParse } from "../../Utils/utils";
 import { AiFunctionCall } from "./AiFunctionCall";
 
 export type AiChatRole = "system" | "user" | "assistant" | "none";
@@ -17,8 +18,6 @@ export class AiChatMessage implements AutoRest.SdkExplorer.Interface.AiChatMessa
     }
 
     public getAiPayload(checkJsonInContent: boolean = false): any {
-        const START_MARK = "```json";
-        const END_MARK = "```";
         const argObj = this.function_call?.argumentsAsObject;
         if (argObj)
             return argObj;
@@ -28,25 +27,58 @@ export class AiChatMessage implements AutoRest.SdkExplorer.Interface.AiChatMessa
             const r = JSON.parse(tContent)
             if (r !== undefined)
                 return r;
-            if (tContent.indexOf("\\\"")) {
-                const r = JSON.parse(`"${tContent}"`);
+            if (tContent.indexOf("\\\"") >= 0) {
+                const r = JSON.parse(`"${escapeForJsonParse(tContent)}"`);
                 if (r !== undefined)
                     return r;
             }
         }
 
+        // make sure payload in the first group;
+        let embedFormats = [
+            /```json\s*({.+?})\s*```/gis,
+            /```\s*({.+?})\s*```/gis,
+            /\s*({.*subscriptionId.*})\s*/gis
+        ];
+
         if (checkJsonInContent && this.content) {
             const content = this.content;
-            const start = content.indexOf(START_MARK);
-            if (start >= 0) {
-                const end = content.indexOf(END_MARK, start + START_MARK.length);
-                if (end >= 0) {
-                    const jsonPayload = content.substring(start + START_MARK.length, end);
-                    return JSON.parse(jsonPayload);
+
+            for (let e of embedFormats) {
+                let matches = content.matchAll(e);
+                for (let m of matches) {
+                    let payload = m[1];
+                    try {
+                        let r = JSON.parse(payload);
+                        if (r)
+                            return r;
+                    }
+                    catch { }
                 }
+                
             }
         }
+
+        //const START_MARK = "```json";
+        //const END_MARK = "```";
+        //if (checkJsonInContent && this.content) {
+        //    const content = this.content;
+        //    const start = content.indexOf(START_MARK);
+        //    if (start >= 0) {
+        //        const end = content.indexOf(END_MARK, start + START_MARK.length);
+        //        if (end >= 0) {
+        //            const jsonPayload = content.substring(start + START_MARK.length, end);
+        //            return JSON.parse(jsonPayload);
+        //        }
+        //    }
+        //}
+
+
         return undefined;
+    }
+
+    private extractAiPayload(content: string, startMark: string, endMark: string) {
+
     }
 
     public static createMessageWithContent(role: AiChatRole, content: string): AiChatMessage {

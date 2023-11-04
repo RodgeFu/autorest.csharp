@@ -501,6 +501,8 @@ export abstract class ParamFieldBase {
     }
 
     protected getPendingUserInputs(fieldValue: any): string[] {
+        if (fieldValue === undefined || fieldValue === null)
+            return [];
         let strValue: string = fieldValue.toString() ?? "";
         let m = strValue.match(/{[^{}\n]+?}/g);
         if (m && m.length > 0) {
