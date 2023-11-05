@@ -16,10 +16,13 @@ import { AiFunctionCall } from "../Ai/AiFunctionCall";
 import { AiFunctionDefinition } from "../Ai/AiFunctionDefinition";
 import { AzureResourceType } from "../Azure/AzureResourceType";
 import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
+import { now } from "underscore";
+import moment from "moment";
 
 export class CodeGenApiStep {
 
     constructor(public stepName: string, public apiDesc: ApiDesc, public comment: string = "", masterStep?: CodeGenApiStep, defaultFunctionReturnVarName?: string) {
+        this._aiFunctionName = `function_${(new Date()).getTime()}`;
         this._masterStep = masterStep;
         this._relatedAzureResourceType = this.apiDesc.operationProviderAzureResourceType ? [this.apiDesc.operationProviderAzureResourceType] : [];
         this.resetFields();
@@ -29,8 +32,10 @@ export class CodeGenApiStep {
 
     public aiFullFunctionDefinition?: AiFunctionDefinition;
     public aiTrainMessages: AiChatMessage[] = [];
+    private _aiFunctionName: string;
     public get aiFunctionName(): string {
-        return this.apiDesc.swaggerOperationId;
+        //return this.apiDesc.swaggerOperationId;
+        return this._aiFunctionName;
     }
     public defaultFunctionReturnVarName: string;
 

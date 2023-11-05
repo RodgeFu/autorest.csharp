@@ -3,12 +3,19 @@ import { MessageItem } from "../../Utils/messageItem";
 import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
+import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { SchemaEnumValue } from "../Schema/SchemaEnumValue";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
 import { ParamFieldType } from "./ParamFieldFactory";
 
 
 export class ParamFieldEnum extends ParamFieldBase {
+
+    private static ENUM_DEFAULT_VALUE: SchemaEnumValue = new SchemaEnumValue({
+        value: "default",
+        description: "",
+        internalValue: "default"
+    });
 
     public set valueAsString(value: string | undefined) {
         // some example has space in region like West US;
@@ -46,7 +53,7 @@ export class ParamFieldEnum extends ParamFieldBase {
     }
 
     public get enumValues(): SchemaEnumValue[] {
-        return this.type.schemaEnum?.values ?? [];
+        return [ParamFieldEnum.ENUM_DEFAULT_VALUE, ...(this.type.schemaEnum?.values ?? [])];
     }
 
     private normalizeEnumValue(v: string | undefined): string | undefined {
@@ -64,11 +71,7 @@ export class ParamFieldEnum extends ParamFieldBase {
     public override getDefaultValueWhenNotNull(): any {
         if (!this.enumValues || this.enumValues.length === 0) {
             logError("No enum value available for " + this.fieldName);
-            return new SchemaEnumValue({
-                value: "default",
-                description: "",
-                internalValue: "default"
-            })
+            return ParamFieldEnum.ENUM_DEFAULT_VALUE;
         }
         return this.enumValues[0];
     }

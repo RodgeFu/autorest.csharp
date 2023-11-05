@@ -38,10 +38,52 @@ export function escapeHtml(string: string) {
     return _.escape(string);
 }
 
-export function escapeForJsonParse(string: string) {
-    // just handle 3 cases for now, keep adding when needed
-    return string.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t");
+export function tryJsonToObj(str: string | undefined) {
+    str = str?.trim();
+    if (!str || str.length === 0)
+        return undefined;
+
+    // trim starting and ending whitespace and "
+    // make sure the string starts and ends with {}
+    let m = str.match(/^\s*"?\s*({.*})\s*"?\s*$/is);
+    if (!m || m.length < 2)
+        return undefined;
+    str = m[1];
+
+    let r = jsonStringToObj(str);
+    if (r)
+        return r;
+    if (str.indexOf("\\\"") >= 0) {
+        r = jsonEscapedStringToObj(str);
+        if (r)
+            return r;
+    }
+    return undefined;
 }
+
+export function jsonEscapedStringToObj(jsonEscapedString: string) {
+    let ori = jsonEscapedString;
+    // just handle 3 cases for now, keep adding when needed
+    jsonEscapedString = jsonEscapedString.replace(/\\n/g, "\\\\n").replace(/\\r/g, "\\\\r").replace(/\\t/g, "\\\\t");
+    let jsonString = JSON.parse(`"${jsonEscapedString}"`);
+    return jsonStringToObj(jsonString);
+}
+
+export function jsonStringToObj(jsonString: string) : any {
+    // handle extra comma
+    let ori = jsonString;
+    jsonString = jsonString.replaceAll(/,\s*?([}\]])/gis, (sub, args) => {
+        return sub.substring(1);
+    });
+    try {
+        return JSON.parse(jsonString);
+    }
+    catch (error) {
+        console.warn("fail to parse json: \n" + ori);
+        return undefined;
+    }
+}
+
 
 export function copyMap<T, P>(src: Map<T, P>): Map<T, P> {
     let r = new Map<T, P>();
@@ -136,7 +178,6 @@ export function diffObjects(baseObject: any, newObject: any, path: string, log: 
 export function distinctArray(arr: any[]) {
     return arr.filter((value, index, array) => array.indexOf(value) === index);
 }
-
 
 export const DATE_FORMAT: string = "YYYY-MM-DDTHH:mm:ss.SSS";
 export const TIME_FORMAT: string = "HH:mm:ss.SSS";

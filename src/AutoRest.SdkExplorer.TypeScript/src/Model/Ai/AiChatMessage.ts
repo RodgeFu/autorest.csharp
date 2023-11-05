@@ -1,4 +1,4 @@
-import { escapeForJsonParse } from "../../Utils/utils";
+import { tryJsonToObj } from "../../Utils/utils";
 import { AiFunctionCall } from "./AiFunctionCall";
 
 export type AiChatRole = "system" | "user" | "assistant" | "none";
@@ -21,22 +21,28 @@ export class AiChatMessage implements AutoRest.SdkExplorer.Interface.AiChatMessa
         const argObj = this.function_call?.argumentsAsObject;
         if (argObj)
             return argObj;
-        // if content only contains json payload, consider it as func_call.arguments too
+
         const tContent = this.content?.trim();
-        if (tContent && tContent.startsWith("{") && tContent.endsWith("}")) {
-            const r = JSON.parse(tContent)
-            if (r !== undefined)
-                return r;
-            if (tContent.indexOf("\\\"") >= 0) {
-                const r = JSON.parse(`"${escapeForJsonParse(tContent)}"`);
-                if (r !== undefined)
-                    return r;
-            }
-        }
+        let r = tryJsonToObj(tContent);
+        if (r)
+            return r;
+
+        //// if content only contains json payload, consider it as func_call.arguments too
+        //if (tContent && tContent.startsWith("{") && tContent.endsWith("}")) {
+        //    const r = jsonStringToObj(tContent)
+        //    if (r !== undefined)
+        //        return r;
+        //    if (tContent.indexOf("\\\"") >= 0) {
+        //        const r = jsonEscapedStringToObj(tContent);
+        //        if (r !== undefined)
+        //            return r;
+        //    }
+        //}
 
         // make sure payload in the first group;
         let embedFormats = [
             /```json\s*({.+?})\s*```/gis,
+            /```javascript\s*({.+?})\s*```/gis,
             /```\s*({.+?})\s*```/gis,
             /\s*({.*subscriptionId.*})\s*/gis
         ];
@@ -49,7 +55,7 @@ export class AiChatMessage implements AutoRest.SdkExplorer.Interface.AiChatMessa
                 for (let m of matches) {
                     let payload = m[1];
                     try {
-                        let r = JSON.parse(payload);
+                        let r = tryJsonToObj(payload);
                         if (r)
                             return r;
                     }

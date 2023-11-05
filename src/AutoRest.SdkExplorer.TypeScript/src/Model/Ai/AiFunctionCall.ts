@@ -1,3 +1,4 @@
+import { tryJsonToObj } from "../../Utils/utils";
 
 export class AiFunctionCall implements AutoRest.SdkExplorer.Interface.AiFunctionCall {
     name?: string;
@@ -12,22 +13,23 @@ export class AiFunctionCall implements AutoRest.SdkExplorer.Interface.AiFunction
     public get argumentsAsObject(): any {
         if (!this.arguments)
             return undefined;
-        try {
-            var obj = JSON.parse(this.arguments);
-            return obj;
-        }
-        catch
-        {
-            try {
-                var jsonString = JSON.parse(`"${this.arguments}"`);
-                var obj = JSON.parse(jsonString);
-                return obj;
-            }
-            catch {
-                console.warn("unexpected error when converting function_call arguement from openAI: \n" + this.arguments);
-                return undefined;
-            }
-        }
+        return tryJsonToObj(this.arguments);
+    //    try {
+    //        var obj = JSON.parse(this.arguments);
+    //        return obj;
+    //    }
+    //    catch
+    //    {
+    //        try {
+    //            var jsonString = JSON.parse(`"${this.arguments}"`);
+    //            var obj = JSON.parse(jsonString);
+    //            return obj;
+    //        }
+    //        catch {
+    //            console.warn("unexpected error when converting function_call arguement from openAI: \n" + this.arguments);
+    //            return undefined;
+    //        }
+    //    }
     }
 
     public toReadableArgument() : string | undefined {

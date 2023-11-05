@@ -521,7 +521,7 @@ export abstract class ParamFieldBase {
             const foundKey = Object.keys(payload).find(key => key === f.fieldName);
             if (foundKey) {
                 f.applyAiPayload(payload[foundKey], output);
-                output.needMoreInput.push(...f.getPendingUserInputs(payload[foundKey]));
+                //output.needMoreInput.push(...f.getPendingUserInputs(payload[foundKey]));
             }
             else {
                 f.applyAiPayload(undefined, output);

@@ -1,4 +1,4 @@
-import { isStringNullOrEmpty } from "../../Utils/utils";
+import { isStringNullOrEmpty, tryJsonToObj } from "../../Utils/utils";
 import { AiObjectParamDesc } from "./FunctionParameter/AiObjectParamDesc";
 
 export class AiFunctionDefinition implements AutoRest.SdkExplorer.Interface.AiFunctionDefinition {
@@ -32,7 +32,7 @@ export class AiFunctionDefinition implements AutoRest.SdkExplorer.Interface.AiFu
         const r = {
             name: this.name,
             description: this.description,
-            parameters: isStringNullOrEmpty(this.parametersAsString) ? this.parametersAsString : JSON.parse(this.parametersAsString!)
+            parameters: isStringNullOrEmpty(this.parametersAsString) ? this.parametersAsString : tryJsonToObj(this.parametersAsString!)
         };
         return JSON.stringify(r, AiFunctionDefinition.replacerFunc, minify? undefined : "  ");
     }

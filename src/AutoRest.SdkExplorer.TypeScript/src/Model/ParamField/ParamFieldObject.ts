@@ -59,6 +59,7 @@ export class ParamFieldObject extends ParamFieldBase {
                 listToDoubleCheck.push(field);
             }
         })
+        const listToThridCheck: ParamFieldBase[] = [...listToDoubleCheck];
 
         listToDoubleCheck.forEach(field => {
             // consider flatten
@@ -71,20 +72,53 @@ export class ParamFieldObject extends ParamFieldBase {
                         let curPayload = payload;
                         for (let seg of arr) {
                             if (curPayload === undefined)
-                                return;
+                                break;
                             let curKey = Object.keys(curPayload).find(k => this.comparePropertyNameConsiderAI(k, seg));
                             if (curKey !== undefined)
                                 curPayload = curPayload[curKey];
-                            else
-                                return;
+                            else {
+                                curPayload = undefined;
+                                break;
+                            }
                         }
-                        field.applyAiPayload(curPayload, output);
-                        allFieldIgnored = false;
-                        payloadKeys.splice(foundKeyIndex, 1);
+                        if (curPayload !== undefined) {
+                            field.applyAiPayload(curPayload, output);
+                            allFieldIgnored = false;
+                            payloadKeys.splice(foundKeyIndex, 1);
+                            var indexToRemove = listToThridCheck.indexOf(field);
+                            if (indexToRemove >= 0)
+                                listToThridCheck.splice(indexToRemove, 1);
+                        }
+                    }
+                }
+            }
+        });
+
+        listToThridCheck.forEach(field => {
+            // consider only single segment used for flatten scenario, sometimes AI would return payload like that
+            let path = field.serializerPath;
+            if (path && path.length > 0) {
+                let arr = path.split("/");
+                if (arr.length > 1) {
+                    for (let seg of arr) {
+                        let foundKeyIndex = payloadKeys.findIndex(k => this.comparePropertyNameConsiderAI(k, seg));
+                        if (foundKeyIndex >= 0) {
+                            let foundKey = payloadKeys[foundKeyIndex];
+                            let foundValue = payload[foundKey];
+
+                            if (foundValue !== undefined) {
+                                field.applyAiPayload(foundValue, output);
+                                allFieldIgnored = false;
+                            }
+                            payloadKeys.splice(foundKeyIndex, 1);
+                            break;
+                        }
                     }
                 }
             }
         })
+
+
 
         //var keysNotFound: string[] = [];
         //var allFieldIgnored = true;
