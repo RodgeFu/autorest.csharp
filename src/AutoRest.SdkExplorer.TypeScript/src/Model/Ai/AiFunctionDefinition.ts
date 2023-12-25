@@ -31,7 +31,7 @@ export class AiFunctionDefinition implements AutoRest.SdkExplorer.Interface.AiFu
     public toJsonForOpenAi(minify: boolean = false) {
         const r = {
             name: this.name,
-            description: this.description,
+            description: this.description?.substring(0, 1000),
             parameters: isStringNullOrEmpty(this.parametersAsString) ? this.parametersAsString : tryJsonToObj(this.parametersAsString!)
         };
         return JSON.stringify(r, AiFunctionDefinition.replacerFunc, minify? undefined : "  ");

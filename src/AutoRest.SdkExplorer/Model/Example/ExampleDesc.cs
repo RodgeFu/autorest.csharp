@@ -21,10 +21,13 @@ namespace AutoRest.SdkExplorer.Model.Example
         public string? OperationName { get; set; }
         public string? SwaggerOperationId { get; set; }
         public string? SdkOperationId { get; set; }
+        public string? SdkFullUniqueName { get; set; }
 
         public string? ExampleName { get; set; }
         public string? OriginalFilePath { get; set; }
         public string? OriginalFileNameWithoutExtension { get; set; }
+
+        public string? AiDescription { get; set; }
 
         public string? EmbeddingText { get; set; }
         public string? EmbeddingVector { get; set; }

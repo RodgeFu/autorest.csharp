@@ -36,10 +36,17 @@ namespace AutoRest.SdkExplorer.Model.Code
         public string SwaggerOperationId { get; set; }
         public string SdkOperationId { get; set; }
         public string Description { get; set; }
+        public string ApiDescription { get; set; }
+        public string AiDescription { get; set; }
         public string FullUniqueName { get; set; }
+
+        public string EncodedFunctionName { get; set; }
 
         public string OperationNameWithParameters { get; set; }
         public string OperationNameWithScopeAndParameters { get; set; }
+
+        public string EmbeddingText { get; set; }
+        public string EmbeddingVector { get; set; }
 
         /// <summary>
         /// Include parameter in or not in propertybag;
@@ -59,7 +66,6 @@ namespace AutoRest.SdkExplorer.Model.Code
         public ApiDesc()
         {
         }
-
 
         public void AddCodeSegment(CodeSegmentDesc newSegment)
         {

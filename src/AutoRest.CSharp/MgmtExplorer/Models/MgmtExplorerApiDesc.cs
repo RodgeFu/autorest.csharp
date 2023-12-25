@@ -13,6 +13,7 @@ using AutoRest.CSharp.MgmtExplorer.Autorest;
 using AutoRest.CSharp.Output.Models;
 using AutoRest.CSharp.Utilities;
 using AutoRest.SdkExplorer.Model.Azure;
+using AutoRest.SdkExplorer.Utilities;
 using static AutoRest.SdkExplorer.Model.Code.ApiDesc;
 
 namespace AutoRest.CSharp.MgmtExplorer.Models
@@ -51,6 +52,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Models
         public string OperationNameWithScopeAndParameters => this.GetOperationNameWithScopeAndParameters(false /*includeNamespace*/);
         public AzureResourceType? OperationProviderAzureResourceType { get; set; }
         public string OperationProviderType { get; set; }
+
+        public string EncodedFunctionName => "sefunc_" + this.FullUniqueName.GetStableHashCode();
 
         public string RequestPath { get; set; }
         public string ApiVersion { get; set; }

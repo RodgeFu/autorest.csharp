@@ -37,6 +37,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 OperationProviderType = apiDesc.OperationProviderType,
                 RequestPath = apiDesc.RequestPath,
                 ApiVersion = apiDesc.ApiVersion,
+                EncodedFunctionName = apiDesc.EncodedFunctionName,
             };
             return r;
         }

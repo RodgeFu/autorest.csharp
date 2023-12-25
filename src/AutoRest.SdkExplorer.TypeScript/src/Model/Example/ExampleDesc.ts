@@ -12,11 +12,13 @@ export class ExampleDesc implements AutoRest.SdkExplorer.Interface.ExampleDesc {
     operationName: string;
     swaggerOperationId: string;
     sdkOperationId: string;
+    sdkFullUniqueName: string;
     exampleName: string;
     originalFilePath: string;
     originalFileNameWithoutExtension: string;
     embeddingText: string;
     embeddingVector: string;
+    aiDescription?: string;
 
     get exampleValues(): { [index: string]: ExampleValueDesc } | undefined {
         return getStringIndexArrayFromMap(this.exampleValuesMap);
@@ -35,11 +37,13 @@ export class ExampleDesc implements AutoRest.SdkExplorer.Interface.ExampleDesc {
         this.operationName = data.operationName!;
         this.swaggerOperationId = data.swaggerOperationId!;
         this.sdkOperationId = data.sdkOperationId!;
+        this.sdkFullUniqueName = data.sdkFullUniqueName!;
         this.exampleName = data.exampleName!;
         this.originalFilePath = data.originalFilePath!;
         this.originalFileNameWithoutExtension = data.originalFileNameWithoutExtension!;
         this.embeddingText = data.embeddingText!;
         this.embeddingVector = data.embeddingVector!;
+        this.aiDescription = data.aiDescription;
 
         this.exampleValuesMap = convertStringIndexdArrayToMap(data.exampleValues, (d, k) => new ExampleValueDesc(d, this, k));
     }
@@ -68,6 +72,7 @@ export class ExampleDesc implements AutoRest.SdkExplorer.Interface.ExampleDesc {
             originalFileNameWithoutExtension: this.originalFileNameWithoutExtension,
             embeddingText: this.embeddingText,
             embeddingVector: this.embeddingVector,
+            aiDescription: this.aiDescription,
             exampleValues: this.exampleValuesMap === undefined ? undefined : convertStringIndexArrayFromMap(this.exampleValuesMap, (v, k) => v.toPayload())
         };
         return r;

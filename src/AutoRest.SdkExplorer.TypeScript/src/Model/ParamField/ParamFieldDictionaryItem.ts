@@ -1,3 +1,5 @@
+import { MessageItem } from "../../Utils/messageItem";
+import { AiPayloadApplyOutput } from "../Ai/FunctionParameter/AiPayloadApplyOutput";
 import { TypeDesc } from "../Code/TypeDesc";
 import { CodeFormatter } from "../CodeGen/CodeFormatter";
 import { ExampleValueDesc } from "../Example/ExampleValueDesc";
@@ -10,6 +12,16 @@ export class ParamFieldDictionaryItem extends ParamFieldBase {
 
     public readonly keyType: TypeDesc;
     public readonly valueType: TypeDesc;
+
+    protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
+
+        if (payload["key"] === undefined || payload["key"] == null)
+            this.lastMessage = new MessageItem("'key' is missing", "error");
+        else {
+            this.valueAsDictionaryItem.key.applyAiPayload(payload["key"], output);
+            this.valueAsDictionaryItem.value.applyAiPayload(payload["value"], output);
+        }
+    }
 
     public override setExampleValue(value: ExampleValueDesc): void {
 

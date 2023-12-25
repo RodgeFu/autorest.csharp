@@ -1,4 +1,5 @@
 import { logError } from "../../Utils/logger";
+import { containsString, isStringEqualCaseInsensitive } from "../../Utils/utils";
 import { TypeDesc } from "../Code/TypeDesc";
 import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
@@ -93,9 +94,21 @@ export class ParamFieldObjectDiscriminator extends ParamFieldObject {
 
     public override get implType(): TypeDesc {
         let key = this.curDiscriminatorKey;
-        let found = this.type.schemaObject?.inheritBy?.find(v => v.schemaObject?.discriminatorKey === key);
+        let found = this.type.schemaObject?.inheritBy?.find(v => isStringEqualCaseInsensitive(v.schemaObject?.discriminatorKey, key));
         if (!found) {
-            console.error("failed to find implementation with key:" + key);
+            found = this.type.schemaObject?.inheritBy.find(v => containsString(v.schemaObject?.discriminatorKey ?? "", key, true));
+            if (found) {
+                console.warn(`failed to find implementation with exact key '${key}' but found '${found.schemaObject?.discriminatorKey}' contains it which will be used`);
+            }
+            else {
+                if (this.type.schemaObject && this.type.schemaObject.inheritBy.length > 0) {
+                    console.warn(`failed to find implementation with or contains key '${key}'. All available discriminator is '${this.type.schemaObject.inheritBy.map(t => t.schemaObject?.discriminatorKey).join(",")}'. Try to use the first one as discriminator key`);
+                    found = this.type.schemaObject.inheritBy[0];
+                }
+                else {
+                    console.error(`failed to find implementation with or contains key '${key}' for discriminator key`);
+                }
+            }
         }
         return found ?? this.type;
     }

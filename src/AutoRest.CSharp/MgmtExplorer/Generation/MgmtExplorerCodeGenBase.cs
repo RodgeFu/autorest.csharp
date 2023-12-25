@@ -74,6 +74,8 @@ namespace AutoRest.CSharp.MgmtExplorer.Generation
         {
             string desc = $"Code generated for {ApiDesc.OperationNameWithScopeAndParameters}";
             context.ExplorerCode.Description = desc;
+            context.ExplorerCode.ApiDescription = ApiDesc.RestOperation.Description ?? "";
+            context.ExplorerCode.AiDescription = "";
         }
 
         protected virtual void WriteStep_PrepareArmClient(MgmtExplorerCodeGenContext context)

@@ -1,5 +1,5 @@
 import { logError } from "../../Utils/logger";
-import { isStringNullOrEmpty } from "../../Utils/utils";
+import { generateRandomFunctionName, isStringNullOrEmpty } from "../../Utils/utils";
 import { AiParamDesc } from "../Ai/FunctionParameter/AiParamDesc";
 import { ApiDesc } from "../Code/ApiDesc";
 import { VariableDesc } from "../Code/VariableDesc";
@@ -22,7 +22,7 @@ import moment from "moment";
 export class CodeGenApiStep {
 
     constructor(public stepName: string, public apiDesc: ApiDesc, public comment: string = "", masterStep?: CodeGenApiStep, defaultFunctionReturnVarName?: string) {
-        this._aiFunctionName = `function_${(new Date()).getTime()}`;
+        this._aiFunctionName = apiDesc.encodedFunctionName ?? generateRandomFunctionName();
         this._masterStep = masterStep;
         this._relatedAzureResourceType = this.apiDesc.operationProviderAzureResourceType ? [this.apiDesc.operationProviderAzureResourceType] : [];
         this.resetFields();
@@ -243,11 +243,11 @@ export class CodeGenApiStep {
     private generateFullAiFunctionDefinition(): AiFunctionDefinition {
         const fields = this.generateFields();
         fields.forEach(p => p.resetToSampleDefault());
-        return ParamFieldBase.generateAiFunctionDefinition(this.aiFunctionName, `definition to trigger Azure SDK function ${this.aiFunctionName}`, fields);
+        return ParamFieldBase.generateAiFunctionDefinition(this.aiFunctionName, `definition to trigger Azure SDK function ${this.aiFunctionName}. In more detail, ${this.apiDesc.apiDescription}.`, fields);
     }
 
     public generateAiFunctionDefinition(): AiFunctionDefinition {
-        return ParamFieldBase.generateAiFunctionDefinition(this.aiFunctionName, `definition to trigger Azure SDK function ${this.aiFunctionName}`, this.paramFields);
+        return ParamFieldBase.generateAiFunctionDefinition(this.aiFunctionName, `definition to trigger Azure SDK function ${this.aiFunctionName}. In more detail, ${this.apiDesc.apiDescription}.`, this.paramFields);
     }
 
     public toAiPayloadAsJson(minify: boolean = false): string {
@@ -273,6 +273,7 @@ export class CodeGenApiStep {
             resourceName: this.masterStep.apiDesc.resourceName,
             serviceName: this.masterStep.apiDesc.serviceName,
             sdkOperationId: this.masterStep.apiDesc.sdkOperationId,
+            sdkFullUniqueName: this.masterStep.apiDesc.fullUniqueName,
             sdkPackageName: this.masterStep.apiDesc.sdkPackageName,
             sdkPackageVersion: this.masterStep.apiDesc.sdkPackageVersion,
             swaggerOperationId: this.masterStep.apiDesc.swaggerOperationId,

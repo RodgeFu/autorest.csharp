@@ -6,8 +6,8 @@ export class SchemaEnumValue implements AutoRest.SdkExplorer.Interface.SchemaEnu
     description: string;
 
     constructor(data: AutoRest.SdkExplorer.Interface.SchemaEnumValue) {
-        this.value = data.value!;
-        this.internalValue = data.internalValue;
+        this.value = data.value?.toString()!;
+        this.internalValue = data.internalValue?.toString();
         this.description = data.description ?? "";
     }
 }

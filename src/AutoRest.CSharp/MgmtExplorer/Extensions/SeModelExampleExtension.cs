@@ -29,6 +29,7 @@ namespace AutoRest.CSharp.MgmtExplorer.Extensions
                 OperationName = operationDesc.OperationName,
                 SwaggerOperationId = operationDesc.SwaggerOperationId,
                 SdkOperationId = operationDesc.SdkOperationId,
+                SdkFullUniqueName = operationDesc.FullUniqueName,
                 ExampleName = em.Name,
                 OriginalFilePath = em.OriginalFile,
                 OriginalFileNameWithoutExtension = Path.GetFileNameWithoutExtension(em.OriginalFile),

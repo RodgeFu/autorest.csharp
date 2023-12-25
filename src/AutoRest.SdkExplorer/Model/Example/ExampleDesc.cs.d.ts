@@ -10,9 +10,11 @@ declare module AutoRest.SdkExplorer.Interface {
 		operationName?: string;
 		swaggerOperationId?: string;
 		sdkOperationId?: string;
+		sdkFullUniqueName?: string;
 		exampleName?: string;
 		originalFilePath?: string;
 		originalFileNameWithoutExtension?: string;
+		aiDescription?: string;
 		embeddingText?: string;
 		embeddingVector?: string;
 		exampleValues?: { [index: string]: AutoRest.SdkExplorer.Interface.ExampleValueDesc };

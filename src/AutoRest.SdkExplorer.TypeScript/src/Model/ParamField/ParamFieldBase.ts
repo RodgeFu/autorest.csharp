@@ -216,7 +216,7 @@ export abstract class ParamFieldBase {
     }
 
     public setExampleValue(value: ExampleValueDesc): void {
-        this.valueAsString = value.rawValue;
+        this.valueAsString = value.rawValue?.toString();
     }
 
     public relatedExamples: ExampleValueDesc[] = [];
@@ -536,14 +536,17 @@ export abstract class ParamFieldBase {
 
     public static generateAiPayload(fields: ParamFieldBase[]): { [index: string]: any } {
         const dict: { [index: string]: any } = {};
-        fields.forEach(p => dict[p.fieldName] = p.generateAiPayload());
+        const isIgnore: (field: ParamFieldBase) => boolean = f => ["cancellationtoken", "waituntil"].includes(f.fieldType)
+        fields.filter(f => !isIgnore(f)).forEach(p => dict[p.fieldName] = p.generateAiPayload());
         return dict;
     }
 
     public static generateAiFunctionDefinition(functionName: string, functionDescription: string, fields: ParamFieldBase[]) {
         const dict: { [index: string]: AiParamDesc } = {};
         const required: string[] = [];
-        fields.forEach(p => {
+        const isIgnore: (field: ParamFieldBase) => boolean = f => ["cancellationtoken", "waituntil"].includes(f.fieldType)
+
+        fields.filter(f => !isIgnore(f)).forEach(p => {
             dict[p.fieldName] = p.generateAiParamDesc();
             required.push(p.fieldName);
         });

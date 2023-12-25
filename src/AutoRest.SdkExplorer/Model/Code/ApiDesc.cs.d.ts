@@ -14,9 +14,14 @@ declare module AutoRest.SdkExplorer.Interface {
 		swaggerOperationId?: string;
 		sdkOperationId?: string;
 		description?: string;
+		apiDescription?: string;
+		aiDescription?: string;
 		fullUniqueName?: string;
+		encodedFunctionName?: string;
 		operationNameWithParameters?: string;
 		operationNameWithScopeAndParameters?: string;
+		embeddingText?: string;
+		embeddingVector?: string;
 		/** Include parameter in or not in propertybag; */
 		operationMethodParameters?: AutoRest.SdkExplorer.Interface.ParameterDesc[];
 		codeSegments?: AutoRest.SdkExplorer.Interface.CodeSegmentDesc[];

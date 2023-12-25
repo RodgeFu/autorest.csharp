@@ -18,7 +18,10 @@ export class ApiDesc implements AutoRest.SdkExplorer.Interface.ApiDesc {
     swaggerOperationId!: string;
     sdkOperationId!: string;
     description!: string;
+    apiDescription!: string;
+    aiDescription!: string;
     fullUniqueName!: string;
+    encodedFunctionName!: string;
     operationNameWithParameters!: string;
     operationNameWithScopeAndParameters!: string;
     operationProviderAzureResourceType?: AzureResourceType;
@@ -28,6 +31,9 @@ export class ApiDesc implements AutoRest.SdkExplorer.Interface.ApiDesc {
     operationMethodParameters: ParameterDesc[] = [];
     codeSegments: CodeSegmentDesc[] = [];
     schemaStore?: SchemaStore;
+    embeddingText?: string;
+    embeddingVector?: string;
+
 
     private _examples: ExampleDesc[] = [];
     get exampleInitialized(): boolean { return this._examples.length > 0; }
@@ -53,7 +59,10 @@ export class ApiDesc implements AutoRest.SdkExplorer.Interface.ApiDesc {
         this.swaggerOperationId = data.swaggerOperationId!;
         this.sdkOperationId = data.sdkOperationId!;
         this.description = data.description!;
+        this.apiDescription = data.apiDescription ?? "";
+        this.aiDescription = data.aiDescription ?? "";
         this.fullUniqueName = data.fullUniqueName!;
+        this.encodedFunctionName = data.encodedFunctionName!;
         this.operationNameWithParameters = data.operationNameWithParameters!;
         this.operationNameWithScopeAndParameters = data.operationNameWithScopeAndParameters!;
         this.operationProviderAzureResourceType = data.operationProviderAzureResourceType ? new AzureResourceType(data.operationProviderAzureResourceType) : undefined;
@@ -63,6 +72,8 @@ export class ApiDesc implements AutoRest.SdkExplorer.Interface.ApiDesc {
         this.operationMethodParameters = data.operationMethodParameters?.map(d => new ParameterDesc(d)) ?? [];
         this.codeSegments = data.codeSegments?.map(d => new CodeSegmentDesc(d)) ?? [];
         this.schemaStore = data.schemaStore ? new SchemaStore(data.schemaStore) : undefined;
+        this.embeddingText = data.embeddingText;
+        this.embeddingVector = data.embeddingVector;
         this.loadSchema();
     }
 

@@ -9,7 +9,9 @@ export class ParamFieldBool extends ParamFieldBase {
         if (v === undefined)
             this.value = v;
         else
+        {
             this.value = v.toLowerCase() === "true" ? true : false;
+        }
     }
 
     public get valueAsString(): string | undefined {

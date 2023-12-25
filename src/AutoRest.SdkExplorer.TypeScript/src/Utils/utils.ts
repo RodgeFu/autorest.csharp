@@ -179,6 +179,10 @@ export function distinctArray(arr: any[]) {
     return arr.filter((value, index, array) => array.indexOf(value) === index);
 }
 
+export function generateRandomFunctionName(prefix: string = 'function'): string {
+    return `${prefix}_${(new Date()).getTime()}`;
+}
+
 export const DATE_FORMAT: string = "YYYY-MM-DDTHH:mm:ss.SSS";
 export const TIME_FORMAT: string = "HH:mm:ss.SSS";
 export const ONE_INDENT: string = "    ";

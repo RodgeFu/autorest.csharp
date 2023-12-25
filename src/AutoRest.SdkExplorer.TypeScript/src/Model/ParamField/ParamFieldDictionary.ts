@@ -1,3 +1,4 @@
+import { isObject } from "underscore";
 import { ONE_INDENT, isStringNullOrEmpty } from "../../Utils/utils";
 import { AiDictParamDesc } from "../Ai/FunctionParameter/AiDictParamDesc";
 import { AiObjectParamDesc } from "../Ai/FunctionParameter/AiObjectParamDesc";
@@ -10,6 +11,7 @@ import { ExampleValueDesc } from "../Example/ExampleValueDesc";
 import { ParamFieldBase, ParamFieldExtraConstructorParameters } from "./ParamFieldBase";
 import { ParamFieldDictionaryItem } from "./ParamFieldDictionaryItem";
 import { ParamFieldFactory, ParamFieldType } from "./ParamFieldFactory";
+import { MessageItem } from "../../Utils/messageItem";
 
 export class ParamFieldDictionary extends ParamFieldBase {
 
@@ -145,17 +147,21 @@ export class ParamFieldDictionary extends ParamFieldBase {
     }
 
     protected override applyAiPayloadInternal(payload: any, output: AiPayloadApplyOutput) {
-        let arr: ParamFieldDictionaryItem[] = [];
-        let index: number = 0;
-        Object.keys(payload).forEach((key) => {
-            const value = payload[key];
-            let itemName = this.generateItemName(index++);
-            let r: ParamFieldBase = ParamFieldFactory.createParamField(itemName, TypeDesc.getDictionaryItemType(this.type), this,
-                { isReadonly: false, isRequired: false, serializerPath: itemName, parameterOwner: this.parameterOwner, idPrefix: this.idPrefix });
-            r.applyAiPayload(value, output);
-            arr.push(r as ParamFieldDictionaryItem);
-        });
-        this.valueAsDictionaryItemArray = arr;
+        if (Array.isArray(payload)) {
+            let arr: ParamFieldDictionaryItem[] = [];
+            let index: number = 0;
+            payload.forEach(value => {
+                let itemName = this.generateItemName(index++);
+                let r: ParamFieldBase = ParamFieldFactory.createParamField(itemName, TypeDesc.getDictionaryItemType(this.type), this,
+                    { isReadonly: false, isRequired: false, serializerPath: itemName, parameterOwner: this.parameterOwner, idPrefix: this.idPrefix });
+                r.applyAiPayload(value, output);
+                arr.push(r as ParamFieldDictionaryItem);
+            });
+            this.valueAsDictionaryItemArray = arr;
+        }
+        else {
+            this.lastMessage = new MessageItem("Unexpected value for Dictionary, array of Dictionary Item is expected", "error");
+        }
     }
 
     public override generateAiPayloadInternal(): any {
