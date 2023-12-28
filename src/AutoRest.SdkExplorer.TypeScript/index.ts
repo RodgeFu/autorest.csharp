@@ -23,10 +23,13 @@
 /// <reference path="../AutoRest.SdkExplorer/Model/Code/PlaceHolderDesc.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/Code/VariableDesc.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/Code/ApiDesc.cs.d.ts" />
+/// <reference path="../AutoRest.SdkExplorer/Model/Code/ApiObjectPath.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiChatMessage.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiFunctionDefinition.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiFunctionCall.cs.d.ts" />
 /// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiChatSession.cs.d.ts" />
+/// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiChatContext.cs.d.ts" />
+/// <reference path="../AutoRest.SdkExplorer/Model/OpenAi/AiChatResult.cs.d.ts" />
 
 export * from "./src/Model/Azure/AzureResource"
 export * from "./src/Model/Azure/AzureResourceGroup"
@@ -45,6 +48,7 @@ export * from "./src/Model/Schema/SchemaObject"
 export * from "./src/Model/Schema/SchemaProperty"
 export * from "./src/Model/Schema/SchemaStore"
 export * from "./src/Model/Code/ApiDesc"
+export * from "./src/Model/Code/ApiObjectPath"
 export * from "./src/Model/Code/CodeSegmentDesc"
 export * from "./src/Model/Code/FunctionDesc"
 export * from "./src/Model/Code/ParameterDesc"
@@ -85,6 +89,8 @@ export * from "./src/Model/Ai/AiChatMessage";
 export * from "./src/Model/Ai/AiFunctionDefinition";
 export * from "./src/Model/Ai/AiFunctionCall";
 export * from "./src/Model/Ai/AiChatSession";
+export * from "./src/Model/Ai/AiChatContext";
+export * from "./src/Model/Ai/AiChatResult";
 export * from "./src/Utils/utils"
 export * from "./src/Utils/logger"
 export * from "./src/Utils/EventSlim"

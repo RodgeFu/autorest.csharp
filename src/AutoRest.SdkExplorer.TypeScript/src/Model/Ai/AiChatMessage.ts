@@ -17,6 +17,10 @@ export class AiChatMessage implements AutoRest.SdkExplorer.Interface.AiChatMessa
             this.function_call = new AiFunctionCall(data.function_call);
     }
 
+    public getAiPayloadApiName() : string | undefined {
+        return this.function_call?.name;
+    }
+
     public getAiPayload(checkJsonInContent: boolean = false): any {
         const argObj = this.function_call?.argumentsAsObject;
         if (argObj)

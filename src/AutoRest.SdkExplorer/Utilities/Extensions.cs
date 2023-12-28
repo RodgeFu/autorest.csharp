@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using YamlDotNet.Serialization;
@@ -43,6 +45,18 @@ namespace AutoRest.SdkExplorer.Utilities
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             });
+        }
+
+        public static string EncodeToBase64String(this string str)
+        {
+            var bytes = Encoding.UTF8.GetBytes(str);
+            return Convert.ToBase64String(bytes);
+        }
+
+        public static string DecodeFromBase64String(this string base64Str)
+        {
+            var bytes = Convert.FromBase64String(base64Str);
+            return Encoding.UTF8.GetString(bytes);
         }
 
         public static uint GetStableHashCode(this string str)

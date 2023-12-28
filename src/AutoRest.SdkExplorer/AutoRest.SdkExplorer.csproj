@@ -43,6 +43,10 @@
       <Generator>DtsGenerator</Generator>
       <LastGenOutput>ApiDesc.cs.d.ts</LastGenOutput>
     </Compile>
+    <Compile Update="Model\Code\ApiObjectPath.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>ApiObjectPath.cs.d.ts</LastGenOutput>
+    </Compile>
     <Compile Update="Model\Code\CodeSegmentDesc.cs">
       <Generator>DtsGenerator</Generator>
       <LastGenOutput>CodeSegmentDesc.cs.d.ts</LastGenOutput>
@@ -87,9 +91,17 @@
       <Generator>DtsGenerator</Generator>
       <LastGenOutput>FieldHint.cs.d.ts</LastGenOutput>
     </Compile>
+    <Compile Update="Model\OpenAi\AiChatContext.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AiChatContext.cs.d.ts</LastGenOutput>
+    </Compile>
     <Compile Update="Model\OpenAi\AiChatMessage.cs">
       <Generator>DtsGenerator</Generator>
       <LastGenOutput>AiChatMessage.cs.d.ts</LastGenOutput>
+    </Compile>
+    <Compile Update="Model\OpenAi\AiChatResult.cs">
+      <Generator>DtsGenerator</Generator>
+      <LastGenOutput>AiChatResult.cs.d.ts</LastGenOutput>
     </Compile>
     <Compile Update="Model\OpenAi\AiChatSession.cs">
       <Generator>DtsGenerator</Generator>
@@ -182,6 +194,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>ApiDesc.cs</DependentUpon>
     </None>
+    <None Update="Model\Code\ApiObjectPath.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ApiObjectPath.cs</DependentUpon>
+    </None>
     <None Update="Model\Code\CodeSegmentDesc.cs.d.ts">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -237,10 +254,20 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FieldHint.cs</DependentUpon>
     </None>
+    <None Update="Model\OpenAi\AiChatContext.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AiChatContext.cs</DependentUpon>
+    </None>
     <None Update="Model\OpenAi\AiChatMessage.cs.d.ts">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AiChatMessage.cs</DependentUpon>
+    </None>
+    <None Update="Model\OpenAi\AiChatResult.cs.d.ts">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AiChatResult.cs</DependentUpon>
     </None>
     <None Update="Model\OpenAi\AiChatSession.cs.d.ts">
       <DesignTime>True</DesignTime>
