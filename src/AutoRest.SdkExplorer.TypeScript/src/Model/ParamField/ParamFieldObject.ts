@@ -255,12 +255,11 @@ export class ParamFieldObject extends ParamFieldBase {
         return this.implType.fullNameWithNamespace;
     }
 
-    protected getValueForCodeInternal(indent: string, formatter: CodeFormatter): string {
+    public getCreateMethodName(): string {
         if (!this.implType.schemaObject?.defaultCreateMethod) {
             console.error("No method found to create the object: " + this.implType.fullNameWithNamespace);
             return "";
         }
-
         let methodName = this.implType.getFullNameWithNamespace(true /*includ global::*/, false /*include ending ?*/);
         if (this.implType.schemaObject.isDefaultCreateMethodStatic) {
             methodName += "." + this.implType.schemaObject.defaultCreateMethod.name;
@@ -268,6 +267,16 @@ export class ParamFieldObject extends ParamFieldBase {
         else {
             methodName = "new " + methodName;
         }
+        return methodName!;
+    }
+
+    protected getValueForCodeInternal(indent: string, formatter: CodeFormatter): string {
+        if (!this.implType.schemaObject?.defaultCreateMethod) {
+            console.error("No method found to create the object: " + this.implType.fullNameWithNamespace);
+            return "";
+        }
+
+        let methodName = this.getCreateMethodName();
         if (this.valueAsProperties === undefined)
             return "null";
         else if (this.valueAsProperties.length == 0)

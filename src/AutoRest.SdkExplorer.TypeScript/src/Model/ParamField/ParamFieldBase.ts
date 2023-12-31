@@ -298,7 +298,7 @@ export abstract class ParamFieldBase {
         else
             r = this.getValueForCodeInternal(indent, formatter);
 
-        if (formatter && formatter.formatParamFieldCode) {
+        if (formatter) {
             r = formatter.formatParamFieldCode(r, this);
         }
 

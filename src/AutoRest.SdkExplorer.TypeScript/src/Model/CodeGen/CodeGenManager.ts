@@ -67,6 +67,12 @@ export class CodeGenManager {
         return true;
     }
 
+    public GetNameSpaceManager(): NamespaceManager {
+        let allNamespaces = new NamespaceManager();
+        allNamespaces.pushNamespaceArray(this.steps.flatMap(os => os.generateNamespaces().namespaces));
+        return allNamespaces;
+    }
+
     public generateCode(simplifyNamespace: boolean, formatter: CodeFormatter): string {
         if (!this.isReadyForGeneration())
             return "";
@@ -82,20 +88,14 @@ export class CodeGenManager {
         if (codePart === "")
             return "";
 
-        let allNamespaces = new NamespaceManager();
-        allNamespaces.pushNamespaceArray(this.steps.flatMap(os => os.generateNamespaces().namespaces));
+        let allNamespaces = this.GetNameSpaceManager();
 
         let namespacePart = allNamespaces.toCode();
 
         let r = namespacePart + '\n\n' + codePart;
 
         if (simplifyNamespace) {
-            allNamespaces.namespaces.map(v => v).reverse().forEach((ns) => {
-                let nsForReg = ns.replaceAll(".", "\\.");
-                // namespace.type
-                let regex = new RegExp(`([^>])(global::${nsForReg})\\.([a-zA-Z0-9_]+)`, "g");
-                r = r.replace(regex, `$1$3`);
-            });
+            r = allNamespaces.simplifyNamespace(r);
         }
 
         // current SDK CodeGen disabled nullable check, remove this after nullable check is supported in sdk codegen
