@@ -1,5 +1,5 @@
 import { EventSlim } from "../../Utils/EventSlim";
-import { isStringEqualCaseInsensitive } from "../../Utils/utils";
+import { isStringEqualCaseInsensitive, isStringNullOrEmpty } from "../../Utils/utils";
 import { ApiDesc } from "../Code/ApiDesc";
 import { CodeFormatter } from "./CodeFormatter";
 import { CodeGenApiStep } from "./CodeGenApiStep";
@@ -73,7 +73,34 @@ export class CodeGenManager {
         return allNamespaces;
     }
 
-    public generateCode(simplifyNamespace: boolean, formatter: CodeFormatter): string {
+    // not include namespace for now
+    public generateSimpleCode(formatter: CodeFormatter, comment?: string) : string {
+        if (!this.isReadyForGeneration())
+            return "";
+        let codePart = "";
+        const scope = new CodeGenScope("global");
+        if (!this.hasPreSteps) {
+            codePart = this.masterStep.generatePlainCode(scope, formatter);
+        }
+        else {
+            codePart = this.generateCodeWithPreSteps(scope, formatter);
+        }
+
+        if (codePart === "")
+            return "";
+
+        let allNamespaces = this.GetNameSpaceManager();
+
+        let r = "";
+        if (!isStringNullOrEmpty(comment))
+            r += `/*\n${comment?.trim()}\n*/\n`;
+        r += codePart;
+        r = allNamespaces.simplifyNamespace(r);
+
+        return r;
+    }
+
+    public generateCode(simplifyNamespace: boolean, formatter: CodeFormatter, comment?: string): string {
         if (!this.isReadyForGeneration())
             return "";
         let codePart = "";
@@ -92,7 +119,10 @@ export class CodeGenManager {
 
         let namespacePart = allNamespaces.toCode();
 
-        let r = namespacePart + '\n\n' + codePart;
+        let r = namespacePart + '\n\n';
+        if (!isStringNullOrEmpty(comment))
+            r += `/*\n${comment?.trim()}\n*/\n`;
+        r += codePart
 
         if (simplifyNamespace) {
             r = allNamespaces.simplifyNamespace(r);

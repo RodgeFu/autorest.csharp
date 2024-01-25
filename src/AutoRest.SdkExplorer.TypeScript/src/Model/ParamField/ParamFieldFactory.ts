@@ -53,7 +53,7 @@ export class ParamFieldFactory {
             else if (['boolean', 'bool'].includes(typeName)) {
                 return new ParamFieldBool(fieldName, "bool", type, parent, params);
             }
-            else if (["binary", "binarydata", "bytearray"].includes(typeName) || type.isBinaryData) {
+            else if (["binary", "binarydata", "bytearray", "byte[]"].includes(typeName) || type.isBinaryData) {
                 return new ParamFieldBinary(fieldName, "binary", type, parent, params);
             }
             else if (["date", "datetime", "datetimeoffset"].includes(typeName)) {

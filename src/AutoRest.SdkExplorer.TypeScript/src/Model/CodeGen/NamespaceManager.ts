@@ -45,8 +45,8 @@ export class NamespaceManager {
         this.namespaces.map(v => v).reverse().forEach((ns) => {
             let nsForReg = ns.replaceAll(".", "\\.");
             // namespace.type
-            let regex = new RegExp(`([^>])(global::${nsForReg})\\.([a-zA-Z0-9_]+)`, "g");
-            code = code.replace(regex, `$1$3`);
+            let regex = new RegExp(`(?<!>)(global::${nsForReg})\\.([a-zA-Z0-9_]+)`, "g");
+            code = code.replace(regex, `$2`);
         });
         return code;
     }

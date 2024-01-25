@@ -200,8 +200,8 @@ export class CodeGenApiStep {
         });
     }
 
-    public applyExample(example: ExampleDesc) {
-        ParamFieldBase.applyExample(example, this.paramFields);
+    public applyExample(example: ExampleDesc, subscriptionId? : string, resourceGroupName?: string) {
+        ParamFieldBase.applyExample(example, this.paramFields, subscriptionId, resourceGroupName);
     }
 
     public generateAiChatSession(systemMessage: string): AiChatSession | undefined {
